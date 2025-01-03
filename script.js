@@ -584,3 +584,54 @@ function startSystem() {
         delay += 500;
     });
 }
+
+// Add custom resize functionality for touch devices
+document.addEventListener('DOMContentLoaded', function() {
+    const explorer = document.getElementById('explorer');
+    const resizeHandle = document.querySelector('.explorer::after');
+    
+    let startHeight, startWidth, startX, startY;
+    
+    function initResize(e) {
+        e.preventDefault();
+        const touch = e.touches[0];
+        startX = touch.clientX;
+        startY = touch.clientY;
+        startHeight = explorer.offsetHeight;
+        startWidth = explorer.offsetWidth;
+        
+        document.addEventListener('touchmove', resizeMove);
+        document.addEventListener('touchend', stopResize);
+    }
+    
+    function resizeMove(e) {
+        const touch = e.touches[0];
+        const deltaX = touch.clientX - startX;
+        const deltaY = touch.clientY - startY;
+        
+        const newWidth = Math.max(300, startWidth + deltaX);
+        const newHeight = Math.max(200, startHeight + deltaY);
+        
+        explorer.style.width = `${newWidth}px`;
+        explorer.style.height = `${newHeight}px`;
+    }
+    
+    function stopResize() {
+        document.removeEventListener('touchmove', resizeMove);
+        document.removeEventListener('touchend', stopResize);
+    }
+    
+    // Add touch event listeners for the resize handle
+    explorer.addEventListener('touchstart', function(e) {
+        const touch = e.touches[0];
+        const rect = explorer.getBoundingClientRect();
+        const isInResizeArea = (
+            touch.clientX >= rect.right - 44 && 
+            touch.clientY >= rect.bottom - 44
+        );
+        
+        if (isInResizeArea) {
+            initResize(e);
+        }
+    });
+});

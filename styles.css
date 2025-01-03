@@ -898,3 +898,34 @@ body, html {
 }
 
 /* ...rest of existing code... */
+
+/* ...existing code... */
+
+.explorer-header button, .player-header button {
+    min-width: 44px;
+    min-height: 44px;
+    font-size: 20px;
+    padding: 10px;
+    background: rgba(0, 255, 255, 0.1);
+    border-radius: 4px;
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    touch-action: manipulation;
+}
+
+@media (pointer: coarse) {
+    .explorer {
+        resize: none; /* Disable default resize for touch devices */
+    }
+    
+    .explorer::after {
+        width: 44px;
+        height: 44px;
+        bottom: 0;
+        right: 0;
+        position: absolute;
+        background: linear-gradient(135deg, transparent 50%, rgba(0, 255, 255, 0.5) 50%);
+        z-index: 100;
+    }
+}
+
+/* ...existing code... */

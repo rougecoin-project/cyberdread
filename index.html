@@ -97,9 +97,9 @@
         
         <!-- Find the explorer div and add resizable attribute -->
         <div id="explorer" class="explorer" style="resize: both; overflow: auto;">
-            <div class="explorer-header" onmousedown="dragElement(event)" style="cursor: move;">
+            <div class="explorer-header" onmousedown="dragElement(event)" ontouchstart="dragElement(event)" style="cursor: move;">
                 <span>Explorer</span>
-                <button onclick="closeExplorer()">X</button>
+                <button onclick="closeExplorer()" ontouchend="closeExplorer()">✕</button>
             </div>
             <div class="explorer-content">
                 <div class="folder-container">
@@ -204,9 +204,9 @@
 
         <!-- Add music player -->
         <div id="musicPlayer" class="music-player" style="display: none;">
-            <div class="player-header" style="cursor: move;" onmousedown="dragElement(event)">
+            <div class="player-header" style="cursor: move;" onmousedown="dragElement(event)" ontouchstart="dragElement(event)">
                 <span>CyberDread Playlist</span>
-                <button onclick="toggleMusicPlayer()">×</button>
+                <button onclick="toggleMusicPlayer()" ontouchend="toggleMusicPlayer()">✕</button>
             </div>
             <div class="player-body">
                 <div class="visualization">
