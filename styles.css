@@ -202,6 +202,7 @@ body, html {
     border: 2px solid transparent;
     background: linear-gradient(rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.9)) padding-box,
                 linear-gradient(45deg, #00ffff, transparent) border-box;
+    touch-action: none; /* Prevent default touch behaviors */
 }
 .explorer-header {
     display: flex;
@@ -622,15 +623,20 @@ body, html {
     position: absolute;
     bottom: 0;
     right: 0;
-    width: 15px;
-    height: 15px;
+    width: 30px; /* Larger touch target */
+    height: 30px; /* Larger touch target */
     cursor: nw-resize;
     background: linear-gradient(135deg, transparent 50%, #00ffff 50%);
     opacity: 0.5;
+    touch-action: none;
 }
 
-.explorer:hover::after {
-    opacity: 1;
+/* Add touch-specific resize handle */
+@media (pointer: coarse) {
+    .explorer::after {
+        width: 40px; /* Even larger for touch devices */
+        height: 40px;
+    }
 }
 
 .image-grid {

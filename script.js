@@ -56,36 +56,58 @@ function closeExplorer() {
 }
 
 function dragElement(event) {
-    event.preventDefault();
     const target = event.target.closest('.explorer, .music-player');
     if (!target) return;
 
-    let shiftX = event.clientX - target.getBoundingClientRect().left;
-    let shiftY = event.clientY - target.getBoundingClientRect().top;
+    let pos = { x: 0, y: 0 };
+    let startPos = { x: 0, y: 0 };
 
-    function moveAt(pageX, pageY) {
-        target.style.left = pageX - shiftX + 'px';
-        target.style.top = pageY - shiftY + 'px';
+    if (event.type === 'mousedown') {
+        event.preventDefault();
+        startPos.x = event.clientX;
+        startPos.y = event.clientY;
+        document.addEventListener('mousemove', moveHandler);
+        document.addEventListener('mouseup', stopHandler);
+    } else if (event.type === 'touchstart') {
+        event.preventDefault();
+        startPos.x = event.touches[0].clientX;
+        startPos.y = event.touches[0].clientY;
+        document.addEventListener('touchmove', moveHandler);
+        document.addEventListener('touchend', stopHandler);
     }
 
-    function onMouseMove(event) {
-        moveAt(event.pageX, event.pageY);
+    function moveHandler(e) {
+        if (e.type === 'mousemove') {
+            pos.x = startPos.x - e.clientX;
+            pos.y = startPos.y - e.clientY;
+            startPos.x = e.clientX;
+            startPos.y = e.clientY;
+        } else {
+            pos.x = startPos.x - e.touches[0].clientX;
+            pos.y = startPos.y - e.touches[0].clientY;
+            startPos.x = e.touches[0].clientX;
+            startPos.y = e.touches[0].clientY;
+        }
+
+        target.style.top = (target.offsetTop - pos.y) + "px";
+        target.style.left = (target.offsetLeft - pos.x) + "px";
     }
 
-    document.addEventListener('mousemove', onMouseMove);
-
-    document.addEventListener('mouseup', function onMouseUp() {
-        document.removeEventListener('mousemove', onMouseMove);
-        document.removeEventListener('mouseup', onMouseUp);
-    });
+    function stopHandler() {
+        document.removeEventListener('mousemove', moveHandler);
+        document.removeEventListener('mouseup', stopHandler);
+        document.removeEventListener('touchmove', moveHandler);
+        document.removeEventListener('touchend', stopHandler);
+    }
 }
 
-// Attach drag functionality to player header
+// Add touch event listeners
 document.addEventListener('DOMContentLoaded', function() {
-    const playerHeader = document.querySelector('.player-header');
-    if (playerHeader) {
-        playerHeader.addEventListener('mousedown', dragElement);
-    }
+    const draggableElements = document.querySelectorAll('.explorer-header, .player-header');
+    draggableElements.forEach(el => {
+        el.addEventListener('touchstart', dragElement);
+        el.addEventListener('mousedown', dragElement);
+    });
 });
 
 // Folder content functions
