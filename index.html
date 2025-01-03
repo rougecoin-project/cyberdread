@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desktop Interface</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Update audio elements with relative paths and preload -->
+    <audio id="startupSound" src="assets/sounds/startup.wav" preload="auto"></audio>
+    <audio id="clickSound" src="assets/sounds/click.wav" preload="auto" oncanplaythrough="console.log('Click sound ready')"></audio>
+    <audio id="openSound" src="assets/sounds/open.wav" preload="auto"></audio>
+    <audio id="closeSound" src="assets/sounds/close.wav" preload="auto"></audio>
+    <audio id="errorSound" src="assets/sounds/error.wav" preload="auto"></audio>
+    <audio id="shutdownSound" src="assets/sounds/shutdown.mp3" preload="auto"></audio>
+    <audio id="messageSound" src="assets/sounds/message.mp3" preload="auto"></audio>
+    <audio id="loadingSound" src="assets/sounds/loading.wav" preload="auto"></audio>
+
+    <!-- Add power-up screen before desktop div -->
+    <div id="powerUpScreen" class="power-up-screen">
+        <div class="power-up-content">
+            <p>INITIALIZING {Dread_OS}...</p>
+            <div class="loading-bar"></div>
+            <p class="bios-text">BIOS Version 1.0.18<br>
+            System Check: OK<br>
+            Memory Test: PASSED<br>
+            Loading Core Systems...</p>
+            <button id="startButton" onclick="startSystem()">Start System</button>
+        </div>
+    </div>
+
+    <div class="desktop">
+        <div class="taskbar">
+            <div class="start-menu" onclick="toggleStartMenu()">Start</div>
+            <div class="start-menu-dropdown" id="startMenu">
+                <!-- Add music controls section -->
+                <div class="start-menu-section">
+                    <div class="start-menu-music">
+                        <img src="/cyberdread/assets/img/music-icon.png" alt="Music">
+                        <div class="music-controls">
+                            <button onclick="previousTrack()">⏮</button>
+                            <button onclick="togglePlay()" id="playPauseBtn">▶</button>
+                            <button onclick="nextTrack()">⏭</button>
+                        </div>
+                        <div class="music-info">
+                            <marquee id="startMenuSongTitle">No track playing</marquee>
+                        </div>
+                    </div>
+                </div>
+                <div class="start-menu-divider"></div>
+                <div class="start-menu-item" onclick="openExplorer()">
+                    <img src="/cyberdread/assets/img/folder-icon.png" alt="Files">
+                    Files
+                </div>
+                <div class="start-menu-item" onclick="showAccessModal()">
+                    <img src="/cyberdread/assets/img/file-icon.png" alt="Files">
+                    access.exe
+                </div>
+                <div class="start-menu-item">
+                    <img src="/cyberdread/assets/img/settings-icon.png" alt="Settings">
+                    Settings
+                </div>
+                <div class="start-menu-item" onclick="showShutdownModal()">
+                    <img src="/cyberdread/assets/img/power-icon.png" alt="Power">
+                    Power
+                </div>
+            </div>
+            <div class="os-name">{Dread_OS}</div>
+            <div class="taskbar-right">
+                <div id="clock"></div>
+            </div>
+        </div>
+        <div class="icon" style="top: 50px; left: 50px;" onclick="openExplorer()">
+            <img src="assets/img/folder-icon.png" alt="Folder Icon">
+            <div class="icon-label">Files</div>
+        </div>
+        <div class="icon" style="top: 50px; left: 150px;" onclick="showAccessModal()">
+            <img src="assets/img/file-icon.png" alt="File Icon">
+            <div class="icon-label">access.exe</div>
+        </div>
+        
+        <!-- Add music player icon -->
+        <div class="icon" style="top: 50px; left: 250px;" onclick="toggleMusicPlayer()">
+            <img src="assets/img/music-icon.png" alt="Music Icon">
+            <div class="icon-label">Music</div>
+        </div>
+
+        <!-- Add modal HTML before explorer div -->
+        <div id="accessModal" class="modal">
+            <p>Would you like access to a secret social network of chooms, runners, and other gonk activities?</p>
+            <div class="modal-buttons">
+                <button class="modal-button" onclick="handleAccess(true)">Yes</button>
+                <button class="modal-button" onclick="handleAccess(false)">No</button>
+            </div>
+        </div>
+        
+        <!-- Find the explorer div and add resizable attribute -->
+        <div id="explorer" class="explorer" style="resize: both; overflow: auto;">
+            <div class="explorer-header" onmousedown="dragElement(event)" style="cursor: move;">
+                <span>Explorer</span>
+                <button onclick="closeExplorer()">X</button>
+            </div>
+            <div class="explorer-content">
+                <div class="folder-container">
+                    <div class="folder" onclick="showContent('about-me')">
+                        <img src="/cyberdread/assets/img/folder-icon.png" alt="Folder Icon">
+                        <div class="folder-label">About Me</div>
+                    </div>
+                    <div class="folder" onclick="showContent('youtube')">
+                        <img src="/cyberdread/assets/img/folder-icon.png" alt="Folder Icon">
+                        <div class="folder-label">YouTube</div>
+                    </div>
+                    <div class="folder" onclick="showContent('contact')">
+                        <img src="/cyberdread/assets/img/folder-icon.png" alt="Folder Icon">
+                        <div class="folder-label">Contact</div>
+                    </div>
+                    <div class="folder" onclick="showContent('projects')">
+                        <img src="/cyberdread/assets/img/folder-icon.png" alt="Folder Icon">
+                        <div class="folder-label">Projects</div>
+                    </div>
+                    <div class="folder" onclick="showContent('pictures')">
+                        <img src="/cyberdread/assets/img/folder-icon.png" alt="Folder Icon">
+                        <div class="folder-label">Pictures</div>
+                    </div>
+                    <div class="folder" onclick="showContent('bin')">
+                        <img src="/cyberdread/assets/img/folder-icon.png" alt="Folder Icon">
+                        <div class="folder-label">Bin</div>
+                    </div>
+                </div>
+                <div id="about-me" class="folder-content">
+                    <div class="back-button" onclick="hideContent('about-me')">← Back</div>
+                    <h2>About Me</h2>
+                    <p>I see you made it... welcome to the liminal surface of dust that falls from the inner workings of my new ICE server, {Dread_OS}. I'm a netrunner, and other things... </p>
+                </div>
+                <div id="youtube" class="folder-content">
+                    <div class="back-button" onclick="hideContent('youtube')">← Back</div>
+                    <h2>YouTube</h2>
+                    <div class="project-item" onclick="window.open('https://www.youtube.com/@cyberdread/community', '_blank')">
+                        <img src="/cyberdread/assets/img/youtube-icon.png" alt="YouTube" class="project-thumb">
+                        <div class="project-label">Community</div>
+                    </div>
+                </div>
+                <div id="contact" class="folder-content">
+                    <div class="back-button" onclick="hideContent('contact')">← Back</div>
+                    <h2>Secret Chat</h2>
+                    <div class="chat-container">
+                        <div id="messageList" class="message-list"></div>
+                        <div class="chat-input">
+                            <input type="text" id="nameInput" placeholder="Your name" maxlength="20">
+                            <input type="text" id="messageInput" placeholder="Type a message..." maxlength="200">
+                            <button onclick="sendMessage()">Send</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="projects" class="folder-content">
+                    <div class="back-button" onclick="hideContent('projects')">← Back</div>
+                    <h2>Projects</h2>
+                    <div class="project-item" onclick="window.open('https://zionai.one', '_blank')">
+                        <img src="/cyberdread/assets/img/zionai-icon.jfif" alt="ZionAI" class="project-thumb">
+                        <div class="project-label">zionai.one</div>
+                    </div>
+                </div>
+                <div id="pictures" class="folder-content">
+                    <div class="back-button" onclick="hideContent('pictures')">← Back</div>
+                    <h2>Images</h2>
+                    <div class="image-grid">
+                        <div class="project-item">
+                            <img src="/cyberdread/assets/img/background.png" alt="Background" class="project-thumb" onclick="openImageViewer(this.src)">
+                            <div class="project-label">background.png</div>
+                        </div>
+                        <div class="project-item">
+                            <img src="/cyberdread/assets/img/folder-icon.png" alt="Folder Icon" class="project-thumb" onclick="openImageViewer(this.src)">
+                            <div class="project-label">folder-icon.png</div>
+                        </div>
+                        <div class="project-item">
+                            <img src="/cyberdread/assets/img/file-icon.png" alt="File Icon" class="project-thumb" onclick="openImageViewer(this.src)">
+                            <div class="project-label">file-icon.png</div>
+                        </div>
+                        <div class="project-item">
+                            <img src="/cyberdread/assets/img/youtube-icon.png" alt="YouTube Icon" class="project-thumb" onclick="openImageViewer(this.src)">
+                            <div class="project-label">youtube-icon.png</div>
+                        </div>
+                        <div class="project-item">
+                            <img src="/cyberdread/assets/img/zionai-icon.jfif" alt="ZionAI Icon" class="project-thumb" onclick="openImageViewer(this.src)">
+                            <div class="project-label">zionai-icon.jfif</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="bin" class="folder-content">
+                    <div class="back-button" onclick="hideContent('bin')">← Back</div>
+                    <h2>bin</h2>
+                    <p>nothing to hack here... </p>
+                </div>
+
+                <!-- Add image viewer modal -->
+                <div id="imageViewer" class="image-viewer">
+                    <button class="close-btn" onclick="closeImageViewer()">×</button>
+                    <img id="viewerImage" src="" alt="Enlarged Image">
+                </div>
+            </div>
+        </div>
+
+        <!-- Add music player -->
+        <div id="musicPlayer" class="music-player" style="display: none;">
+            <div class="player-header" style="cursor: move;" onmousedown="dragElement(event)">
+                <span>CyberDread Playlist</span>
+                <button onclick="toggleMusicPlayer()">×</button>
+            </div>
+            <div class="player-body">
+                <div class="visualization">
+                    <canvas id="visualizer"></canvas>
+                </div>
+                <div class="track-info">
+                    <marquee id="songTitle">No track playing</marquee>
+                </div>
+                <div class="controls">
+                    <button onclick="previousTrack()">⏮</button>
+                    <button onclick="togglePlay()">▶</button>
+                    <button onclick="nextTrack()">⏭</button>
+                    <input type="range" id="volumeSlider" min="0" max="1" step="0.1" value="0.7">
+                </div>
+                <div class="playlist">
+                    <div class="playlist-item" data-src="assets/music/track1.mp3">Cyberpunk Nights - CyberDread</div>
+                    <div class="playlist-item" data-src="assets/music/track2.mp3">Neon Streets - CyberDread</div>
+                    <div class="playlist-item" data-src="assets/music/track3.mp3">Digital Dreams - CyberDread</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add shutdown modal -->
+        <div id="shutdownModal" class="modal">
+            <p>Ready to shut down?</p>
+            <div class="modal-buttons">
+                <button class="modal-button" onclick="initiateShutdown()">Yes</button>
+                <button class="modal-button" onclick="closeShutdownModal()">No</button>
+            </div>
+        </div>
+
+        <!-- Add shutdown loading screen -->
+        <div id="shutdownScreen" class="shutdown-screen">
+            <div class="shutdown-content">
+                <p>SHUTTING DOWN...</p>
+                <div class="loading-bar"></div>
+            </div>
+        </div>
+    </div>
+    <!-- Replace all inline JavaScript with script reference -->
+    <script src="script.js"></script>
+</body>
+</html>
