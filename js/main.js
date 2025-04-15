@@ -9,6 +9,7 @@ import { toggleMusicPlayer, playTrack, togglePlay, nextTrack, previousTrack, ini
 import { openRougeCoin, closeRougeCoin } from './modules/ui/rouge-coin.js';
 import { connectWallet, performSwap, initWalletEventListeners } from './modules/web3/wallet.js';
 import { calculateSwapEstimate, redirectToUniswap, initSwapEventListeners } from './modules/web3/swap.js';
+import { loadChatMessages, sendMessage } from './modules/ui/chat.js';
 
 // Make functions globally available for HTML event handlers
 window.startSystem = startSystem;
@@ -79,3 +80,10 @@ function initializeApp() {
 
 // Initialize the app when DOM is loaded
 document.addEventListener('DOMContentLoaded', initializeApp);
+
+// Make chat functions globally accessible
+window.loadChatMessages = loadChatMessages;
+window.sendMessage = sendMessage;
+
+// Load chat messages when the DOM is ready
+document.addEventListener('DOMContentLoaded', loadChatMessages);
