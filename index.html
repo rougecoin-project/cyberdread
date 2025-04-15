@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Desktop Interface</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
     <!-- Update audio elements with relative paths and preload -->
@@ -80,10 +81,13 @@
             <div class="icon-label">access.exe</div>
         </div>
         
-        <!-- Add music player icon -->
-        <div class="icon" style="top: 50px; left: 250px;" onclick="toggleMusicPlayer()">
+        <!-- Add music player icon -->        <div class="icon" style="top: 50px; left: 250px;" onclick="toggleMusicPlayer()">
             <img src="assets/img/music-icon.png" alt="Music Icon">
             <div class="icon-label">Music</div>
+        </div>        <!-- Add RougeCoin icon -->
+        <div class="icon" style="top: 150px; left: 50px;" onclick="openRougeCoin()">
+            <img src="assets/img/rougecoin-icon.png" alt="RougeCoin Icon">
+            <div class="icon-label">RougeCoin</div>
         </div>
 
         <!-- Add modal HTML before explorer div -->
@@ -243,6 +247,114 @@
             <div class="shutdown-content">
                 <p>SHUTTING DOWN...</p>
                 <div class="loading-bar"></div>
+            </div>
+        </div>
+
+        <!-- Add RougeCoin interface -->
+        <div id="rougeCoinInterface" class="explorer" style="display: none; resize: both; overflow: auto;">
+            <div class="explorer-header" onmousedown="dragElement(event)" ontouchstart="dragElement(event)" style="cursor: move;">
+                <span>RougeCoin v3</span>
+                <button onclick="closeRougeCoin()" ontouchend="closeRougeCoin()">✕</button>
+            </div>
+            <div class="explorer-content rougecoin-content">                <div class="rougecoin-header">
+                    <img src="assets/img/rougecoin-icon.png" alt="RougeCoin Logo" class="rougecoin-logo">
+                    <h2>RougeCoin v3</h2>
+                    <p class="rougecoin-tagline">The Future of Decentralized Finance</p>
+                </div>
+                
+                <div class="rougecoin-sections">
+                    <div class="rougecoin-section">
+                        <h3>About RougeCoin</h3>
+                        <p>RougeCoin is a revolutionary decentralized cryptocurrency designed for the cyberpunk future. Created by a solo developer passionate about financial freedom.</p>
+                    </div>
+                    
+                    <div class="rougecoin-section">
+                        <h3>Connect</h3>
+                        <div class="rougecoin-links">                            <a href="https://t.me/rougecoinv3" target="_blank" class="rougecoin-link">
+                                <i class="fab fa-telegram"></i>
+                                <span>Join Telegram Community</span>
+                            </a>
+                            <a href="https://rougecoin.xyz" target="_blank" class="rougecoin-link">
+                                <i class="fas fa-globe"></i>
+                                <span>Official Website</span>
+                            </a>
+                            <a href="https://rougee.io/signup" target="_blank" class="rougecoin-link">
+                                <i class="fas fa-user-plus"></i>
+                                <span>Create Account</span>
+                            </a>
+                            <a href="https://app.uniswap.org/#/swap?exactField=output&exactAmount=1&outputCurrency=0xA1c7D450130bb77c6a23DdFAeCbC4a060215384b" target="_blank" class="rougecoin-link buy-link">
+                                <i class="fas fa-exchange-alt"></i>
+                                <span>Buy on Uniswap</span>
+                            </a>
+                        </div>
+                    </div>
+                      <div class="rougecoin-section">
+                        <h3>Features</h3>
+                        <ul class="rougecoin-features">
+                            <li><i class="fas fa-network-wired"></i> Fully Decentralized Network</li>
+                            <li><i class="fas fa-users"></i> Community-Driven Development</li>
+                            <li><i class="fas fa-shield-alt"></i> Enhanced Security & Privacy</li>
+                            <li><i class="fas fa-hand-holding-usd"></i> Low Transaction Fees</li>
+                            <li><i class="fas fa-city"></i> Built for the Cyberpunk Era</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="rougecoin-section">
+                        <h3>Market Data</h3>
+                        <div class="market-data">
+                            <div class="market-item">
+                                <span class="market-label"><i class="fas fa-tag"></i> Price:</span>
+                                <span class="market-value" id="rougePrice">Loading...</span>
+                            </div>
+                            <div class="market-item">
+                                <span class="market-label"><i class="fas fa-chart-line"></i> 24h Change:</span>
+                                <span class="market-value" id="rougeChange">Loading...</span>
+                            </div>
+                            <div class="market-item">
+                                <span class="market-label"><i class="fas fa-landmark"></i> Market Cap:</span>
+                                <span class="market-value" id="rougeCap">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Add swap section -->
+                    <div class="rougecoin-section swap-section">
+                        <h3><i class="fas fa-exchange-alt"></i> Swap</h3>
+                        <div class="swap-interface">
+                            <div class="swap-input">
+                                <label>From:</label>
+                                <div class="token-input">
+                                    <input type="number" id="fromAmount" placeholder="0.0" step="0.0001" min="0">
+                                    <select id="fromToken">
+                                        <option value="ETH">ETH</option>
+                                        <option value="USDT">USDT</option>
+                                        <option value="USDC">USDC</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="swap-arrow">
+                                <i class="fas fa-arrow-down"></i>
+                            </div>                            <div class="swap-input">
+                                <label>To:</label>
+                                <div class="token-input">
+                                    <input type="number" id="toAmount" placeholder="0.0" readonly>                                    <div class="token-select">
+                                        <img src="assets/img/rougecoin-icon.png" alt="ROUGE" class="token-icon">
+                                        <span>ROUGE</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="swap-info" id="swapInfo">
+                                <div class="swap-rate">
+                                    <span>Estimated Rate:</span>
+                                    <span id="swapRate">-</span>
+                                </div>
+                            </div>
+                            <button id="swapButton" class="swap-button" onclick="redirectToUniswap()">
+                                Swap on Uniswap
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

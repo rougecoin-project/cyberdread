@@ -635,3 +635,194 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+// RougeCoin functions
+function openRougeCoin() {
+    playSound('openSound');
+    document.getElementById('rougeCoinInterface').style.display = 'block';
+    
+    // Setup the RougeCoin interface position
+    const rougeCoinInterface = document.getElementById('rougeCoinInterface');
+    rougeCoinInterface.style.width = '600px';
+    rougeCoinInterface.style.height = '500px';
+    rougeCoinInterface.style.top = '100px';
+    rougeCoinInterface.style.left = '200px';
+    
+    // Simulate loading market data
+    simulateMarketData();
+}
+
+function closeRougeCoin() {
+    playSound('closeSound');
+    document.getElementById('rougeCoinInterface').style.display = 'none';
+}
+
+function simulateMarketData() {
+    // Show loading state
+    document.getElementById('rougePrice').textContent = "Loading...";
+    document.getElementById('rougeChange').textContent = "Loading...";
+    document.getElementById('rougeCap').textContent = "Loading...";
+    
+    // Fetch real market data for RougeCoin from DEXScreener API
+    fetch('https://api.dexscreener.com/latest/dex/tokens/0xA1c7D450130bb77c6a23DdFAeCbC4a060215384b')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log("DEXScreener data:", data);
+            // Extract the most recent pair data
+            if (data.pairs && data.pairs.length > 0) {
+                const tokenData = data.pairs[0];
+                
+                // Update price
+                const price = tokenData.priceUsd;
+                document.getElementById('rougePrice').textContent = `$${parseFloat(price).toFixed(8)}`;
+                
+                // Update 24h change
+                const change = tokenData.priceChange.h24;
+                const changeElement = document.getElementById('rougeChange');
+                changeElement.textContent = `${change}%`;
+                changeElement.style.color = parseFloat(change) >= 0 ? '#00ff00' : '#ff4444';
+                
+                // Update market cap
+                const marketCap = tokenData.fdv;
+                document.getElementById('rougeCap').textContent = `$${parseInt(marketCap).toLocaleString()}`;
+            } else {
+                throw new Error('No token data found');
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching token data:', error);
+            // Fallback to simulated data if API fails
+            const price = (Math.random() * 0.5 + 0.1).toFixed(8);
+            const change = (Math.random() * 20 - 10).toFixed(2);
+            const marketCap = (price * 1000000000).toLocaleString('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                maximumFractionDigits: 0
+            });
+            
+            document.getElementById('rougePrice').textContent = `$${price}`;
+            
+            const changeElement = document.getElementById('rougeChange');
+            changeElement.textContent = `${change}%`;
+            changeElement.style.color = parseFloat(change) >= 0 ? '#00ff00' : '#ff4444';
+            
+            document.getElementById('rougeCap').textContent = marketCap;
+        });
+}
+
+// RougeCoin Swap Functions
+function calculateSwapEstimate() {
+    const fromAmount = document.getElementById('fromAmount').value;
+    const fromToken = document.getElementById('fromToken').value;
+    const toAmountField = document.getElementById('toAmount');
+    const swapRateField = document.getElementById('swapRate');
+    
+    if (fromAmount && fromAmount > 0) {
+        // Get the current price of RougeCoin from our already fetched data
+        const rougePriceText = document.getElementById('rougePrice').textContent;
+        let rougePrice = 0;
+        
+        if (rougePriceText && rougePriceText !== 'Loading...') {
+            rougePrice = parseFloat(rougePriceText.replace('$', ''));
+        } else {
+            // If we don't have the price yet, use a fallback estimated price
+            rougePrice = 0.0000015;
+        }
+        
+        let conversionRate = 0;
+        
+        // Set different conversion rates based on the selected token
+        switch(fromToken) {
+            case 'ETH':
+                // Assuming ETH is around $3000 (adjust as needed)
+                conversionRate = 3000 / rougePrice;
+                break;
+            case 'USDT':
+            case 'USDC':
+                // Stablecoins are $1
+                conversionRate = 1 / rougePrice;
+                break;
+            default:
+                conversionRate = 1 / rougePrice;
+        }
+        
+        // Calculate the estimated ROUGE amount
+        const estimatedRouge = parseFloat(fromAmount) * conversionRate;
+        
+        // Apply a 0.5% slippage to make the estimate more realistic
+        const slippageAdjusted = estimatedRouge * 0.995;
+        
+        // Update the UI
+        toAmountField.value = slippageAdjusted.toLocaleString(undefined, {
+            maximumFractionDigits: 0
+        });
+        
+        // Update the rate display (how much 1 unit of fromToken is worth in ROUGE)
+        swapRateField.textContent = `1 ${fromToken} ≈ ${conversionRate.toLocaleString(undefined, {
+            maximumFractionDigits: 0
+        })} ROUGE`;
+    } else {
+        toAmountField.value = '';
+        swapRateField.textContent = '-';
+    }
+}
+
+function redirectToUniswap() {
+    const fromAmount = document.getElementById('fromAmount').value;
+    const fromToken = document.getElementById('fromToken').value;
+    
+    if (!fromAmount || fromAmount <= 0) {
+        alert('Please enter an amount to swap');
+        return;
+    }
+    
+    // Determine the token address based on the selected token
+    let inputTokenAddress = '';
+    switch(fromToken) {
+        case 'ETH':
+            inputTokenAddress = 'ETH'; // Uniswap uses 'ETH' for Ethereum
+            break;
+        case 'USDT':
+            inputTokenAddress = '0xdAC17F958D2ee523a2206206994597C13D831ec7'; // USDT address on Ethereum
+            break;
+        case 'USDC':
+            inputTokenAddress = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'; // USDC address on Ethereum
+            break;
+    }
+    
+    // RougeCoin contract address
+    const rougeAddress = '0xA1c7D450130bb77c6a23DdFAeCbC4a060215384b';
+    
+    // Construct the Uniswap URL with the from token, to token, and amount
+    let uniswapUrl = `https://app.uniswap.org/#/swap?exactField=input&exactAmount=${fromAmount}`;
+    
+    // Add the input token if it's not ETH
+    if (fromToken === 'ETH') {
+        uniswapUrl += `&inputCurrency=ETH`;
+    } else {
+        uniswapUrl += `&inputCurrency=${inputTokenAddress}`;
+    }
+    
+    // Add the output token (RougeCoin)
+    uniswapUrl += `&outputCurrency=${rougeAddress}`;
+    
+    // Open Uniswap in a new tab
+    window.open(uniswapUrl, '_blank');
+}
+
+// Add event listeners for the swap functionality once the window is loaded
+window.addEventListener('DOMContentLoaded', () => {
+    // Add event listeners to the swap interface fields
+    const fromAmountField = document.getElementById('fromAmount');
+    const fromTokenField = document.getElementById('fromToken');
+    
+    if (fromAmountField && fromTokenField) {
+        fromAmountField.addEventListener('input', calculateSwapEstimate);
+        fromTokenField.addEventListener('change', calculateSwapEstimate);
+    }
+});

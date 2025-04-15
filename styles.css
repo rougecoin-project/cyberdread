@@ -819,8 +819,6 @@ body, html {
     background: #00ff00;
 }
 
-/* ...existing code... */
-
 .start-menu-section {
     padding: 10px;
     border-bottom: 1px solid #00ff00;
@@ -875,10 +873,6 @@ body, html {
     color: #00ffff;
 }
 
-/* ...rest of existing code... */
-
-/* ...existing code... */
-
 .tooltip {
     position: absolute;
     background: rgba(0, 0, 0, 0.8);
@@ -896,10 +890,6 @@ body, html {
 .tooltip.visible {
     opacity: 1;
 }
-
-/* ...rest of existing code... */
-
-/* ...existing code... */
 
 .explorer-header button, .player-header button {
     min-width: 44px;
@@ -928,4 +918,236 @@ body, html {
     }
 }
 
-/* ...existing code... */
+/* RougeCoin Interface Styles */
+.rougecoin-content {
+    padding: 15px;
+    color: #00ffff;
+}
+
+.rougecoin-header {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #00ffff33;
+    padding-bottom: 15px;
+}
+
+.rougecoin-logo {
+    width: 50px;
+    height: 50px;
+    margin-bottom: 10px;
+    filter: drop-shadow(0 0 5px #00ffff);
+    animation: glow 2s infinite alternate;
+}
+
+.rougecoin-tagline {
+    font-style: italic;
+    opacity: 0.7;
+    margin-top: 5px;
+}
+
+.rougecoin-sections {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.rougecoin-section {
+    background-color: rgba(0, 30, 60, 0.5);
+    border: 1px solid #00ffff33;
+    border-radius: 5px;
+    padding: 15px;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+}
+
+.rougecoin-section h3 {
+    margin-top: 0;
+    border-bottom: 1px solid #00ffff33;
+    padding-bottom: 5px;
+    color: #00ffff;
+}
+
+.rougecoin-links {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.rougecoin-link {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: #00ffff;
+    padding: 8px;
+    border-radius: 4px;
+    background-color: rgba(0, 255, 255, 0.1);
+    transition: all 0.3s ease;
+}
+
+.rougecoin-link:hover {
+    background-color: rgba(0, 255, 255, 0.2);
+    transform: translateX(5px);
+}
+
+.rougecoin-link img {
+    width: 24px;
+    height: 24px;
+    margin-right: 10px;
+}
+
+.rougecoin-features {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.rougecoin-features li {
+    padding: 5px 0;
+    position: relative;
+    padding-left: 20px;
+}
+
+.rougecoin-features li:before {
+    content: '>';
+    position: absolute;
+    left: 0;
+    color: #00ffff;
+}
+
+.market-data {
+    display: grid;
+    gap: 10px;
+}
+
+.market-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+    border-bottom: 1px dotted #00ffff33;
+}
+
+.market-label {
+    font-weight: bold;
+}
+
+#rougeChange {
+    transition: color 0.5s ease;
+}
+
+/* Swap Interface Styles */
+.swap-section {
+    grid-column: 1 / -1;
+}
+
+.swap-interface {
+    background-color: rgba(0, 15, 30, 0.7);
+    border: 1px solid #00ffff44;
+    border-radius: 8px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.swap-input {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.swap-input label {
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+.token-input {
+    display: flex;
+    background-color: rgba(0, 30, 50, 0.7);
+    border: 1px solid #00ffff44;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.token-input input {
+    flex: 1;
+    background: transparent;
+    color: #00ffff;
+    border: none;
+    padding: 10px;
+    outline: none;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+.token-input input::placeholder {
+    color: rgba(0, 255, 255, 0.3);
+}
+
+.token-input select, .token-select {
+    width: 100px;
+    background-color: rgba(0, 40, 60, 0.9);
+    color: #00ffff;
+    border: none;
+    border-left: 1px solid #00ffff44;
+    padding: 10px;
+    font-family: 'Courier New', Courier, monospace;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.token-select {
+    gap: 5px;
+    font-size: 0.9rem;
+}
+
+.token-icon {
+    width: 16px;
+    height: 16px;
+}
+
+.swap-arrow {
+    display: flex;
+    justify-content: center;
+    color: #00ffff;
+    font-size: 1.2rem;
+}
+
+.swap-info {
+    margin-top: 5px;
+    padding: 8px;
+    font-size: 0.85rem;
+    border-radius: 5px;
+    background-color: rgba(0, 20, 40, 0.5);
+}
+
+.swap-rate {
+    display: flex;
+    justify-content: space-between;
+}
+
+.swap-button {
+    background: linear-gradient(135deg, #007777, #003355);
+    color: #00ffff;
+    border: none;
+    border-radius: 5px;
+    padding: 12px;
+    font-family: 'Courier New', Courier, monospace;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+}
+
+.swap-button:hover {
+    background: linear-gradient(135deg, #008888, #004466);
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+}
+
+.buy-link {
+    background-color: rgba(0, 150, 150, 0.3) !important;
+}
+
+.buy-link:hover {
+    background-color: rgba(0, 150, 150, 0.5) !important;
+}
