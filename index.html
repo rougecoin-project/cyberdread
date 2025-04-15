@@ -6,6 +6,9 @@
     <title>Desktop Interface</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Web3 libraries for wallet connection -->
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider@1.7.8/dist/umd/index.min.js"></script>
 </head>
 <body>
     <!-- Update audio elements with relative paths and preload -->
@@ -316,11 +319,18 @@
                             </div>
                         </div>
                     </div>
-                    
-                    <!-- Add swap section -->
+                      <!-- Add swap section -->
                     <div class="rougecoin-section swap-section">
                         <h3><i class="fas fa-exchange-alt"></i> Swap</h3>
                         <div class="swap-interface">
+                            <!-- Wallet connection status -->
+                            <div class="wallet-status">
+                                <div id="walletAddress">Wallet not connected</div>
+                                <button id="connectWalletBtn" class="connect-wallet-btn" onclick="connectWallet()">
+                                    <i class="fas fa-wallet"></i> Connect Wallet
+                                </button>
+                            </div>
+                            
                             <div class="swap-input">
                                 <label>From:</label>
                                 <div class="token-input">
@@ -339,7 +349,7 @@
                                 <div class="token-input">
                                     <input type="number" id="toAmount" placeholder="0.0" readonly>                                    <div class="token-select">
                                         <img src="assets/img/rougecoin-icon.png" alt="ROUGE" class="token-icon">
-                                        <span>ROUGE</span>
+                                        <span>XRGE</span>
                                     </div>
                                 </div>
                             </div>
@@ -348,9 +358,17 @@
                                     <span>Estimated Rate:</span>
                                     <span id="swapRate">-</span>
                                 </div>
+                                <div class="swap-details" id="swapDetails">
+                                    <span>Price Impact:</span>
+                                    <span id="priceImpact">-</span>
+                                </div>
+                                <div class="swap-details">
+                                    <span>Network Fee:</span>
+                                    <span id="networkFee">-</span>
+                                </div>
                             </div>
-                            <button id="swapButton" class="swap-button" onclick="redirectToUniswap()">
-                                Swap on Uniswap
+                            <button id="swapButton" class="swap-button" onclick="performSwap()" disabled>
+                                Connect Wallet to Swap
                             </button>
                         </div>
                     </div>
@@ -359,6 +377,29 @@
         </div>
     </div>
     <!-- Replace all inline JavaScript with script reference -->
-    <script src="script.js"></script>
+    <script type="module" src="js/main.js"></script>
+    <!-- Script for initial setup -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Create a temporary startSystem function until modules are loaded
+            if (typeof window.startSystem !== 'function') {
+                const startButton = document.getElementById('startButton');
+                if (startButton) {
+                    startButton.addEventListener('click', function() {
+                        // This will be called if clicking happens before modules load
+                        console.log('Waiting for system modules to initialize...');
+                        // Try again in a short delay
+                        setTimeout(function() {
+                            if (typeof window.startSystem === 'function') {
+                                window.startSystem();
+                            }
+                        }, 100);
+                    });
+                    // Remove the onclick attribute to prevent the error
+                    startButton.removeAttribute('onclick');
+                }
+            }
+        });
+    </script>
 </body>
 </html>

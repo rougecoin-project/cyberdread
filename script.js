@@ -648,7 +648,7 @@ function openRougeCoin() {
     rougeCoinInterface.style.top = '100px';
     rougeCoinInterface.style.left = '200px';
     
-    // Simulate loading market data
+    // Fetch market data
     simulateMarketData();
 }
 
@@ -715,64 +715,216 @@ function simulateMarketData() {
         });
 }
 
-// RougeCoin Swap Functions
-function calculateSwapEstimate() {
-    const fromAmount = document.getElementById('fromAmount').value;
-    const fromToken = document.getElementById('fromToken').value;
-    const toAmountField = document.getElementById('toAmount');
-    const swapRateField = document.getElementById('swapRate');
+// Web3 Integration Variables
+let web3;
+let userAccount;
+let isWalletConnected = false;
+let chainId;
+
+// Token addresses
+const TOKEN_ADDRESSES = {
+    ETH: 'ETH', // Native ETH
+    USDT: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+    USDC: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+    ROUGE: '0xA1c7D450130bb77c6a23DdFAeCbC4a060215384b'
+};
+
+// ABI for ERC20 tokens - minimal interface for checking balances and approving tokens
+const ERC20_ABI = [
+    {
+        "constant": true,
+        "inputs": [{"name": "_owner", "type": "address"}],
+        "name": "balanceOf",
+        "outputs": [{"name": "balance", "type": "uint256"}],
+        "type": "function"
+    },
+    {
+        "constant": false,
+        "inputs": [
+            {"name": "_spender", "type": "address"},
+            {"name": "_value", "type": "uint256"}
+        ],
+        "name": "approve",
+        "outputs": [{"name": "", "type": "bool"}],
+        "type": "function"
+    },
+    {
+        "constant": true,
+        "inputs": [],
+        "name": "decimals",
+        "outputs": [{"name": "", "type": "uint8"}],
+        "type": "function"
+    }
+];
+
+// Connect to wallet function
+async function connectWallet() {
+    playSound('clickSound');
     
-    if (fromAmount && fromAmount > 0) {
-        // Get the current price of RougeCoin from our already fetched data
-        const rougePriceText = document.getElementById('rougePrice').textContent;
-        let rougePrice = 0;
-        
-        if (rougePriceText && rougePriceText !== 'Loading...') {
-            rougePrice = parseFloat(rougePriceText.replace('$', ''));
+    try {
+        // Check if MetaMask is installed
+        if (window.ethereum) {
+            try {
+                // Request account access
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                handleAccountsChanged(accounts);
+                
+                // Create Web3 instance
+                web3 = new Web3(window.ethereum);
+                
+                // Get chain ID
+                chainId = await web3.eth.getChainId();
+                
+                // Setup event listeners
+                window.ethereum.on('accountsChanged', handleAccountsChanged);
+                window.ethereum.on('chainChanged', handleChainChanged);
+                
+                // Update UI
+                updateWalletUI();
+                
+                return true;
+            } catch (error) {
+                console.error("User denied account access:", error);
+                showWalletError("Connection rejected. Please try again.");
+                return false;
+            }
+        } else if (window.web3) {
+            // Legacy web3 provider
+            web3 = new Web3(window.web3.currentProvider);
+            
+            // Get accounts
+            const accounts = await web3.eth.getAccounts();
+            handleAccountsChanged(accounts);
+            
+            // Get chain ID
+            chainId = await web3.eth.getChainId();
+            
+            // Update UI
+            updateWalletUI();
+            
+            return true;
         } else {
-            // If we don't have the price yet, use a fallback estimated price
-            rougePrice = 0.0000015;
+            showWalletError("No Ethereum wallet detected. Please install MetaMask.");
+            return false;
         }
-        
-        let conversionRate = 0;
-        
-        // Set different conversion rates based on the selected token
-        switch(fromToken) {
-            case 'ETH':
-                // Assuming ETH is around $3000 (adjust as needed)
-                conversionRate = 3000 / rougePrice;
-                break;
-            case 'USDT':
-            case 'USDC':
-                // Stablecoins are $1
-                conversionRate = 1 / rougePrice;
-                break;
-            default:
-                conversionRate = 1 / rougePrice;
-        }
-        
-        // Calculate the estimated ROUGE amount
-        const estimatedRouge = parseFloat(fromAmount) * conversionRate;
-        
-        // Apply a 0.5% slippage to make the estimate more realistic
-        const slippageAdjusted = estimatedRouge * 0.995;
-        
-        // Update the UI
-        toAmountField.value = slippageAdjusted.toLocaleString(undefined, {
-            maximumFractionDigits: 0
-        });
-        
-        // Update the rate display (how much 1 unit of fromToken is worth in ROUGE)
-        swapRateField.textContent = `1 ${fromToken} ≈ ${conversionRate.toLocaleString(undefined, {
-            maximumFractionDigits: 0
-        })} ROUGE`;
-    } else {
-        toAmountField.value = '';
-        swapRateField.textContent = '-';
+    } catch (error) {
+        console.error("Error connecting wallet:", error);
+        showWalletError("Failed to connect wallet. Please try again.");
+        return false;
     }
 }
 
-function redirectToUniswap() {
+// Handle accounts changed
+function handleAccountsChanged(accounts) {
+    if (accounts.length === 0) {
+        // User logged out
+        userAccount = null;
+        isWalletConnected = false;
+    } else {
+        // User logged in or changed accounts
+        userAccount = accounts[0];
+        isWalletConnected = true;
+    }
+    
+    // Update UI
+    updateWalletUI();
+}
+
+// Handle chain changed
+function handleChainChanged(newChainId) {
+    // Reload the page when the chain changes
+    window.location.reload();
+}
+
+// Update wallet UI
+function updateWalletUI() {
+    const walletAddressElement = document.getElementById('walletAddress');
+    const connectWalletBtn = document.getElementById('connectWalletBtn');
+    const swapButton = document.getElementById('swapButton');
+    
+    if (isWalletConnected && userAccount) {
+        // Format account address for display
+        const formattedAddress = `${userAccount.substring(0, 6)}...${userAccount.substring(userAccount.length - 4)}`;
+        walletAddressElement.textContent = formattedAddress;
+        walletAddressElement.classList.add('wallet-connected');
+        
+        // Update connect button
+        connectWalletBtn.innerHTML = '<i class="fas fa-wallet"></i> Connected';
+        
+        // Update swap button
+        swapButton.textContent = 'Swap';
+        swapButton.disabled = false;
+        
+        // Get token balances
+        getTokenBalance();
+    } else {
+        walletAddressElement.textContent = 'Wallet not connected';
+        walletAddressElement.classList.remove('wallet-connected');
+        
+        // Update connect button
+        connectWalletBtn.innerHTML = '<i class="fas fa-wallet"></i> Connect Wallet';
+        
+        // Update swap button
+        swapButton.textContent = 'Connect Wallet to Swap';
+        swapButton.disabled = true;
+    }
+}
+
+// Get token balance
+async function getTokenBalance() {
+    if (!isWalletConnected || !web3) return;
+    
+    try {
+        // Get selected token
+        const selectedToken = document.getElementById('fromToken').value;
+        
+        // Get balance based on token type
+        let balance;
+        
+        if (selectedToken === 'ETH') {
+            // Get ETH balance
+            balance = await web3.eth.getBalance(userAccount);
+            balance = web3.utils.fromWei(balance, 'ether');
+        } else {
+            // Get ERC20 token balance
+            const tokenAddress = TOKEN_ADDRESSES[selectedToken];
+            const tokenContract = new web3.eth.Contract(ERC20_ABI, tokenAddress);
+            
+            balance = await tokenContract.methods.balanceOf(userAccount).call();
+            
+            // Get decimals
+            const decimals = await tokenContract.methods.decimals().call();
+            
+            // Convert based on decimals
+            balance = balance / Math.pow(10, decimals);
+        }
+        
+        // Display balance (optional)
+        console.log(`${selectedToken} Balance: ${balance}`);
+        
+        // You could add a balance display in the UI here if desired
+    } catch (error) {
+        console.error("Error fetching balance:", error);
+    }
+}
+
+// Show wallet error
+function showWalletError(message) {
+    playSound('errorSound');
+    
+    // You could implement a more sophisticated error UI
+    alert(message);
+}
+
+// Perform swap (this would connect to Uniswap's smart contracts in a full implementation)
+async function performSwap() {
+    if (!isWalletConnected) {
+        connectWallet();
+        return;
+    }
+    
+    playSound('clickSound');
+    
     const fromAmount = document.getElementById('fromAmount').value;
     const fromToken = document.getElementById('fromToken').value;
     
@@ -781,48 +933,38 @@ function redirectToUniswap() {
         return;
     }
     
-    // Determine the token address based on the selected token
-    let inputTokenAddress = '';
-    switch(fromToken) {
-        case 'ETH':
-            inputTokenAddress = 'ETH'; // Uniswap uses 'ETH' for Ethereum
-            break;
-        case 'USDT':
-            inputTokenAddress = '0xdAC17F958D2ee523a2206206994597C13D831ec7'; // USDT address on Ethereum
-            break;
-        case 'USDC':
-            inputTokenAddress = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'; // USDC address on Ethereum
-            break;
+    // In a full implementation, this would interact with Uniswap contracts
+    // For now, we'll show a simulated transaction and then redirect
+    
+    // Update button to show loading state
+    const swapButton = document.getElementById('swapButton');
+    const buttonText = swapButton.textContent;
+    swapButton.innerHTML = 'Preparing Swap <span class="loading-spinner"></span>';
+    swapButton.disabled = true;
+    
+    try {
+        // Simulate transaction preparation delay
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        // For now, redirect to Uniswap with the parameters
+        redirectToUniswap();
+    } catch (error) {
+        console.error("Error in swap:", error);
+        swapButton.textContent = buttonText;
+        swapButton.disabled = false;
+        showWalletError("Swap failed. Please try again.");
     }
-    
-    // RougeCoin contract address
-    const rougeAddress = '0xA1c7D450130bb77c6a23DdFAeCbC4a060215384b';
-    
-    // Construct the Uniswap URL with the from token, to token, and amount
-    let uniswapUrl = `https://app.uniswap.org/#/swap?exactField=input&exactAmount=${fromAmount}`;
-    
-    // Add the input token if it's not ETH
-    if (fromToken === 'ETH') {
-        uniswapUrl += `&inputCurrency=ETH`;
-    } else {
-        uniswapUrl += `&inputCurrency=${inputTokenAddress}`;
-    }
-    
-    // Add the output token (RougeCoin)
-    uniswapUrl += `&outputCurrency=${rougeAddress}`;
-    
-    // Open Uniswap in a new tab
-    window.open(uniswapUrl, '_blank');
 }
 
-// Add event listeners for the swap functionality once the window is loaded
+// Update token listeners when the fromToken changes
 window.addEventListener('DOMContentLoaded', () => {
-    // Add event listeners to the swap interface fields
-    const fromAmountField = document.getElementById('fromAmount');
     const fromTokenField = document.getElementById('fromToken');
-    
-    if (fromAmountField && fromTokenField) {
-        fromAmountField.addEventListener('input', calculateSwapEstimate);
-        fromTokenField.addEventListener('change', calculateSwapEstimate);
+    if (fromTokenField) {
+        fromTokenField.addEventListener('change', () => {
+            if (isWalletConnected) {
+                getTokenBalance();
+            }
+            calculateSwapEstimate();
+        });
     }
 });
