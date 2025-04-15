@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>DreadOS</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -61,6 +61,10 @@
                     <img src="assets/img/file-icon.png" alt="Files">
                     access.exe
                 </div>
+                <div class="start-menu-item" onclick="openRougeCoin()">
+                    <img src="assets/img/rougecoin-icon.png" alt="RougeCoin">
+                    RougeCoin
+                </div>
                 <div class="start-menu-item">
                     <img src="assets/img/settings-icon.png" alt="Settings">
                     Settings
@@ -95,10 +99,13 @@
 
         <!-- Add modal HTML before explorer div -->
         <div id="accessModal" class="modal">
-            <p>Would you like access to a secret social network of chooms, runners, and other gonk activities?</p>
+            <p>Encrypted network access detected. Proceed with decryption sequence?</p>
+            <div class="binary-text" style="font-family: monospace; font-size: 12px; opacity: 0.7;">
+                01000100 01110010 01100101 01100001 01100100
+            </div>
             <div class="modal-buttons">
-                <button class="modal-button" onclick="handleAccess(true)">Yes</button>
-                <button class="modal-button" onclick="handleAccess(false)">No</button>
+                <button class="modal-button" onclick="handleAccess(true)">DECRYPT</button>
+                <button class="modal-button" onclick="handleAccess(false)">ABORT</button>
             </div>
         </div>
         
@@ -106,6 +113,7 @@
         <div id="explorer" class="explorer" style="resize: both; overflow: auto;">
             <div class="explorer-header" onmousedown="dragElement(event)" ontouchstart="dragElement(event)" style="cursor: move;">
                 <span>Explorer</span>
+                <button onclick="toggleFullScreenWindow('explorer')">⛶</button>
                 <button onclick="closeExplorer()" ontouchend="closeExplorer()">✕</button>
             </div>
             <div class="explorer-content">
@@ -213,6 +221,7 @@
         <div id="musicPlayer" class="music-player" style="display: none;">
             <div class="player-header" style="cursor: move;" onmousedown="dragElement(event)" ontouchstart="dragElement(event)">
                 <span>CyberDread Playlist</span>
+                <button onclick="toggleFullScreenWindow('musicPlayer')">⛶</button>
                 <button onclick="toggleMusicPlayer()" ontouchend="toggleMusicPlayer()">✕</button>
             </div>
             <div class="player-body">
@@ -232,6 +241,7 @@
                     <div class="playlist-item" data-src="assets/music/track1.mp3">Cyberpunk Nights - CyberDread</div>
                     <div class="playlist-item" data-src="assets/music/track2.mp3">Neon Streets - CyberDread</div>
                     <div class="playlist-item" data-src="assets/music/track3.mp3">Digital Dreams - CyberDread</div>
+                    <div class="playlist-item" data-src="assets/music/track4.mp3">AI Trappin - CyberDread</div>
                 </div>
             </div>
         </div>
@@ -257,6 +267,7 @@
         <div id="rougeCoinInterface" class="explorer" style="display: none; resize: both; overflow: auto;">
             <div class="explorer-header" onmousedown="dragElement(event)" ontouchstart="dragElement(event)" style="cursor: move;">
                 <span>RougeCoin v3</span>
+                <button onclick="toggleFullScreenWindow('rougeCoinInterface')">⛶</button>
                 <button onclick="closeRougeCoin()" ontouchend="closeRougeCoin()">✕</button>
             </div>
             <div class="explorer-content rougecoin-content">                <div class="rougecoin-header">
@@ -322,8 +333,7 @@
                       <!-- Add swap section -->
                     <div class="rougecoin-section swap-section">
                         <h3><i class="fas fa-exchange-alt"></i> Swap</h3>
-                        <div class="swap-interface">
-                            <!-- Wallet connection status -->
+                        <div class="swap-interface">                            <!-- Wallet connection status -->
                             <div class="wallet-status">
                                 <div id="walletAddress">Wallet not connected</div>
                                 <button id="connectWalletBtn" class="connect-wallet-btn" onclick="connectWallet()">
@@ -331,7 +341,10 @@
                                 </button>
                             </div>
                             
-
+                            <!-- Wallet balances container -->
+                            <div id="walletBalances" class="wallet-balances" style="display: none;">
+                                <!-- Balances will be dynamically inserted here -->
+                            </div>
                             <div class="swap-input">
                                 <label>From:</label>
                                 <div class="token-input">
@@ -381,6 +394,20 @@
     <script type="module" src="js/main.js"></script>
     <!-- Script for initial setup -->
     <script>
+        // Add this before the DOMContentLoaded event
+        function showAccessModal() {
+            document.getElementById('accessModal').style.display = 'block';
+            playSound(SOUNDS.OPEN);
+        }
+
+        function handleAccess(confirmed) {
+            if (confirmed) {
+                window.open('https://t.me/rougecoinv3', '_blank');
+            }
+            document.getElementById('accessModal').style.display = 'none';
+            playSound(confirmed ? SOUNDS.OPEN : SOUNDS.CLOSE);
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             // Create a temporary startSystem function until modules are loaded
             if (typeof window.startSystem !== 'function') {

@@ -30,6 +30,7 @@ window.openRougeCoin = openRougeCoin;
 window.closeRougeCoin = closeRougeCoin;
 window.connectWallet = connectWallet;
 window.performSwap = performSwap;
+window.calculateSwapEstimate = calculateSwapEstimate;
 window.redirectToUniswap = redirectToUniswap;
 
 // Make dragElement globally accessible
@@ -87,3 +88,18 @@ window.sendMessage = sendMessage;
 
 // Load chat messages when the DOM is ready
 document.addEventListener('DOMContentLoaded', loadChatMessages);
+
+// Function to toggle full-screen mode for specific windows
+function toggleFullScreenWindow(windowId) {
+    const windowElement = document.getElementById(windowId);
+    if (!windowElement) return;
+
+    if (windowElement.classList.contains('fullscreen')) {
+        windowElement.classList.remove('fullscreen');
+    } else {
+        windowElement.classList.add('fullscreen');
+    }
+}
+
+// Make the function globally accessible
+window.toggleFullScreenWindow = toggleFullScreenWindow;
