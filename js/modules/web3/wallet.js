@@ -1,376 +1,292 @@
 /**
- * Web3 module - Handles Web3 wallet connection and swap functionality
+ * Wallet module - EIP-1193 wallet connection with no external dependencies.
+ *
+ * This used to load web3.js 1.8.0 and WalletConnect v1 from a CDN. The
+ * WalletConnect v1 bridge network was shut down in 2023 and the library was
+ * never actually called, so both are gone; everything here talks to the
+ * injected provider directly, which is ~400KB less to download.
  */
 import { playSound, SOUNDS } from '../sound.js';
 import { redirectToUniswap } from './swap.js';
+import { TOKENS, CHAIN } from '../../data/site-config.js';
 
-// Web3 Integration Variables
-let web3;
-let userAccount;
-let isWalletConnected = false;
-let chainId;
+let provider = null;
+let userAccount = null;
 
-// Token addresses
-export const TOKEN_ADDRESSES = {
-    ETH: 'ETH', // Native ETH
-    USDT: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
-    USDC: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-    ROUGE: '0xA1c7D450130bb77c6a23DdFAeCbC4a060215384b'
+// Minimal ERC-20 call selectors (first 4 bytes of the keccak hash of the
+// signature). Hardcoding them avoids pulling in an ABI encoder.
+const SELECTOR = {
+    balanceOf: '0x70a08231',
+    decimals: '0x313ce567'
 };
 
-// ABI for ERC20 tokens - minimal interface for checking balances and approving tokens
-export const ERC20_ABI = [
-    {
-        "constant": true,
-        "inputs": [{"name": "_owner", "type": "address"}],
-        "name": "balanceOf",
-        "outputs": [{"name": "balance", "type": "uint256"}],
-        "type": "function"
-    },
-    {
-        "constant": false,
-        "inputs": [
-            {"name": "_spender", "type": "address"},
-            {"name": "_value", "type": "uint256"}
-        ],
-        "name": "approve",
-        "outputs": [{"name": "", "type": "bool"}],
-        "type": "function"
-    },
-    {
-        "constant": true,
-        "inputs": [],
-        "name": "decimals",
-        "outputs": [{"name": "", "type": "uint8"}],
-        "type": "function"
-    }
-];
+/** @returns {boolean} whether a wallet is currently connected */
+export function isConnected() {
+    return Boolean(userAccount);
+}
 
-/**
- * Ensure the wallet is connected to the Ethereum mainnet
- */
-async function ensureEthereumNetwork() {
-    try {
-        // Ethereum mainnet chain ID is 1
-        const ethereumMainnetChainId = '0x1';
-
-        // Check the current chain ID
-        const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
-
-        if (currentChainId !== ethereumMainnetChainId) {
-            // Request to switch to Ethereum mainnet
-            await window.ethereum.request({
-                method: 'wallet_switchEthereumChain',
-                params: [{ chainId: ethereumMainnetChainId }],
-            });
-        }
-    } catch (error) {
-        if (error.code === 4902) {
-            console.error('Ethereum mainnet is not added to the wallet.');
-        } else {
-            console.error('Error switching to Ethereum mainnet:', error);
-        }
-        throw error; // Re-throw the error to handle it in the calling function
-    }
+/** @returns {string|null} the connected address, if any */
+export function getAccount() {
+    return userAccount;
 }
 
 /**
- * Connect to Ethereum wallet (MetaMask or similar)
- * @returns {Promise<boolean>} Success status of wallet connection
+ * Pads an address to a 32-byte ABI word.
+ * @param {string} address
+ * @returns {string}
+ */
+function encodeAddress(address) {
+    return address.toLowerCase().replace(/^0x/, '').padStart(64, '0');
+}
+
+/**
+ * Performs a read-only contract call through the injected provider.
+ * @param {string} to - contract address
+ * @param {string} data - ABI-encoded calldata
+ * @returns {Promise<string>} hex result
+ */
+function ethCall(to, data) {
+    return provider.request({ method: 'eth_call', params: [{ to, data }, 'latest'] });
+}
+
+/**
+ * Converts a base-unit BigInt amount to a human-readable decimal string.
+ * @param {bigint} value
+ * @param {number} decimals
+ * @param {number} precision - digits to keep after the point
+ * @returns {string}
+ */
+export function formatUnits(value, decimals, precision = 4) {
+    const base = 10n ** BigInt(decimals);
+    const whole = value / base;
+    const fraction = value % base;
+    const fractionDigits = fraction.toString().padStart(decimals, '0').slice(0, precision);
+    const trimmed = fractionDigits.replace(/0+$/, '');
+    const wholeText = whole.toLocaleString('en-US');
+    return trimmed ? `${wholeText}.${trimmed}` : wholeText;
+}
+
+/**
+ * Ensures the wallet is on Ethereum mainnet, prompting a switch if not.
+ */
+async function ensureMainnet() {
+    const currentChainId = await provider.request({ method: 'eth_chainId' });
+    if (currentChainId === CHAIN.hexId) return;
+
+    await provider.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: CHAIN.hexId }]
+    });
+}
+
+/**
+ * Connects to the injected Ethereum wallet.
+ * @returns {Promise<boolean>} success status
  */
 export async function connectWallet() {
     playSound(SOUNDS.CLICK);
 
+    if (!window.ethereum) {
+        showWalletError('No Ethereum wallet detected. Install MetaMask, Rabby or another EIP-1193 wallet.');
+        return false;
+    }
+
+    provider = window.ethereum;
+
     try {
-        // Check if MetaMask is installed
-        if (window.ethereum) {
-            try {
-                // Ensure the wallet is on the Ethereum mainnet
-                await ensureEthereumNetwork();
+        const accounts = await provider.request({ method: 'eth_requestAccounts' });
+        await ensureMainnet();
+        handleAccountsChanged(accounts);
 
-                // Request account access
-                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                handleAccountsChanged(accounts);
+        provider.removeListener?.('accountsChanged', handleAccountsChanged);
+        provider.removeListener?.('chainChanged', handleChainChanged);
+        provider.on?.('accountsChanged', handleAccountsChanged);
+        provider.on?.('chainChanged', handleChainChanged);
 
-                // Create Web3 instance
-                web3 = new Web3(window.ethereum);
-
-                // Get chain ID
-                chainId = await web3.eth.getChainId();
-
-                // Setup event listeners
-                window.ethereum.on('accountsChanged', handleAccountsChanged);
-                window.ethereum.on('chainChanged', handleChainChanged);
-
-                // Update UI
-                updateWalletUI();
-
-                return true;
-            } catch (error) {
-                console.error('User denied account access or network switch:', error);
-                showWalletError('Connection rejected or network switch failed. Please try again.');
-                return false;
-            }
-        } else if (window.web3) {
-            // Legacy web3 provider
-            web3 = new Web3(window.web3.currentProvider);
-
-            // Get accounts
-            const accounts = await web3.eth.getAccounts();
-            handleAccountsChanged(accounts);
-
-            // Get chain ID
-            chainId = await web3.eth.getChainId();
-
-            // Update UI
-            updateWalletUI();
-
-            return true;
-        } else {
-            showWalletError('No Ethereum wallet detected. Please install MetaMask.');
-            return false;
-        }
+        return true;
     } catch (error) {
-        console.error('Error connecting wallet:', error);
-        showWalletError('Failed to connect wallet. Please try again.');
+        // 4001 is the standard "user rejected request" code.
+        if (error?.code === 4001) {
+            showWalletError('Connection rejected.');
+        } else if (error?.code === 4902) {
+            showWalletError(`${CHAIN.name} is not configured in your wallet.`);
+        } else {
+            console.error('Error connecting wallet:', error);
+            showWalletError('Failed to connect wallet. Please try again.');
+        }
         return false;
     }
 }
 
 /**
- * Handle accounts changed in wallet
- * @param {string[]} accounts - Array of wallet addresses
+ * Reconnects silently if the wallet has already authorized this site,
+ * so a returning visitor doesn't have to click Connect again.
+ */
+export async function restoreConnection() {
+    if (!window.ethereum) return;
+    provider = window.ethereum;
+    try {
+        const accounts = await provider.request({ method: 'eth_accounts' });
+        if (accounts.length > 0) {
+            handleAccountsChanged(accounts);
+            provider.on?.('accountsChanged', handleAccountsChanged);
+            provider.on?.('chainChanged', handleChainChanged);
+        }
+    } catch (error) {
+        console.error('Could not restore wallet connection:', error);
+    }
+}
+
+/**
+ * @param {string[]} accounts
  */
 function handleAccountsChanged(accounts) {
-    if (accounts.length === 0) {
-        // User logged out
-        userAccount = null;
-        isWalletConnected = false;
-    } else {
-        // User logged in or changed accounts
-        userAccount = accounts[0];
-        isWalletConnected = true;
-    }
-
-    // Update UI
+    userAccount = accounts && accounts.length > 0 ? accounts[0] : null;
     updateWalletUI();
 }
 
-/**
- * Handle chain changed in wallet
- */
 function handleChainChanged() {
-    // Reload the page when the chain changes
     window.location.reload();
 }
 
-/**
- * Update wallet UI elements after connection changes
- */
+/** Repaints the wallet area of the swap panel. */
 function updateWalletUI() {
-    const walletAddressElement = document.getElementById('walletAddress');
-    const connectWalletBtn = document.getElementById('connectWalletBtn');
+    const addressElement = document.getElementById('walletAddress');
+    const connectButton = document.getElementById('connectWalletBtn');
     const swapButton = document.getElementById('swapButton');
-    const walletBalancesContainer = document.getElementById('walletBalances');
+    const balances = document.getElementById('walletBalances');
 
-    if (!walletAddressElement || !connectWalletBtn || !swapButton) return;
+    if (!addressElement || !connectButton || !swapButton) return;
 
-    if (isWalletConnected && userAccount) {
-        // Format account address for display
-        const formattedAddress = `${userAccount.substring(0, 6)}...${userAccount.substring(userAccount.length - 4)}`;
-        walletAddressElement.textContent = formattedAddress;
-        walletAddressElement.classList.add('wallet-connected');
-
-        // Update connect button
-        connectWalletBtn.innerHTML = '<i class="fas fa-wallet"></i> Connected';
-
-        // Update swap button
-        swapButton.textContent = 'Swap';
+    if (userAccount) {
+        addressElement.textContent = `${userAccount.slice(0, 6)}...${userAccount.slice(-4)}`;
+        addressElement.classList.add('wallet-connected');
+        connectButton.textContent = 'Connected';
+        swapButton.textContent = 'Swap on Uniswap';
         swapButton.disabled = false;
-
-        // Show the balances container if it exists
-        if (walletBalancesContainer) {
-            walletBalancesContainer.style.display = 'flex';
-        }
-
-        // Get token balances
+        if (balances) balances.style.display = 'flex';
         getTokenBalance();
     } else {
-        walletAddressElement.textContent = 'Wallet not connected';
-        walletAddressElement.classList.remove('wallet-connected');
-
-        // Update connect button
-        connectWalletBtn.innerHTML = '<i class="fas fa-wallet"></i> Connect Wallet';
-
-        // Update swap button
+        addressElement.textContent = 'Wallet not connected';
+        addressElement.classList.remove('wallet-connected');
+        connectButton.textContent = 'Connect Wallet';
         swapButton.textContent = 'Connect Wallet to Swap';
         swapButton.disabled = true;
-
-        // Hide the balances container if it exists
-        if (walletBalancesContainer) {
-            walletBalancesContainer.style.display = 'none';
-        }
+        if (balances) balances.style.display = 'none';
     }
 }
 
 /**
- * Get ETH and XRGE (RougeCoin) balances for the connected wallet
+ * Reads the ETH and XRGE balances for the connected account.
+ * @returns {Promise<Object|undefined>}
  */
 export async function getTokenBalance() {
-    if (!isWalletConnected || !web3) return;
+    if (!userAccount || !provider) return;
 
-    const balancesContainer = document.getElementById('walletBalances');
-    if (balancesContainer) {
-        balancesContainer.innerHTML = '<div class="loading-balance">Loading balances...</div>';
-    }
+    const container = document.getElementById('walletBalances');
+    if (container) container.textContent = 'Loading balances...';
 
-    // Get only ETH and XRGE balances
     const balances = {};
 
     try {
-        // Get ETH balance (native token should always work)
-        const ethBalance = await web3.eth.getBalance(userAccount);
-        balances.ETH = Number(web3.utils.fromWei(ethBalance, 'ether')).toFixed(4);
+        const wei = await provider.request({
+            method: 'eth_getBalance',
+            params: [userAccount, 'latest']
+        });
+        balances.ETH = formatUnits(BigInt(wei), 18, 4);
     } catch (error) {
-        console.error("Error fetching ETH balance:", error);
-        balances.ETH = "Error";
+        console.error('Error fetching ETH balance:', error);
+        balances.ETH = 'unavailable';
     }
 
     try {
-        // Get XRGE balance using the provided ABI
-        const rougeAddress = TOKEN_ADDRESSES.ROUGE;
-        const rougeABI = [
-            { "constant": true, "inputs": [], "name": "name", "outputs": [{ "name": "", "type": "string" }], "payable": false, "stateMutability": "view", "type": "function" },
-            { "constant": false, "inputs": [{ "name": "spender", "type": "address" }, { "name": "tokens", "type": "uint256" }], "name": "approve", "outputs": [{ "name": "success", "type": "bool" }], "payable": false, "stateMutability": "nonpayable", "type": "function" },
-            { "constant": true, "inputs": [], "name": "totalSupply", "outputs": [{ "name": "", "type": "uint256" }], "payable": false, "stateMutability": "view", "type": "function" },
-            { "constant": true, "inputs": [{ "name": "tokenOwner", "type": "address" }], "name": "balanceOf", "outputs": [{ "name": "balance", "type": "uint256" }], "payable": false, "stateMutability": "view", "type": "function" },
-            { "constant": true, "inputs": [], "name": "decimals", "outputs": [{ "name": "", "type": "uint8" }], "payable": false, "stateMutability": "view", "type": "function" }
-        ];
-
-        try {
-            console.log("Using XRGE contract address:", rougeAddress);
-            console.log("Using ABI:", rougeABI);
-
-            const rougeContract = new web3.eth.Contract(rougeABI, rougeAddress);
-            const rougeBalance = await rougeContract.methods.balanceOf(userAccount).call();
-            const decimals = await rougeContract.methods.decimals().call();
-
-            // XRGE typically has 18 decimals
-            balances.XRGE = (rougeBalance / Math.pow(10, decimals)).toLocaleString(undefined, {
-                maximumFractionDigits: 0
-            });
-        } catch (error) {
-            console.error("Error fetching XRGE balance:", error);
-            balances.XRGE = "Error";
-        }
+        const { address } = TOKENS.XRGE;
+        const raw = await ethCall(address, SELECTOR.balanceOf + encodeAddress(userAccount));
+        const decimalsHex = await ethCall(address, SELECTOR.decimals);
+        const decimals = Number(BigInt(decimalsHex || '0x12'));
+        balances.XRGE = formatUnits(BigInt(raw), decimals, 0);
     } catch (error) {
-        console.error("Error fetching XRGE balance:", error);
-        balances.XRGE = "Error";
+        console.error('Error fetching XRGE balance:', error);
+        balances.XRGE = 'unavailable';
     }
 
-    // Update UI with balances
     updateBalanceDisplay(balances);
-
     return balances;
 }
 
 /**
- * Update the UI with token balances
- * @param {Object} balances - Object containing token balances
+ * @param {Object<string,string>} balances
  */
 function updateBalanceDisplay(balances) {
-    const balancesContainer = document.getElementById('walletBalances');
-    if (!balancesContainer) return;
+    const container = document.getElementById('walletBalances');
+    if (!container) return;
 
-    // Clear previous balances
-    balancesContainer.innerHTML = '';
+    container.textContent = '';
 
-    // Create balance items for each token
     Object.entries(balances).forEach(([token, amount]) => {
-        const balanceItem = document.createElement('div');
-        balanceItem.className = 'balance-item';
+        const item = document.createElement('div');
+        item.className = 'balance-item';
 
-        // Format the amount with commas for thousands
-        let formattedAmount = amount;
-        if (token === 'ROUGE') {
-            formattedAmount = parseInt(amount).toLocaleString();
-        }
+        const label = document.createElement('span');
+        label.className = 'balance-token';
+        label.textContent = `${token}:`;
 
-        balanceItem.innerHTML = `
-            <span class="balance-token">${token}:</span>
-            <span class="balance-amount">${formattedAmount}</span>
-        `;
+        const value = document.createElement('span');
+        value.className = 'balance-amount';
+        value.textContent = amount;
 
-        balancesContainer.appendChild(balanceItem);
+        item.append(label, value);
+        container.appendChild(item);
     });
 }
 
 /**
- * Show wallet error with sound effect
- * @param {string} message - Error message to display
+ * @param {string} message
  */
 function showWalletError(message) {
     playSound(SOUNDS.ERROR);
-    alert(message);
+    const addressElement = document.getElementById('walletAddress');
+    if (addressElement) {
+        addressElement.textContent = message;
+        addressElement.classList.add('wallet-error');
+        setTimeout(() => addressElement.classList.remove('wallet-error'), 4000);
+    } else {
+        alert(message);
+    }
 }
 
 /**
- * Perform token swap after connecting wallet
+ * Hands the swap off to Uniswap with the entered amounts pre-filled.
+ *
+ * This site does not execute swaps itself: routing, slippage and approvals
+ * are Uniswap's job, and pretending otherwise with a fake progress spinner
+ * (what the old code did) is misleading.
  */
 export async function performSwap() {
-    if (!isWalletConnected) {
+    if (!userAccount) {
         connectWallet();
         return;
     }
 
     playSound(SOUNDS.CLICK);
-
-    const fromAmount = document.getElementById('fromAmount').value;
-    const fromToken = document.getElementById('fromToken').value;
-
-    if (!fromAmount || fromAmount <= 0) {
-        alert('Please enter an amount to swap');
-        return;
-    }
-
-    // In a full implementation, this would interact with Uniswap contracts
-    // For now, we'll show a simulated transaction and then redirect
-
-    // Update button to show loading state
-    const swapButton = document.getElementById('swapButton');
-    const buttonText = swapButton.textContent;
-    swapButton.innerHTML = 'Preparing Swap <span class="loading-spinner"></span>';
-    swapButton.disabled = true;
-
-    try {
-        // Simulate transaction preparation delay
-        await new Promise(resolve => setTimeout(resolve, 1500));
-
-        // For now, redirect to Uniswap with the parameters
-        redirectToUniswap();
-    } catch (error) {
-        console.error("Error in swap:", error);
-        swapButton.textContent = buttonText;
-        swapButton.disabled = false;
-        showWalletError("Swap failed. Please try again.");
-    }
+    redirectToUniswap();
 }
 
-/**
- * Initialize wallet event listeners
- */
+/** Wires up inputs that should refresh balances/estimates. */
 export function initWalletEventListeners() {
-    window.addEventListener('DOMContentLoaded', () => {
-        const fromTokenField = document.getElementById('fromToken');
-        if (fromTokenField) {
-            fromTokenField.addEventListener('change', () => {
-                if (isWalletConnected) {
-                    getTokenBalance();
-                }
-                if (window.calculateSwapEstimate) {
-                    window.calculateSwapEstimate();
-                }
-            });
-        }
-    });
+    const fromToken = document.getElementById('fromToken');
+    if (fromToken) {
+        fromToken.addEventListener('change', () => {
+            if (userAccount) getTokenBalance();
+        });
+    }
+    restoreConnection();
 }
+
+// Kept for backwards compatibility with modules that imported the old constant.
+export const TOKEN_ADDRESSES = {
+    ETH: TOKENS.ETH.address,
+    USDT: TOKENS.USDT.address,
+    USDC: TOKENS.USDC.address,
+    ROUGE: TOKENS.XRGE.address
+};

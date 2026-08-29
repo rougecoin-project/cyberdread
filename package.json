@@ -1,0 +1,14 @@
+{
+  "name": "cyberdread",
+  "version": "6.0.0",
+  "private": true,
+  "description": "{Dread_OS} - a cyberpunk desktop environment in the browser.",
+  "type": "module",
+  "scripts": {
+    "dev": "netlify dev",
+    "serve": "npx --yes serve ."
+  },
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0"
+  }
+}

@@ -1,3 +1,30 @@
+/* ------------------------------------------------------------------ *
+ * Design tokens
+ *
+ * Accent colours were hardcoded (#00ffff in ~95 places), which made
+ * theming impossible. They are variables now; settings.js overrides
+ * --accent / --accent-rgb at runtime.
+ * ------------------------------------------------------------------ */
+:root {
+    --accent: #00ffff;
+    --accent-rgb: 0, 255, 255;
+
+    --ok: #00ff88;
+    --ok-rgb: 0, 255, 136;
+    --danger: #ff4466;
+    --warn: #ffb000;
+
+    --bg: #05070a;
+    --surface: rgba(4, 12, 18, 0.92);
+    --surface-2: rgba(0, 20, 30, 0.7);
+    --text: #d8f6ff;
+    --text-muted: rgba(216, 246, 255, 0.6);
+
+    --font-mono: "SFMono-Regular", ui-monospace, "Cascadia Mono", Menlo, Consolas, monospace;
+    --radius: 6px;
+    --taskbar-h: 36px;
+}
+
 body, html {
     margin: 0;
     padding: 0;
@@ -5,18 +32,27 @@ body, html {
     height: 100%;
     overflow: hidden;
     font-family: 'Courier New', Courier, monospace;
-    color: #00ffff;
+    color: var(--accent);
     background-color: #000000;
 }
 .desktop {
-    background: url('assets/img/background.png') no-repeat center center fixed;
-    background-size: contain;
+    /* The dimming gradient is layered on top of the wallpaper in the same
+     * background shorthand.
+     *
+     * This used to be background-size: contain (which letterboxed the
+     * image) plus filter: brightness(0.7) on .desktop. That filter dimmed
+     * every window as well as the wallpaper and -- worse -- made .desktop a
+     * containing block for fixed-position descendants, so position: fixed
+     * windows were positioned against .desktop instead of the viewport. */
+    background:
+        linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.55)),
+        url('assets/img/background.png') no-repeat center center fixed;
+    background-size: cover, cover;
     width: 100%;
     height: 100%;
     position: relative;
-    filter: brightness(0.7);
-    animation: subtleStatic 1s steps(10) infinite;
 }
+
 .desktop::before {
     content: '';
     position: fixed;
@@ -26,7 +62,7 @@ body, html {
     height: 100%;
     background: repeating-linear-gradient(
         transparent 0px,
-        rgba(0, 255, 255, 0.03) 1px,
+        rgba(var(--accent-rgb), 0.03) 1px,
         transparent 2px
     );
     pointer-events: none;
@@ -40,7 +76,7 @@ body, html {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 255, 255, 0.03);
+    background: rgba(var(--accent-rgb), 0.03);
     animation: glitchEffect 4s steps(100) infinite;
     pointer-events: none;
     z-index: 2;
@@ -120,13 +156,13 @@ body, html {
     align-items: center;
     padding: 0 10px;
     box-sizing: border-box;
-    border-top: 3px solid #00ffff;
-    box-shadow: 0 -2px 10px rgba(0, 255, 255, 0.5);
+    border-top: 3px solid var(--accent);
+    box-shadow: 0 -2px 10px rgba(var(--accent-rgb), 0.5);
     justify-content: space-between;
 }
 
 .os-name {
-    color: #00ffff;
+    color: var(--accent);
     font-weight: bold;
     margin-left: 20px;
 }
@@ -137,31 +173,31 @@ body, html {
 }
 
 #clock {
-    color: #00ffff;
+    color: var(--accent);
     font-family: 'Courier New', monospace;
 }
 
 .start-menu {
     width: 120px;
     height: 100%;
-    background: rgba(0, 255, 255, 0.3);
+    background: rgba(var(--accent-rgb), 0.3);
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    color: #00ffff;
+    color: var(--accent);
     font-weight: bold;
-    border: 1px solid #00ffff;
+    border: 1px solid var(--accent);
     border-radius: 5px;
 }
 .start-menu:hover {
-    background: rgba(0, 255, 255, 0.4);
+    background: rgba(var(--accent-rgb), 0.4);
 }
 .icon {
     position: absolute;
     width: 80px;
     text-align: center;
-    color: #00ffff;
+    color: var(--accent);
     cursor: pointer;
 }
 .icon img {
@@ -172,13 +208,13 @@ body, html {
     font-size: 14px;
     margin-top: 5px;
     text-shadow: 
-        0 0 5px #00ffff,
-        0 0 10px #00ffff,
-        0 0 15px #00ffff;
+        0 0 5px var(--accent),
+        0 0 10px var(--accent),
+        0 0 15px var(--accent);
     background: rgba(0, 0, 0, 0.7);
     padding: 2px 5px;
     border-radius: 3px;
-    border: 1px solid rgba(0, 255, 255, 0.3);
+    border: 1px solid rgba(var(--accent-rgb), 0.3);
 }
 .explorer {
     display: none;
@@ -188,9 +224,9 @@ body, html {
     width: 400px;
     height: 400px; /* increased height */
     background: rgba(0, 0, 0, 0.9);
-    border: 2px solid #00ffff;
-    box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
-    color: #00ffff;
+    border: 2px solid var(--accent);
+    box-shadow: 0 0 10px rgba(var(--accent-rgb), 0.5);
+    color: var(--accent);
     font-family: 'Courier New', Courier, monospace;
     overflow-y: auto;
     resize: both;  /* Enable both horizontal and vertical resizing */
@@ -201,7 +237,7 @@ body, html {
     backdrop-filter: blur(5px);
     border: 2px solid transparent;
     background: linear-gradient(rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.9)) padding-box,
-                linear-gradient(45deg, #00ffff, transparent) border-box;
+                linear-gradient(45deg, var(--accent), transparent) border-box;
     touch-action: none; /* Prevent default touch behaviors */
 }
 .explorer-header {
@@ -209,14 +245,14 @@ body, html {
     justify-content: space-between;
     align-items: center;
     padding: 5px;
-    background: rgba(0, 255, 255, 0.3);
-    border-bottom: 2px solid #00ffff;
+    background: rgba(var(--accent-rgb), 0.3);
+    border-bottom: 2px solid var(--accent);
     cursor: move;
 }
 .explorer-header button {
     background: none;
     border: none;
-    color: #00ffff;
+    color: var(--accent);
     cursor: pointer;
     font-size: 16px;
 }
@@ -256,7 +292,7 @@ body, html {
     left: -5px;
     right: -5px;
     bottom: -5px;
-    background: linear-gradient(45deg, transparent 40%, rgba(0, 255, 255, 0.2) 45%, rgba(0, 255, 255, 0.4) 50%, rgba(0, 255, 255, 0.2) 55%, transparent 60%);
+    background: linear-gradient(45deg, transparent 40%, rgba(var(--accent-rgb), 0.2) 45%, rgba(var(--accent-rgb), 0.4) 50%, rgba(var(--accent-rgb), 0.2) 55%, transparent 60%);
     z-index: -1;
     animation: holographic 3s linear infinite;
     opacity: 0;
@@ -273,8 +309,8 @@ body, html {
     font-size: 14px;
     margin-top: 5px;
     text-shadow: 
-        0 0 5px #00ffff,
-        0 0 10px #00ffff;
+        0 0 5px var(--accent),
+        0 0 10px var(--accent);
     background: rgba(0, 0, 0, 0.7);
     padding: 2px 5px;
     border-radius: 3px;
@@ -300,22 +336,22 @@ body, html {
 }
 .folder-content p {
     overflow: hidden;
-    border-right: 2px solid #00ffff;
+    border-right: 2px solid var(--accent);
     white-space: pre-wrap;
     animation: typing 3.5s steps(40, end), blink-caret 0.75s step-end infinite;
 }
 .back-button {
     margin-bottom: 15px;
-    color: #00ffff;
+    color: var(--accent);
     cursor: pointer;
     padding: 5px;
-    border: 1px solid #00ffff;
+    border: 1px solid var(--accent);
     display: inline-block;
-    text-shadow: 0 0 5px #00ffff, 0 0 10px #00ffff;
-    box-shadow: 0 0 5px #00ffff, inset 0 0 5px #00ffff;
+    text-shadow: 0 0 5px var(--accent), 0 0 10px var(--accent);
+    box-shadow: 0 0 5px var(--accent), inset 0 0 5px var(--accent);
 }
 .back-button:hover {
-    background: rgba(0, 255, 255, 0.2);
+    background: rgba(var(--accent-rgb), 0.2);
 }
 
 .modal {
@@ -325,9 +361,9 @@ body, html {
     left: 50%;
     transform: translate(-50%, -50%);
     background: rgba(0, 0, 0, 0.95);
-    border: 2px solid #00ffff;
+    border: 2px solid var(--accent);
     padding: 20px;
-    box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+    box-shadow: 0 0 20px rgba(var(--accent-rgb), 0.5);
     z-index: 1000;
     min-width: 300px;
     text-align: center;
@@ -336,7 +372,7 @@ body, html {
 
 .modal p {
     margin-bottom: 20px;
-    color: #00ffff;
+    color: var(--accent);
 }
 
 .modal-buttons {
@@ -347,16 +383,16 @@ body, html {
 
 .modal-button {
     background: none;
-    border: 1px solid #00ffff;
-    color: #00ffff;
+    border: 1px solid var(--accent);
+    color: var(--accent);
     padding: 5px 15px;
     cursor: pointer;
-    text-shadow: 0 0 5px #00ffff, 0 0 10px #00ffff;
-    box-shadow: 0 0 5px #00ffff, inset 0 0 5px #00ffff;
+    text-shadow: 0 0 5px var(--accent), 0 0 10px var(--accent);
+    box-shadow: 0 0 5px var(--accent), inset 0 0 5px var(--accent);
 }
 
 .modal-button:hover {
-    background: rgba(0, 255, 255, 0.2);
+    background: rgba(var(--accent-rgb), 0.2);
 }
 
 .start-menu-dropdown {
@@ -366,8 +402,8 @@ body, html {
     left: 10px;
     width: 200px;
     background: rgba(0, 0, 0, 0.95);
-    border: 2px solid #00ffff;
-    box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+    border: 2px solid var(--accent);
+    box-shadow: 0 0 10px rgba(var(--accent-rgb), 0.5);
     z-index: 1000;
     padding: 10px;
 }
@@ -376,14 +412,14 @@ body, html {
     display: flex;
     align-items: center;
     padding: 8px;
-    color: #00ffff;
+    color: var(--accent);
     cursor: pointer;
     border: 1px solid transparent;
 }
 
 .start-menu-item:hover {
-    background: rgba(0, 255, 255, 0.2);
-    border: 1px solid #00ffff;
+    background: rgba(var(--accent-rgb), 0.2);
+    border: 1px solid var(--accent);
 }
 
 .start-menu-item img {
@@ -393,7 +429,7 @@ body, html {
 }
 
 .start-menu.active {
-    background: rgba(0, 255, 255, 0.4);
+    background: rgba(var(--accent-rgb), 0.4);
 }
 
 .project-item {
@@ -413,7 +449,7 @@ body, html {
     width: 100px;
     height: 100px;
     object-fit: contain;
-    border: 1px solid #00ffff;
+    border: 1px solid var(--accent);
     background: rgba(0, 0, 0, 0.5);
     padding: 5px;
     cursor: pointer;
@@ -428,8 +464,8 @@ body, html {
     font-size: 14px;
     margin-top: 5px;
     text-shadow: 
-        0 0 5px #00ffff,
-        0 0 10px #00ffff;
+        0 0 5px var(--accent),
+        0 0 10px var(--accent);
     background: rgba(0, 0, 0, 0.7);
     padding: 2px 5px;
     border-radius: 3px;
@@ -446,7 +482,7 @@ body, html {
     z-index: 2000;
     justify-content: center;
     align-items: center;
-    color: #00ffff;
+    color: var(--accent);
     font-family: 'Courier New', monospace;
 }
 
@@ -457,7 +493,7 @@ body, html {
 .loading-bar {
     width: 200px;
     height: 20px;
-    border: 2px solid #00ffff;
+    border: 2px solid var(--accent);
     margin: 20px auto;
     position: relative;
     overflow: hidden;
@@ -470,7 +506,7 @@ body, html {
     left: 0;
     width: 100%;
     height: 100%;
-    background: #00ffff;
+    background: var(--accent);
     animation: loading 2s linear;
 }
 
@@ -490,7 +526,7 @@ body, html {
     display: flex;
     justify-content: center;
     align-items: center;
-    color: #00ffff;
+    color: var(--accent);
     font-family: 'Courier New', monospace;
 }
 
@@ -526,7 +562,7 @@ body, html {
     overflow-y: auto;
     margin-bottom: 10px;
     padding: 10px;
-    border: 1px solid #00ffff;
+    border: 1px solid var(--accent);
     background: rgba(0, 0, 0, 0.5);
 }
 
@@ -538,16 +574,16 @@ body, html {
 
 .chat-input input {
     background: rgba(0, 0, 0, 0.7);
-    border: 1px solid #00ffff;
-    color: #00ffff;
+    border: 1px solid var(--accent);
+    color: var(--accent);
     padding: 5px 10px;
     font-family: 'Courier New', monospace;
 }
 
 .chat-input input:focus {
     outline: none;
-    border-color: #00ffff;
-    box-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
+    border-color: var(--accent);
+    box-shadow: 0 0 5px rgba(var(--accent-rgb), 0.5);
 }
 
 #nameInput {
@@ -559,15 +595,15 @@ body, html {
 }
 
 .chat-input button {
-    background: rgba(0, 255, 255, 0.2);
-    border: 1px solid #00ffff;
-    color: #00ffff;
+    background: rgba(var(--accent-rgb), 0.2);
+    border: 1px solid var(--accent);
+    color: var(--accent);
     padding: 5px 15px;
     cursor: pointer;
 }
 
 .chat-input button:hover {
-    background: rgba(0, 255, 255, 0.3);
+    background: rgba(var(--accent-rgb), 0.3);
 }
 
 .message {
@@ -575,18 +611,18 @@ body, html {
     padding: 5px;
     position: relative;
     animation: messageAppear 0.3s ease-out;
-    background: linear-gradient(90deg, rgba(0, 255, 255, 0.1), transparent);
+    background: linear-gradient(90deg, rgba(var(--accent-rgb), 0.1), transparent);
 }
 
 .message-name {
-    color: #00ffff;
+    color: var(--accent);
     font-weight: bold;
     margin-right: 5px;
 }
 
 .message-time {
     font-size: 0.8em;
-    color: rgba(0, 255, 255, 0.6);
+    color: rgba(var(--accent-rgb), 0.6);
     margin-left: 10px;
 }
 
@@ -597,7 +633,7 @@ body, html {
     transform: translateY(-50%);
     background: none;
     border: none;
-    color: #00ffff;
+    color: var(--accent);
     cursor: pointer;
     opacity: 0;
     transition: opacity 0.2s;
@@ -626,7 +662,7 @@ body, html {
     width: 30px; /* Larger touch target */
     height: 30px; /* Larger touch target */
     cursor: nw-resize;
-    background: linear-gradient(135deg, transparent 50%, #00ffff 50%);
+    background: linear-gradient(135deg, transparent 50%, var(--accent) 50%);
     opacity: 0.5;
     touch-action: none;
 }
@@ -662,8 +698,8 @@ body, html {
 .image-viewer img {
     max-width: 90%;
     max-height: 90vh;
-    border: 2px solid #00ffff;
-    box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+    border: 2px solid var(--accent);
+    box-shadow: 0 0 20px rgba(var(--accent-rgb), 0.5);
 }
 
 .image-viewer .close-btn {
@@ -672,7 +708,7 @@ body, html {
     right: 20px;
     background: none;
     border: none;
-    color: #00ffff;
+    color: var(--accent);
     font-size: 24px;
     cursor: pointer;
     padding: 10px;
@@ -710,7 +746,7 @@ body, html {
 
 @keyframes blink-caret {
     from, to { border-color: transparent; }
-    50% { border-color: #00ffff; }
+    50% { border-color: var(--accent); }
 }
 
 @keyframes modalGlitch {
@@ -726,7 +762,7 @@ body, html {
     width: 300px;
     background: rgba(0, 0, 0, 0.8);
     border: 1px solid #dfad24;
-    box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+    box-shadow: 0 0 10px rgba(var(--ok-rgb), 0.3);
     z-index: 1000;
     resize: both;
     overflow: hidden;
@@ -738,7 +774,7 @@ body, html {
     cursor: move; /* Add move cursor */
     display: flex;
     justify-content: space-between;
-    border-bottom: 1px solid #00ff00;
+    border-bottom: 1px solid var(--ok);
     color: #f4f814;
 }
 
@@ -756,8 +792,8 @@ body, html {
 .track-info {
     padding: 5px;
     background: #111;
-    color: #00ff00;
-    border-bottom: 1px solid #00ff00;
+    color: var(--ok);
+    border-bottom: 1px solid var(--ok);
 }
 
 .controls {
@@ -765,13 +801,13 @@ body, html {
     gap: 5px;
     padding: 5px;
     background: #111;
-    border-bottom: 1px solid #00ff00;
+    border-bottom: 1px solid var(--ok);
 }
 
 .controls button {
     background: #222;
-    border: 1px solid #00ff00;
-    color: #00ff00;
+    border: 1px solid var(--ok);
+    color: var(--ok);
     padding: 5px 10px;
     cursor: pointer;
 }
@@ -782,7 +818,7 @@ body, html {
 
 #volumeSlider {
     flex: 1;
-    accent-color: #00ff00;
+    accent-color: var(--ok);
 }
 
 .playlist {
@@ -794,7 +830,7 @@ body, html {
 .playlist-item {
     padding: 5px;
     cursor: pointer;
-    color: #00ff00;
+    color: var(--ok);
     border-bottom: 1px solid #002200;
 }
 
@@ -816,12 +852,12 @@ body, html {
 }
 
 .playlist::-webkit-scrollbar-thumb {
-    background: #00ff00;
+    background: var(--ok);
 }
 
 .start-menu-section {
     padding: 10px;
-    border-bottom: 1px solid #00ff00;
+    border-bottom: 1px solid var(--ok);
 }
 
 .start-menu-music {
@@ -843,8 +879,8 @@ body, html {
 
 .music-controls button {
     background: #222;
-    border: 1px solid #00ff00;
-    color: #00ff00;
+    border: 1px solid var(--ok);
+    color: var(--ok);
     padding: 2px 5px;
     cursor: pointer;
 }
@@ -855,7 +891,7 @@ body, html {
 
 .music-info {
     flex: 1;
-    color: #00ff00;
+    color: var(--ok);
     font-size: 12px;
     overflow: hidden;
     white-space: nowrap;
@@ -863,24 +899,24 @@ body, html {
 
 .start-menu-divider {
     height: 1px;
-    background: #00ff00;
+    background: var(--ok);
     margin: 5px 0;
 }
 
 /* Add text selection color */
 ::selection {
-    background: rgba(0, 255, 255, 0.3);
-    color: #00ffff;
+    background: rgba(var(--accent-rgb), 0.3);
+    color: var(--accent);
 }
 
 .tooltip {
     position: absolute;
     background: rgba(0, 0, 0, 0.8);
-    color: #00ffff;
+    color: var(--accent);
     padding: 10px;
-    border: 1px solid #00ffff;
+    border: 1px solid var(--accent);
     border-radius: 5px;
-    box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+    box-shadow: 0 0 10px rgba(var(--accent-rgb), 0.5);
     opacity: 0;
     transition: opacity 0.3s;
     z-index: 1000;
@@ -896,9 +932,9 @@ body, html {
     min-height: 44px;
     font-size: 20px;
     padding: 10px;
-    background: rgba(0, 255, 255, 0.1);
+    background: rgba(var(--accent-rgb), 0.1);
     border-radius: 4px;
-    border: 1px solid rgba(0, 255, 255, 0.3);
+    border: 1px solid rgba(var(--accent-rgb), 0.3);
     touch-action: manipulation;
 }
 
@@ -913,7 +949,7 @@ body, html {
         bottom: 0;
         right: 0;
         position: absolute;
-        background: linear-gradient(135deg, transparent 50%, rgba(0, 255, 255, 0.5) 50%);
+        background: linear-gradient(135deg, transparent 50%, rgba(var(--accent-rgb), 0.5) 50%);
         z-index: 100;
     }
 }
@@ -921,7 +957,7 @@ body, html {
 /* RougeCoin Interface Styles */
 .rougecoin-content {
     padding: 15px;
-    color: #00ffff;
+    color: var(--accent);
 }
 
 .rougecoin-header {
@@ -929,7 +965,7 @@ body, html {
     align-items: center;
     flex-direction: column;
     margin-bottom: 20px;
-    border-bottom: 1px solid #00ffff33;
+    border-bottom: 1px solid rgba(var(--accent-rgb), 0.2);
     padding-bottom: 15px;
 }
 
@@ -937,7 +973,7 @@ body, html {
     width: 50px;
     height: 50px;
     margin-bottom: 10px;
-    filter: drop-shadow(0 0 5px #00ffff);
+    filter: drop-shadow(0 0 5px var(--accent));
     animation: glow 2s infinite alternate;
 }
 
@@ -955,17 +991,17 @@ body, html {
 
 .rougecoin-section {
     background-color: rgba(0, 30, 60, 0.5);
-    border: 1px solid #00ffff33;
+    border: 1px solid rgba(var(--accent-rgb), 0.2);
     border-radius: 5px;
     padding: 15px;
-    box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+    box-shadow: 0 0 10px rgba(var(--accent-rgb), 0.2);
 }
 
 .rougecoin-section h3 {
     margin-top: 0;
-    border-bottom: 1px solid #00ffff33;
+    border-bottom: 1px solid rgba(var(--accent-rgb), 0.2);
     padding-bottom: 5px;
-    color: #00ffff;
+    color: var(--accent);
 }
 
 .rougecoin-links {
@@ -978,15 +1014,15 @@ body, html {
     display: flex;
     align-items: center;
     text-decoration: none;
-    color: #00ffff;
+    color: var(--accent);
     padding: 8px;
     border-radius: 4px;
-    background-color: rgba(0, 255, 255, 0.1);
+    background-color: rgba(var(--accent-rgb), 0.1);
     transition: all 0.3s ease;
 }
 
 .rougecoin-link:hover {
-    background-color: rgba(0, 255, 255, 0.2);
+    background-color: rgba(var(--accent-rgb), 0.2);
     transform: translateX(5px);
 }
 
@@ -1012,7 +1048,7 @@ body, html {
     content: '>';
     position: absolute;
     left: 0;
-    color: #00ffff;
+    color: var(--accent);
 }
 
 .market-data {
@@ -1024,7 +1060,7 @@ body, html {
     display: flex;
     justify-content: space-between;
     padding: 5px 0;
-    border-bottom: 1px dotted #00ffff33;
+    border-bottom: 1px dotted rgba(var(--accent-rgb), 0.2);
 }
 
 .market-label {
@@ -1042,7 +1078,7 @@ body, html {
 
 .swap-interface {
     background-color: rgba(0, 15, 30, 0.7);
-    border: 1px solid #00ffff44;
+    border: 1px solid rgba(var(--accent-rgb), 0.27);
     border-radius: 8px;
     padding: 15px;
     display: flex;
@@ -1064,7 +1100,7 @@ body, html {
 .token-input {
     display: flex;
     background-color: rgba(0, 30, 50, 0.7);
-    border: 1px solid #00ffff44;
+    border: 1px solid rgba(var(--accent-rgb), 0.27);
     border-radius: 5px;
     overflow: hidden;
 }
@@ -1072,7 +1108,7 @@ body, html {
 .token-input input {
     flex: 1;
     background: transparent;
-    color: #00ffff;
+    color: var(--accent);
     border: none;
     padding: 10px;
     outline: none;
@@ -1080,15 +1116,15 @@ body, html {
 }
 
 .token-input input::placeholder {
-    color: rgba(0, 255, 255, 0.3);
+    color: rgba(var(--accent-rgb), 0.3);
 }
 
 .token-input select, .token-select {
     width: 100px;
     background-color: rgba(0, 40, 60, 0.9);
-    color: #00ffff;
+    color: var(--accent);
     border: none;
-    border-left: 1px solid #00ffff44;
+    border-left: 1px solid rgba(var(--accent-rgb), 0.27);
     padding: 10px;
     font-family: 'Courier New', Courier, monospace;
     cursor: pointer;
@@ -1110,7 +1146,7 @@ body, html {
 .swap-arrow {
     display: flex;
     justify-content: center;
-    color: #00ffff;
+    color: var(--accent);
     font-size: 1.2rem;
 }
 
@@ -1129,19 +1165,19 @@ body, html {
 
 .swap-button {
     background: linear-gradient(135deg, #007777, #003355);
-    color: #00ffff;
+    color: var(--accent);
     border: none;
     border-radius: 5px;
     padding: 12px;
     font-family: 'Courier New', Courier, monospace;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+    box-shadow: 0 0 10px rgba(var(--accent-rgb), 0.3);
 }
 
 .swap-button:hover {
     background: linear-gradient(135deg, #008888, #004466);
-    box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+    box-shadow: 0 0 15px rgba(var(--accent-rgb), 0.5);
 }
 
 .buy-link {
@@ -1161,11 +1197,11 @@ body, html {
     padding: 10px;
     border-radius: 5px;
     margin-bottom: 15px;
-    border: 1px solid #00ffff33;
+    border: 1px solid rgba(var(--accent-rgb), 0.2);
 }
 
 #walletAddress {
-    color: #00ffff;
+    color: var(--accent);
     font-size: 0.85rem;
     white-space: nowrap;
     overflow: hidden;
@@ -1175,7 +1211,7 @@ body, html {
 
 .connect-wallet-btn {
     background: linear-gradient(135deg, #006666, #003355);
-    color: #00ffff;
+    color: var(--accent);
     border: none;
     border-radius: 4px;
     padding: 8px 12px;
@@ -1189,7 +1225,7 @@ body, html {
 
 .connect-wallet-btn:hover {
     background: linear-gradient(135deg, #007777, #004466);
-    box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+    box-shadow: 0 0 10px rgba(var(--accent-rgb), 0.3);
 }
 
 .swap-details {
@@ -1207,7 +1243,7 @@ body, html {
 }
 
 .wallet-connected #walletAddress {
-    color: #00ff88;
+    color: var(--ok);
 }
 
 /* Loading spinner for transactions */
@@ -1215,9 +1251,9 @@ body, html {
     display: inline-block;
     width: 16px;
     height: 16px;
-    border: 2px solid rgba(0, 255, 255, 0.3);
+    border: 2px solid rgba(var(--accent-rgb), 0.3);
     border-radius: 50%;
-    border-top-color: #00ffff;
+    border-top-color: var(--accent);
     animation: spin 1s ease-in-out infinite;
     margin-left: 8px;
 }
@@ -1248,3 +1284,591 @@ body, html {
         -webkit-overflow-scrolling: touch;
     }
 }
+
+/* ================================================================== *
+ * Modernization additions
+ * ================================================================== */
+
+/* --- Motion / CRT preferences ------------------------------------- */
+
+/* Honour the OS setting, and the in-app toggle, everywhere. */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+.no-motion *, .no-motion *::before, .no-motion *::after {
+    animation: none !important;
+    transition: none !important;
+}
+
+.no-crt .desktop::before,
+.no-crt .desktop::after {
+    display: none;
+}
+
+/* --- Icon sprite -------------------------------------------------- */
+
+.icon-sprite {
+    position: absolute;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+}
+
+.ico {
+    width: 1em;
+    height: 1em;
+    vertical-align: -0.125em;
+    flex: none;
+}
+
+/* --- Focus visibility --------------------------------------------- */
+
+:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+/* --- Desktop icons and folders now use <button> -------------------- */
+
+.icon,
+.folder,
+.start-menu-item,
+.back-button,
+.project-item {
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-align: center;
+}
+
+.start-menu-item,
+.back-button {
+    text-align: left;
+    width: 100%;
+}
+
+.project-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    position: relative;
+}
+
+/* --- Taskbar ------------------------------------------------------ */
+
+.taskbar-windows {
+    display: flex;
+    gap: 6px;
+    margin-left: 12px;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.taskbar-window {
+    font: inherit;
+    font-size: 11px;
+    padding: 3px 10px;
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--accent);
+    background: rgba(var(--accent-rgb), 0.08);
+    border: 1px solid rgba(var(--accent-rgb), 0.3);
+    border-radius: var(--radius);
+    cursor: pointer;
+}
+
+.taskbar-window:hover {
+    background: rgba(var(--accent-rgb), 0.2);
+}
+
+.taskbar-window.minimized {
+    opacity: 0.5;
+    border-style: dashed;
+}
+
+.taskbar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.taskbar-ticker {
+    font: inherit;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    color: var(--accent);
+    background: none;
+    border: none;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.taskbar-ticker:hover {
+    text-shadow: 0 0 8px var(--accent);
+}
+
+.taskbar-date {
+    font-size: 11px;
+    opacity: 0.7;
+}
+
+.ticker-up { color: var(--ok); }
+.ticker-down { color: var(--danger); }
+
+/* --- Windows ------------------------------------------------------ */
+
+.app-window {
+    position: fixed;
+    z-index: 100;
+}
+
+.app-window.focused {
+    box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.5),
+                0 18px 50px rgba(0, 0, 0, 0.7);
+}
+
+.app-window.minimized {
+    display: none !important;
+}
+
+.app-window.dragging {
+    user-select: none;
+    opacity: 0.94;
+}
+
+.app-window.fullscreen {
+    inset: var(--taskbar-h) 0 0 0 !important;
+    width: auto !important;
+    height: auto !important;
+    transform: none !important;
+    z-index: 9999 !important;
+}
+
+.window-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 12px;
+    cursor: move;
+    touch-action: none;
+    background: rgba(var(--accent-rgb), 0.1);
+    border-bottom: 1px solid rgba(var(--accent-rgb), 0.3);
+    color: var(--accent);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.window-buttons {
+    display: flex;
+    gap: 4px;
+}
+
+.window-buttons button {
+    font: inherit;
+    width: 26px;
+    height: 22px;
+    color: var(--accent);
+    background: transparent;
+    border: 1px solid rgba(var(--accent-rgb), 0.3);
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.window-buttons button:hover {
+    background: rgba(var(--accent-rgb), 0.25);
+}
+
+/* --- Terminal ----------------------------------------------------- */
+
+.terminal-window {
+    width: min(760px, 94vw);
+    height: min(520px, 76vh);
+    display: none;
+    flex-direction: column;
+    background: rgba(2, 6, 10, 0.96);
+    border: 1px solid rgba(var(--accent-rgb), 0.4);
+    border-radius: var(--radius);
+    box-shadow: 0 0 40px rgba(var(--accent-rgb), 0.15);
+    backdrop-filter: blur(6px);
+    overflow: hidden;
+}
+
+.terminal-window[style*="block"] {
+    display: flex !important;
+}
+
+.terminal-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    padding: 12px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.term-output {
+    flex: 1;
+    overflow-y: auto;
+    color: var(--text);
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.term-line { min-height: 1.2em; }
+.term-line a { color: var(--accent); }
+.term-heading { color: var(--accent); font-weight: bold; }
+.term-muted { color: var(--text-muted); }
+.term-error { color: var(--danger); }
+.term-ok { color: var(--ok); }
+.term-prompt-echo { color: rgba(var(--accent-rgb), 0.75); }
+
+.term-input-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(var(--accent-rgb), 0.2);
+}
+
+.term-prompt {
+    color: var(--accent);
+    white-space: nowrap;
+}
+
+.term-input {
+    flex: 1;
+    min-width: 0;
+    font: inherit;
+    color: var(--text);
+    background: transparent;
+    border: none;
+    outline: none;
+    caret-color: var(--accent);
+}
+
+/* --- Settings ----------------------------------------------------- */
+
+.settings-window {
+    width: min(420px, 94vw);
+    background: var(--surface);
+    border: 1px solid rgba(var(--accent-rgb), 0.4);
+    border-radius: var(--radius);
+    box-shadow: 0 0 40px rgba(var(--accent-rgb), 0.15);
+    backdrop-filter: blur(6px);
+}
+
+.settings-body {
+    padding: 16px;
+    color: var(--text);
+    font-size: 13px;
+}
+
+.settings-body h3 {
+    margin: 16px 0 8px;
+    color: var(--accent);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.settings-body h3:first-child { margin-top: 0; }
+
+.theme-swatches {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 8px;
+}
+
+.theme-swatch {
+    font: inherit;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    color: var(--text);
+    background: var(--surface-2);
+    border: 1px solid rgba(var(--accent-rgb), 0.25);
+    border-radius: var(--radius);
+    cursor: pointer;
+}
+
+.theme-swatch::before {
+    content: "";
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--swatch);
+    box-shadow: 0 0 8px var(--swatch);
+}
+
+.theme-swatch.active {
+    border-color: var(--accent);
+    background: rgba(var(--accent-rgb), 0.15);
+}
+
+.setting-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 0;
+    cursor: pointer;
+}
+
+.setting-row input { accent-color: var(--accent); }
+
+.settings-note {
+    margin-top: 16px;
+    color: var(--text-muted);
+    font-size: 11px;
+}
+
+/* --- Marquee replacement ------------------------------------------ */
+
+/* <marquee> is a deprecated element browsers may drop at any time. */
+.marquee {
+    display: inline-block;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: bottom;
+}
+
+@media (min-width: 480px) {
+    .track-info { overflow: hidden; }
+    .track-info .marquee {
+        text-overflow: clip;
+        animation: marquee-scroll 14s linear infinite;
+    }
+    .track-info:hover .marquee { animation-play-state: paused; }
+}
+
+@keyframes marquee-scroll {
+    0%, 12%   { transform: translateX(0); }
+    88%, 100% { transform: translateX(calc(-100% + 220px)); }
+}
+
+/* --- Playlist ----------------------------------------------------- */
+
+.playlist-item {
+    display: block;
+    width: 100%;
+    font: inherit;
+    font-size: 12px;
+    text-align: left;
+    padding: 7px 10px;
+    color: var(--text);
+    background: none;
+    border: none;
+    border-left: 2px solid transparent;
+    cursor: pointer;
+}
+
+.playlist-item:hover { background: rgba(var(--accent-rgb), 0.12); }
+
+.playlist-item.active {
+    color: var(--accent);
+    border-left-color: var(--accent);
+    background: rgba(var(--accent-rgb), 0.15);
+}
+
+#visualizer { width: 100%; height: 80px; display: block; }
+
+/* --- Project tiles ------------------------------------------------ */
+
+.status-badge {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    padding: 1px 6px;
+    font-size: 9px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border-radius: 999px;
+    border: 1px solid currentColor;
+}
+
+.status-live     { color: var(--ok); }
+.status-wip      { color: var(--warn); }
+.status-archived { color: var(--text-muted); }
+
+/* --- RougeCoin panel ---------------------------------------------- */
+
+.market-data {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 8px;
+}
+
+.market-item {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 8px 10px;
+    background: var(--surface-2);
+    border: 1px solid rgba(var(--accent-rgb), 0.2);
+    border-radius: var(--radius);
+}
+
+.market-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.market-value {
+    font-family: var(--font-mono);
+    font-size: 15px;
+    color: var(--accent);
+}
+
+.market-updated {
+    margin-top: 8px;
+    font-size: 10px;
+    color: var(--text-muted);
+}
+
+.contract-copy {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    padding: 5px 10px;
+    font: inherit;
+    font-size: 11px;
+    color: var(--accent);
+    background: rgba(var(--accent-rgb), 0.08);
+    border: 1px solid rgba(var(--accent-rgb), 0.3);
+    border-radius: var(--radius);
+    cursor: pointer;
+}
+
+.copy-status { color: var(--ok); }
+
+.swap-disclaimer {
+    margin-top: 10px;
+    font-size: 10px;
+    line-height: 1.5;
+    color: var(--text-muted);
+}
+
+.impact-high { color: var(--danger); }
+
+.wallet-connected { color: var(--ok); }
+.wallet-error { color: var(--danger); }
+
+/* --- Chat --------------------------------------------------------- */
+
+.chat-empty,
+.chat-status {
+    padding: 8px 2px;
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.message-body { word-break: break-word; }
+
+/* --- Matrix rain -------------------------------------------------- */
+
+.matrix-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    display: none;
+    pointer-events: none;
+}
+
+/* --- Boot screen -------------------------------------------------- */
+
+.power-up-title {
+    letter-spacing: 0.14em;
+}
+
+.bios-text {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.6;
+    text-align: left;
+    white-space: pre-wrap;
+}
+
+.muted { color: var(--text-muted); }
+
+.binary-text {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+/* --- Small screens ------------------------------------------------ */
+
+@media (max-width: 720px) {
+    .taskbar-windows { display: none; }
+    .os-name { display: none; }
+
+    .terminal-window,
+    .settings-window {
+        width: 95vw;
+        height: calc(100dvh - 96px);
+    }
+
+    .icon { transform: scale(0.9); }
+}
+
+/* Start menu visibility is class-driven now, not inline styles. */
+.start-menu-dropdown { display: none; }
+.start-menu-dropdown.open { display: block; }
+
+.market-explorer {
+    display: inline-block;
+    margin-top: 6px;
+    font-size: 11px;
+    color: var(--accent);
+}
+
+/* --- Window sizing ------------------------------------------------ */
+
+/* 400x400 was too cramped for the RougeCoin panel and the projects grid. */
+.explorer {
+    width: min(680px, 92vw);
+    height: min(520px, 78vh);
+    /* touch-action: none on the whole window blocked scrolling on phones.
+     * Only the drag handles need it, and .window-header sets it. */
+    touch-action: auto;
+}
+
+#rougeCoinInterface {
+    width: min(720px, 94vw);
+    height: min(580px, 82vh);
+}
+
+.music-player {
+    width: min(340px, 92vw);
+    border: 1px solid rgba(var(--accent-rgb), 0.5);
+    /* A hardcoded z-index: 1000 always beat the window manager's stacking,
+     * so the player could never be sent behind another window. */
+    z-index: auto;
+}
+
+.explorer-content { overflow-y: auto; }

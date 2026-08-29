@@ -1,153 +1,130 @@
 /**
- * Swap module - Handles token swap calculations and redirects
+ * Swap module - estimates and Uniswap hand-off.
  */
-import { TOKEN_ADDRESSES } from './wallet.js';
+import { TOKENS } from '../../data/site-config.js';
+import { fetchXrgeMarket, fetchEthPrice, MarketStatus } from './market.js';
 
 /**
- * Ensure the price of RougeCoin (XRGE) is fetched and used correctly
+ * USD value of one unit of the selected input token.
+ * ETH is quoted live; the stablecoins are treated as $1, which is close
+ * enough for an indicative estimate.
+ * @param {string} symbol
+ * @returns {Promise<number|null>}
  */
-export async function fetchRougePrice() {
-    try {
-        const rougePriceText = document.getElementById('rougePrice').textContent;
-        if (rougePriceText && rougePriceText !== 'Loading...') {
-            return parseFloat(rougePriceText.replace('$', ''));
-        } else {
-            // Fetch the price from an external API as a fallback
-            const response = await fetch('https://api.dexscreener.com/latest/dex/tokens/0xA1c7D450130bb77c6a23DdFAeCbC4a060215384b');
-            const data = await response.json();
-            if (data.pairs && data.pairs.length > 0) {
-                const price = parseFloat(data.pairs[0].priceUsd);
-                document.getElementById('rougePrice').textContent = `$${price.toFixed(8)}`;
-                return price;
-            }
-        }
-    } catch (error) {
-        console.error('Error fetching RougeCoin price:', error);
-    }
-    // Fallback price if fetching fails
-    return 0.0000015;
+async function inputTokenUsd(symbol) {
+    if (symbol === 'ETH') return fetchEthPrice();
+    if (symbol === 'USDT' || symbol === 'USDC') return 1;
+    return null;
 }
 
 /**
- * Calculates estimated swap amounts based on input
+ * Recalculates the estimated XRGE output for the entered amount.
+ *
+ * Everything here is indicative only -- the real quote comes from Uniswap's
+ * router when the swap is executed.
  */
 export async function calculateSwapEstimate() {
-    const fromAmount = document.getElementById('fromAmount').value;
-    const fromToken = document.getElementById('fromToken').value;
+    const amountField = document.getElementById('fromAmount');
+    const tokenField = document.getElementById('fromToken');
     const toAmountField = document.getElementById('toAmount');
-    const swapRateField = document.getElementById('swapRate');
+    const rateField = document.getElementById('swapRate');
+    const impactField = document.getElementById('priceImpact');
+    const feeField = document.getElementById('networkFee');
 
-    if (fromAmount && fromAmount > 0) {
-        // Fetch the current price of RougeCoin
-        const rougePrice = await fetchRougePrice();
+    if (!amountField || !tokenField || !toAmountField || !rateField) return;
 
-        let conversionRate = 0;
+    const amount = parseFloat(amountField.value);
+    const symbol = tokenField.value;
 
-        // Set different conversion rates based on the selected token
-        switch (fromToken) {
-            case 'ETH':
-                // Assuming ETH is around $3000 (adjust as needed)
-                conversionRate = 3000 / rougePrice;
-                break;
-            default:
-                conversionRate = 1 / rougePrice;
-        }
-
-        // Calculate the estimated ROUGE amount
-        const estimatedRouge = parseFloat(fromAmount) * conversionRate;
-
-        // Apply a 0.5% slippage to make the estimate more realistic
-        const slippageAdjusted = estimatedRouge * 0.995;
-
-        // Update the UI
-        toAmountField.value = slippageAdjusted.toLocaleString(undefined, {
-            maximumFractionDigits: 0,
-        });
-
-        // Update the rate display (how much 1 unit of fromToken is worth in ROUGE)
-        swapRateField.textContent = `1 ${fromToken} ≈ ${conversionRate.toLocaleString(undefined, {
-            maximumFractionDigits: 0,
-        })} ROUGE`;
-
-        // Update price impact
-        const priceImpactElement = document.getElementById('priceImpact');
-        if (priceImpactElement) priceImpactElement.textContent = '~0.5%';
-
-        // Update network fee (gas estimate)
-        const networkFeeElement = document.getElementById('networkFee');
-        if (networkFeeElement) networkFeeElement.textContent = fromToken === 'ETH' ? '~0.002 ETH' : '~$5-10';
-    } else {
+    const clear = (message = '-') => {
         toAmountField.value = '';
-        swapRateField.textContent = '-';
-        const priceImpactElement = document.getElementById('priceImpact');
-        if (priceImpactElement) priceImpactElement.textContent = '-';
-        const networkFeeElement = document.getElementById('networkFee');
-        if (networkFeeElement) networkFeeElement.textContent = '-';
-    }
-}
+        rateField.textContent = message;
+        if (impactField) impactField.textContent = '-';
+        if (feeField) feeField.textContent = '-';
+    };
 
-/**
- * Redirects to Uniswap with appropriate parameters for the swap
- */
-export function redirectToUniswap() {
-    const fromAmount = document.getElementById('fromAmount').value;
-    const fromToken = document.getElementById('fromToken').value;
-
-    if (!fromAmount || fromAmount <= 0) {
-        alert('Please enter an amount to swap');
+    if (!Number.isFinite(amount) || amount <= 0) {
+        clear();
         return;
     }
 
-    // Determine the token address based on the selected token
-    let inputTokenAddress = '';
-    switch (fromToken) {
-        case 'ETH':
-            inputTokenAddress = 'ETH'; // Uniswap uses 'ETH' for Ethereum
-            break;
-        case 'USDT':
-            inputTokenAddress = TOKEN_ADDRESSES.USDT;
-            break;
-        case 'USDC':
-            inputTokenAddress = TOKEN_ADDRESSES.USDC;
-            break;
+    rateField.textContent = 'Fetching rate...';
+
+    const [{ status, data: market }, inputUsd] = await Promise.all([
+        fetchXrgeMarket(),
+        inputTokenUsd(symbol)
+    ]);
+
+    // No invented numbers: if either leg is unpriced, say so.
+    if (status !== MarketStatus.OK || !market?.priceUsd || !inputUsd) {
+        clear(status === MarketStatus.NO_PAIR
+            ? 'No liquidity pool indexed'
+            : 'Rate unavailable');
+        return;
     }
 
-    // RougeCoin contract address
-    const rougeAddress = TOKEN_ADDRESSES.ROUGE;
+    const xrgePerUnit = inputUsd / market.priceUsd;
+    const estimated = amount * xrgePerUnit;
 
-    // Construct the Uniswap URL with the from token, to token, and amount
-    let uniswapUrl = `https://app.uniswap.org/#/swap?exactField=input&exactAmount=${fromAmount}`;
+    toAmountField.value = estimated.toLocaleString('en-US', { maximumFractionDigits: 0 });
+    rateField.textContent = `1 ${symbol} ~ ${xrgePerUnit.toLocaleString('en-US', {
+        maximumFractionDigits: 0
+    })} XRGE`;
 
-    // Add the input token if it's not ETH
-    if (fromToken === 'ETH') {
-        uniswapUrl += `&inputCurrency=ETH`;
-    } else {
-        uniswapUrl += `&inputCurrency=${inputTokenAddress}`;
+    if (impactField) {
+        // Rough proxy: trade size against the pool's liquidity.
+        const notional = amount * inputUsd;
+        const impact = market.liquidityUsd > 0
+            ? (notional / market.liquidityUsd) * 100
+            : null;
+        impactField.textContent = impact === null
+            ? 'unknown'
+            : `~${impact.toFixed(2)}%`;
+        impactField.classList.toggle('impact-high', impact !== null && impact > 5);
     }
 
-    // Add the output token (RougeCoin)
-    uniswapUrl += `&outputCurrency=${rougeAddress}`;
-
-    // Open Uniswap in a new tab
-    window.open(uniswapUrl, '_blank');
+    if (feeField) feeField.textContent = 'quoted by Uniswap';
 }
 
 /**
- * Initialize swap event listeners
+ * Opens Uniswap pre-filled with the entered swap.
+ *
+ * Uses the current (non-hash) app.uniswap.org route; the old `/#/swap`
+ * format dates from Uniswap v2's interface.
  */
-export function initSwapEventListeners() {
-    // Add event listeners for the swap functionality once the window is loaded
-    window.addEventListener('DOMContentLoaded', () => {
-        // Add event listeners to the swap interface fields
-        const fromAmountField = document.getElementById('fromAmount');
-        const fromTokenField = document.getElementById('fromToken');
+export function redirectToUniswap() {
+    const amountField = document.getElementById('fromAmount');
+    const tokenField = document.getElementById('fromToken');
 
-        if (fromAmountField && fromTokenField) {
-            fromAmountField.addEventListener('input', calculateSwapEstimate);
-            fromTokenField.addEventListener('change', calculateSwapEstimate);
-        }
+    const amount = parseFloat(amountField?.value);
+    const symbol = tokenField?.value || 'ETH';
+
+    const params = new URLSearchParams({
+        chain: 'mainnet',
+        inputCurrency: symbol === 'ETH' ? 'ETH' : TOKENS[symbol].address,
+        outputCurrency: TOKENS.XRGE.address
     });
 
-    // Make calculateSwapEstimate globally accessible for other modules that need it
-    window.calculateSwapEstimate = calculateSwapEstimate;
+    if (Number.isFinite(amount) && amount > 0) {
+        params.set('exactField', 'input');
+        params.set('exactAmount', String(amount));
+    }
+
+    window.open(`https://app.uniswap.org/swap?${params}`, '_blank', 'noopener,noreferrer');
+}
+
+/** Debounces estimate recalculation while typing. */
+export function initSwapEventListeners() {
+    const amountField = document.getElementById('fromAmount');
+    const tokenField = document.getElementById('fromToken');
+    if (!amountField || !tokenField) return;
+
+    let timer;
+    const schedule = () => {
+        clearTimeout(timer);
+        timer = setTimeout(calculateSwapEstimate, 300);
+    };
+
+    amountField.addEventListener('input', schedule);
+    tokenField.addEventListener('change', calculateSwapEstimate);
 }
