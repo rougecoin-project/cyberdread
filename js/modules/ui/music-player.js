@@ -1,202 +1,222 @@
 /**
- * Music Player module - Handles music playback and visualization
+ * Music Player module - playback, playlist and spectrum visualization.
  */
 import { playSound, SOUNDS } from '../sound.js';
+import { PLAYLIST } from '../../data/site-config.js';
 
-// Music player state variables
-let currentTrack = null;
+const audio = new Audio();
+audio.preload = 'metadata';
+audio.crossOrigin = 'anonymous';
+
 let audioContext = null;
 let analyser = null;
-let isPlaying = false;
+let sourceNode = null;
+let animationFrame = null;
+let currentIndex = -1;
 
-/**
- * Toggles the visibility of the music player
- */
+/** Opens or closes the music player window. */
 export function toggleMusicPlayer() {
     const player = document.getElementById('musicPlayer');
-    if (player.style.display === 'none') {
+    if (!player) return;
+
+    const hidden = player.style.display === 'none' || player.style.display === '';
+    if (hidden) {
         player.style.display = 'block';
-        // Set initial position if not already set
-        if (!player.style.left) {
-            player.style.left = '200px';
-            player.style.top = '100px';
-            playSound(SOUNDS.OPEN);
-        }
-        if (!audioContext) {
-            initAudio();
-        }
+        playSound(SOUNDS.OPEN);
+        document.dispatchEvent(new CustomEvent('window:opened', { detail: { id: 'musicPlayer' } }));
     } else {
         player.style.display = 'none';
+        playSound(SOUNDS.CLOSE);
+        document.dispatchEvent(new CustomEvent('window:closed', { detail: { id: 'musicPlayer' } }));
     }
 }
 
 /**
- * Initializes the audio context and analyzer
+ * Lazily creates the Web Audio graph.
+ *
+ * The audio element is created once and reused: the old code built a new
+ * Audio object per track and called createMediaElementSource on each one,
+ * which throws once the same element is connected twice and leaks a node
+ * every time you skip a track.
  */
-function initAudio() {
-    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+function ensureAudioGraph() {
+    if (audioContext) return;
+
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return;
+
+    audioContext = new AudioContextClass();
     analyser = audioContext.createAnalyser();
     analyser.fftSize = 256;
-    
-    setupVisualizer();
+
+    sourceNode = audioContext.createMediaElementSource(audio);
+    sourceNode.connect(analyser);
+    analyser.connect(audioContext.destination);
+
+    drawVisualizer();
 }
 
-/**
- * Sets up the audio visualizer using canvas
- */
-function setupVisualizer() {
+/** Paints the frequency bars. */
+function drawVisualizer() {
     const canvas = document.getElementById('visualizer');
-    if (!canvas) return;
-    
-    const ctx = canvas.getContext('2d');
-    const bufferLength = analyser.frequencyBinCount;
-    const dataArray = new Uint8Array(bufferLength);
+    if (!canvas || !analyser) return;
 
-    function draw() {
-        const width = canvas.width;
-        const height = canvas.height;
-        
-        requestAnimationFrame(draw);
-        analyser.getByteFrequencyData(dataArray);
-        
-        ctx.fillStyle = 'rgb(0, 0, 0)';
-        ctx.fillRect(0, 0, width, height);
-        
-        const barWidth = (width / bufferLength) * 2.5;
-        let barHeight;
+    const context = canvas.getContext('2d');
+    const data = new Uint8Array(analyser.frequencyBinCount);
+
+    const render = () => {
+        animationFrame = requestAnimationFrame(render);
+
+        // Match the drawing buffer to the element's real size so the bars
+        // aren't stretched on high-DPI screens.
+        const { width, height } = canvas.getBoundingClientRect();
+        if (canvas.width !== width || canvas.height !== height) {
+            canvas.width = width;
+            canvas.height = height;
+        }
+
+        analyser.getByteFrequencyData(data);
+
+        context.clearRect(0, 0, canvas.width, canvas.height);
+
+        const accent = getComputedStyle(document.documentElement)
+            .getPropertyValue('--accent').trim() || '#00ffff';
+        const barWidth = canvas.width / data.length * 2.2;
         let x = 0;
-        
-        for(let i = 0; i < bufferLength; i++) {
-            barHeight = dataArray[i] / 2;
-            ctx.fillStyle = `rgb(0, ${barHeight + 100}, 0)`;
-            ctx.fillRect(x, height - barHeight, barWidth, barHeight);
+
+        for (let i = 0; i < data.length; i += 1) {
+            const barHeight = (data[i] / 255) * canvas.height;
+            context.fillStyle = accent;
+            context.globalAlpha = 0.35 + (data[i] / 255) * 0.65;
+            context.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
             x += barWidth + 1;
+            if (x > canvas.width) break;
         }
-    }
-    
-    draw();
+        context.globalAlpha = 1;
+    };
+
+    cancelAnimationFrame(animationFrame);
+    render();
 }
 
 /**
- * Updates the music player interface
- * @param {string} songTitle - The title of the current song
- * @param {boolean} isPlaying - Whether the music is playing
+ * Updates both the window and Start-menu displays.
+ * @param {string} title
  */
-function updateMusicInterface(songTitle, isPlaying) {
-    // Update both player displays
-    const titleElement = document.getElementById('songTitle');
-    const startMenuTitleElement = document.getElementById('startMenuSongTitle');
-    const playPauseBtn = document.getElementById('playPauseBtn');
-    const mainPlayBtn = document.querySelector('.controls button:nth-child(2)');
-    
-    if (titleElement) titleElement.textContent = songTitle;
-    if (startMenuTitleElement) startMenuTitleElement.textContent = songTitle;
-    
-    // Update play/pause buttons in both places
-    if (playPauseBtn && mainPlayBtn) {
-        if (isPlaying) {
-            playPauseBtn.textContent = '⏸';
-            mainPlayBtn.textContent = '⏸';
-        } else {
-            playPauseBtn.textContent = '▶';
-            mainPlayBtn.textContent = '▶';
-        }
-    }
+function updateInterface(title) {
+    const playing = !audio.paused;
+
+    document.querySelectorAll('[data-song-title]').forEach(element => {
+        element.textContent = title;
+    });
+
+    document.querySelectorAll('[data-play-toggle]').forEach(button => {
+        button.textContent = playing ? '⏸' : '▶';
+        button.setAttribute('aria-label', playing ? 'Pause' : 'Play');
+    });
+
+    document.querySelectorAll('.playlist-item').forEach((item, index) => {
+        item.classList.toggle('active', index === currentIndex);
+        item.setAttribute('aria-current', index === currentIndex ? 'true' : 'false');
+    });
 }
 
 /**
- * Plays a track from the playlist
- * @param {Element} element - The playlist item element to play
+ * Plays a track by playlist index.
+ * @param {number} index
+ */
+export function playTrackAt(index) {
+    const track = PLAYLIST[index];
+    if (!track) return;
+
+    ensureAudioGraph();
+    // Browsers start the context suspended until a user gesture.
+    if (audioContext?.state === 'suspended') audioContext.resume();
+
+    currentIndex = index;
+    audio.src = track.src;
+    audio.play()
+        .then(() => updateInterface(`${track.title} - ${track.artist}`))
+        .catch(error => {
+            console.error('Playback failed:', error);
+            updateInterface('Playback blocked -- press play');
+        });
+}
+
+/**
+ * Kept for the click handlers bound to playlist rows.
+ * @param {HTMLElement} element
  */
 export function playTrack(element) {
-    if (currentTrack) {
-        currentTrack.pause();
-    }
-    
-    document.querySelectorAll('.playlist-item').forEach(item => {
-        item.classList.remove('active');
-    });
-    
-    element.classList.add('active');
-    const src = element.dataset.src;
-    
-    currentTrack = new Audio(src);
-    currentTrack.addEventListener('loadeddata', () => {
-        if (!audioContext) {
-            initAudio();
-        }
-        const source = audioContext.createMediaElementSource(currentTrack);
-        source.connect(analyser);
-        analyser.connect(audioContext.destination);
-        
-        const songTitle = element.textContent;
-        updateMusicInterface(songTitle, true);
-        currentTrack.play();
-        isPlaying = true;
-    });
+    playTrackAt(Number(element.dataset.index));
 }
 
-/**
- * Toggles play/pause of the current track
- */
+/** Toggles play/pause. */
 export function togglePlay() {
-    if (!currentTrack) {
-        const firstTrack = document.querySelector('.playlist-item');
-        if (firstTrack) {
-            playTrack(firstTrack);
-            playSound(SOUNDS.OPEN);
-        }
+    if (currentIndex === -1) {
+        playTrackAt(0);
         return;
     }
-    
-    if (isPlaying) {
-        currentTrack.pause();
-        isPlaying = false;
+
+    if (audio.paused) {
+        if (audioContext?.state === 'suspended') audioContext.resume();
+        audio.play().catch(error => console.error('Playback failed:', error));
     } else {
-        currentTrack.play();
-        isPlaying = true;
+        audio.pause();
     }
-    
-    updateMusicInterface(currentTrack ? document.querySelector('.playlist-item.active').textContent : 'No track playing', isPlaying);
+
+    const track = PLAYLIST[currentIndex];
+    updateInterface(track ? `${track.title} - ${track.artist}` : 'No track playing');
 }
 
-/**
- * Plays the next track in the playlist
- */
+/** Skips forward, wrapping at the end. */
 export function nextTrack() {
-    const current = document.querySelector('.playlist-item.active');
-    const next = current?.nextElementSibling || document.querySelector('.playlist-item');
-    if (next) {
-        playTrack(next);
-        playSound(SOUNDS.OPEN);
-    }
+    playTrackAt((currentIndex + 1) % PLAYLIST.length);
+    playSound(SOUNDS.CLICK);
 }
 
-/**
- * Plays the previous track in the playlist
- */
+/** Skips back, wrapping at the start. */
 export function previousTrack() {
-    const current = document.querySelector('.playlist-item.active');
-    const prev = current?.previousElementSibling || document.querySelector('.playlist-item:last-child');
-    if (prev) {
-        playTrack(prev);
-        playSound(SOUNDS.OPEN);
-    }
+    playTrackAt((currentIndex - 1 + PLAYLIST.length) % PLAYLIST.length);
+    playSound(SOUNDS.CLICK);
 }
 
-/**
- * Initializes all music player event listeners
- */
+/** Builds the playlist from site-config and wires up controls. */
 export function initMusicPlayerEventListeners() {
-    // Add volume control
-    document.getElementById('volumeSlider')?.addEventListener('input', (e) => {
-        if (currentTrack) {
-            currentTrack.volume = e.target.value;
-        }
+    const list = document.getElementById('playlist');
+    if (list) {
+        list.textContent = '';
+        PLAYLIST.forEach((track, index) => {
+            const item = document.createElement('button');
+            item.type = 'button';
+            item.className = 'playlist-item';
+            item.dataset.index = String(index);
+            item.textContent = `${track.title} - ${track.artist}`;
+            item.addEventListener('click', () => playTrackAt(index));
+            list.appendChild(item);
+        });
+    }
+
+    const volume = document.getElementById('volumeSlider');
+    if (volume) {
+        audio.volume = Number(volume.value) || 0.7;
+        volume.addEventListener('input', event => {
+            audio.volume = Number(event.target.value);
+        });
+    }
+
+    audio.addEventListener('ended', nextTrack);
+    audio.addEventListener('play', () => {
+        const track = PLAYLIST[currentIndex];
+        updateInterface(track ? `${track.title} - ${track.artist}` : 'No track playing');
+    });
+    audio.addEventListener('pause', () => {
+        const track = PLAYLIST[currentIndex];
+        updateInterface(track ? `${track.title} - ${track.artist}` : 'No track playing');
+    });
+    audio.addEventListener('error', () => {
+        updateInterface('Track unavailable');
     });
 
-    // Make playlist items clickable
-    document.querySelectorAll('.playlist-item').forEach(item => {
-        item.addEventListener('click', () => playTrack(item));
-    });
+    updateInterface('No track playing');
 }

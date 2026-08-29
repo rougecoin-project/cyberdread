@@ -1,127 +1,129 @@
 /**
- * UI Module - Handles common UI interactions like dragging windows
+ * Common UI module - window dragging, glitch effects and the Start menu.
  */
 
 /**
- * Allows dragging elements like windows around the screen
- * @param {Event} event - The mouse or touch event
+ * Makes a window draggable by its header, using Pointer Events so mouse,
+ * touch and pen all take the same path (the old code kept parallel
+ * mouse/touch handlers that drifted apart).
+ * @param {HTMLElement} handle - the header element
  */
-export function dragElement(event) {
-    const target = event.target.closest('.explorer, .music-player');
+function makeDraggable(handle) {
+    const target = handle.closest('.app-window, .explorer, .music-player');
     if (!target) return;
 
-    let pos = { x: 0, y: 0 };
-    let startPos = { x: 0, y: 0 };
+    handle.addEventListener('pointerdown', event => {
+        // Ignore drags that start on the window's own buttons.
+        if (event.target.closest('button, a, input')) return;
+        if (target.classList.contains('fullscreen')) return;
 
-    if (event.type === 'mousedown') {
         event.preventDefault();
-        startPos.x = event.clientX;
-        startPos.y = event.clientY;
-        document.addEventListener('mousemove', moveHandler);
-        document.addEventListener('mouseup', stopHandler);
-    } else if (event.type === 'touchstart') {
-        event.preventDefault();
-        startPos.x = event.touches[0].clientX;
-        startPos.y = event.touches[0].clientY;
-        document.addEventListener('touchmove', moveHandler);
-        document.addEventListener('touchend', stopHandler);
-    }
+        handle.setPointerCapture(event.pointerId);
 
-    function moveHandler(e) {
-        if (e.type === 'mousemove') {
-            pos.x = startPos.x - e.clientX;
-            pos.y = startPos.y - e.clientY;
-            startPos.x = e.clientX;
-            startPos.y = e.clientY;
-        } else {
-            pos.x = startPos.x - e.touches[0].clientX;
-            pos.y = startPos.y - e.touches[0].clientY;
-            startPos.x = e.touches[0].clientX;
-            startPos.y = e.touches[0].clientY;
-        }
+        const rect = target.getBoundingClientRect();
+        const offsetX = event.clientX - rect.left;
+        const offsetY = event.clientY - rect.top;
 
-        target.style.top = (target.offsetTop - pos.y) + "px";
-        target.style.left = (target.offsetLeft - pos.x) + "px";
-    }
+        target.classList.add('dragging');
 
-    function stopHandler() {
-        document.removeEventListener('mousemove', moveHandler);
-        document.removeEventListener('mouseup', stopHandler);
-        document.removeEventListener('touchmove', moveHandler);
-        document.removeEventListener('touchend', stopHandler);
-    }
+        const move = moveEvent => {
+            // Keep the title bar reachable: clamp to the viewport.
+            const left = Math.min(
+                Math.max(0, moveEvent.clientX - offsetX),
+                window.innerWidth - rect.width
+            );
+            const top = Math.min(
+                Math.max(40, moveEvent.clientY - offsetY),
+                window.innerHeight - 40
+            );
+            target.style.left = `${left}px`;
+            target.style.top = `${top}px`;
+            target.style.transform = 'none';
+        };
+
+        const stop = () => {
+            target.classList.remove('dragging');
+            handle.removeEventListener('pointermove', move);
+            handle.removeEventListener('pointerup', stop);
+            handle.removeEventListener('pointercancel', stop);
+        };
+
+        handle.addEventListener('pointermove', move);
+        handle.addEventListener('pointerup', stop);
+        handle.addEventListener('pointercancel', stop);
+    });
 }
 
 /**
- * Adds glitch effect animation to an element
- * @param {Element} element - The element to add the effect to
+ * Adds a one-shot glitch animation to an element.
+ * @param {Element} element
  */
 export function addGlitchEffect(element) {
+    if (!element || document.documentElement.classList.contains('no-motion')) return;
     element.style.animation = 'none';
-    element.offsetHeight; // Trigger reflow
+    void element.offsetHeight; // force reflow so the animation restarts
     element.style.animation = 'glitchEffect 0.3s ease';
 }
 
-/**
- * Creates random glitch effects throughout the interface
- */
-export function randomGlitch() {
-    const elements = document.querySelectorAll('.folder, .icon, .start-menu');
-    const randomElement = elements[Math.floor(Math.random() * elements.length)];
-    addGlitchEffect(randomElement);
-    
-    // Schedule next glitch
+/** Glitches a random desktop element on a loose interval. */
+function randomGlitch() {
+    if (document.documentElement.classList.contains('no-motion')) {
+        setTimeout(randomGlitch, 10000);
+        return;
+    }
+    const elements = document.querySelectorAll('.folder, .icon');
+    if (elements.length > 0) {
+        addGlitchEffect(elements[Math.floor(Math.random() * elements.length)]);
+    }
     setTimeout(randomGlitch, Math.random() * 10000 + 5000);
 }
 
-/**
- * Toggles the visibility of the start menu
- */
+/** Opens or closes the Start menu. */
 export function toggleStartMenu() {
-    const startMenu = document.getElementById('startMenu');
-    const startButton = document.querySelector('.start-menu');
-    
-    if (startMenu.style.display === 'block') {
-        document.dispatchEvent(new CustomEvent('playSound', { detail: { id: 'closeSound' } }));
-        startMenu.style.display = 'none';
-        startButton.classList.remove('active');
-    } else {
-        document.dispatchEvent(new CustomEvent('playSound', { detail: { id: 'openSound' } }));
-        startMenu.style.display = 'block';
-        startButton.classList.add('active');
+    const menu = document.getElementById('startMenu');
+    const button = document.querySelector('.start-menu');
+    if (!menu || !button) return;
+
+    const open = menu.classList.toggle('open');
+    button.classList.toggle('active', open);
+    button.setAttribute('aria-expanded', String(open));
+    document.dispatchEvent(new CustomEvent('playSound', {
+        detail: { id: open ? 'openSound' : 'closeSound' }
+    }));
+}
+
+/** Closes the Start menu. */
+function closeStartMenu() {
+    const menu = document.getElementById('startMenu');
+    const button = document.querySelector('.start-menu');
+    if (menu) menu.classList.remove('open');
+    if (button) {
+        button.classList.remove('active');
+        button.setAttribute('aria-expanded', 'false');
     }
 }
 
-/**
- * Initialize UI event listeners for common interactions
- */
+/** Wires up shared desktop interactions. */
 export function initUIEventListeners() {
-    // Add click event listeners for draggable elements
-    document.addEventListener('DOMContentLoaded', function() {
-        const draggableElements = document.querySelectorAll('.explorer-header, .player-header');
-        draggableElements.forEach(el => {
-            el.addEventListener('touchstart', dragElement);
-            el.addEventListener('mousedown', dragElement);
-        });
-        
-        // Glitch effects for folders
-        document.querySelectorAll('.folder').forEach(folder => {
-            folder.addEventListener('click', () => addGlitchEffect(folder));
-        });
-        
-        // Start menu click outside handler
-        document.addEventListener('click', function(event) {
-            const startMenu = document.getElementById('startMenu');
-            const startButton = document.querySelector('.start-menu');
-            
-            if (startMenu && startButton && !startButton.contains(event.target) && 
-                !startMenu.contains(event.target)) {
-                startMenu.style.display = 'none';
-                startButton.classList.remove('active');
-            }
-        });
-        
-        // Start random glitch effects after delay
-        setTimeout(randomGlitch, 3000);
+    document.querySelectorAll('.explorer-header, .player-header, .window-header')
+        .forEach(makeDraggable);
+
+    document.querySelectorAll('.folder').forEach(folder => {
+        folder.addEventListener('click', () => addGlitchEffect(folder));
     });
+
+    document.addEventListener('click', event => {
+        const button = document.querySelector('.start-menu');
+        const menu = document.getElementById('startMenu');
+        if (!button || !menu) return;
+        if (!button.contains(event.target) && !menu.contains(event.target)) {
+            closeStartMenu();
+        }
+    });
+
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape') closeStartMenu();
+    });
+
+    setTimeout(randomGlitch, 3000);
 }

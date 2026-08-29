@@ -1,6 +1,8 @@
 /**
- * Tooltips module - Handles tooltip display and management
+ * Tooltips module - the first-run interface tour.
  */
+
+const SEEN_KEY = 'dreados:tour-seen';
 
 /**
  * Creates and displays a tooltip with the specified text near a target element
@@ -10,7 +12,9 @@
 export function createTooltip(text, targetElement) {
     const tooltip = document.createElement('div');
     tooltip.className = 'tooltip';
-    tooltip.innerHTML = text;
+    tooltip.textContent = text;
+    // Clicking anywhere dismisses the tour rather than waiting it out.
+    tooltip.addEventListener('click', () => tooltip.remove());
     document.body.appendChild(tooltip);
 
     const rect = targetElement.getBoundingClientRect();
@@ -63,11 +67,21 @@ function findElementByText(selector, text) {
  * Shows a sequence of tooltips introducing the interface
  */
 export function showTooltips() {
+    // The tour ran on every single visit, and on a phone the bubbles sat on
+    // top of the windows they were describing. Show it once, on a screen
+    // with room for it.
+    if (window.matchMedia('(max-width: 720px)').matches) return;
+    try {
+        if (localStorage.getItem(SEEN_KEY) === '1') return;
+        localStorage.setItem(SEEN_KEY, '1');
+    } catch { /* private mode: show the tour, it just won't be remembered */ }
+
     const tooltips = [
         { text: 'Welcome, netrunner! Click "Start" to access the main menu.', target: '.start-menu' },
         { text: 'Open the "Files" to explore your data.', target: '.icon-label', matchText: 'Files' },
         { text: 'Check out the "Music" player for some tunes.', target: '.icon-label', matchText: 'Music' },
-        { text: 'Use the "access.exe" to connect with other chooms.', target: '.icon-label', matchText: 'access.exe' }
+        { text: 'Open "term.exe" and type help -- the whole site is reachable from the shell.', target: '.icon-label', matchText: 'term.exe' },
+        { text: 'Use "access.exe" to connect with other chooms.', target: '.icon-label', matchText: 'access.exe' }
     ];
 
     tooltips.forEach((tooltip, index) => {
@@ -81,6 +95,6 @@ export function showTooltips() {
             if (targetElement) {
                 createTooltip(tooltip.text, targetElement);
             }
-        }, index * 6000); // Adjust timing to ensure sequential display
+        }, index * 5000);
     });
 }
