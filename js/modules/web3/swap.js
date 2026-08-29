@@ -1,7 +1,7 @@
 /**
  * Swap module - estimates and Uniswap hand-off.
  */
-import { TOKENS } from '../../data/site-config.js';
+import { TOKENS, CHAIN } from '../../data/site-config.js';
 import { fetchXrgeMarket, fetchEthPrice, MarketStatus } from './market.js';
 
 /**
@@ -89,8 +89,9 @@ export async function calculateSwapEstimate() {
 /**
  * Opens Uniswap pre-filled with the entered swap.
  *
- * Uses the current (non-hash) app.uniswap.org route; the old `/#/swap`
- * format dates from Uniswap v2's interface.
+ * Targets Base, where the XRGE pool lives. Uses the current (non-hash)
+ * app.uniswap.org route; the old `/#/swap` format dates from Uniswap v2's
+ * interface.
  */
 export function redirectToUniswap() {
     const amountField = document.getElementById('fromAmount');
@@ -100,7 +101,7 @@ export function redirectToUniswap() {
     const symbol = tokenField?.value || 'ETH';
 
     const params = new URLSearchParams({
-        chain: 'mainnet',
+        chain: 'base',
         inputCurrency: symbol === 'ETH' ? 'ETH' : TOKENS[symbol].address,
         outputCurrency: TOKENS.XRGE.address
     });

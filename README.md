@@ -89,18 +89,30 @@ Tab completes, Up/Down walks history, Ctrl+L clears.
 
 - The site **does not execute swaps**. It shows an indicative estimate and
   hands off to Uniswap, which quotes and routes the real trade.
-- Market data comes from DEXScreener. When it is unavailable the UI says so —
-  it never falls back to generated numbers.
+- Market data comes from DEXScreener, falling back to GeckoTerminal (see
+  below). When neither has data the UI says so — it never falls back to
+  generated numbers.
 - Wallet support is plain EIP-1193 against the injected provider. There is no
   web3.js or WalletConnect dependency.
 
 ### XRGE market data
 
-`TOKENS.XRGE` (`0xA1c7…384b`) is a real ERC-20 on Ethereum mainnet, but as of
-the last check DEXScreener indexes **no trading pair** for it, so the market
-panel correctly reports "no indexed liquidity pool" rather than a price. Once a
-pool exists and is indexed, the panel, the terminal's `xrge` command and the
-taskbar ticker will populate with no code change.
+XRGE lives on **Base** (chain 8453), not Ethereum mainnet:
+
+| | |
+| --- | --- |
+| Contract | `0x147120faEC9277ec02d957584CFCD92B56A24317` |
+| Pool | XRGE/USDC on Aerodrome, `0x059e10d2…c447d` |
+
+DEXScreener is the primary price source, but it does **not** currently index
+this pool — its liquidity and volume sit below DEXScreener's threshold, and
+its token, pair and search endpoints all return empty for this address. So
+`market.js` falls back to [GeckoTerminal](https://www.geckoterminal.com/base/pools/0x059e10d26c64a63d04e1814f46305210eddc447d),
+which addresses pools directly and does carry it. The panel labels which
+source answered.
+
+If the pool later gets indexed, DEXScreener wins automatically and the
+fallback goes quiet — no code change needed.
 
 ## Deployment
 

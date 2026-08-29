@@ -67,16 +67,34 @@ export function formatUnits(value, decimals, precision = 4) {
 }
 
 /**
- * Ensures the wallet is on Ethereum mainnet, prompting a switch if not.
+ * Ensures the wallet is on Base, prompting a switch if not.
+ *
+ * Base is not preconfigured in every wallet, so a 4902 ("unrecognized
+ * chain") response is answered by offering to add it rather than failing.
  */
-async function ensureMainnet() {
+async function ensureCorrectChain() {
     const currentChainId = await provider.request({ method: 'eth_chainId' });
     if (currentChainId === CHAIN.hexId) return;
 
-    await provider.request({
-        method: 'wallet_switchEthereumChain',
-        params: [{ chainId: CHAIN.hexId }]
-    });
+    try {
+        await provider.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: CHAIN.hexId }]
+        });
+    } catch (error) {
+        if (error?.code !== 4902) throw error;
+
+        await provider.request({
+            method: 'wallet_addEthereumChain',
+            params: [{
+                chainId: CHAIN.hexId,
+                chainName: CHAIN.name,
+                nativeCurrency: CHAIN.nativeCurrency,
+                rpcUrls: CHAIN.rpcUrls,
+                blockExplorerUrls: [CHAIN.explorer]
+            }]
+        });
+    }
 }
 
 /**
@@ -87,7 +105,7 @@ export async function connectWallet() {
     playSound(SOUNDS.CLICK);
 
     if (!window.ethereum) {
-        showWalletError('No Ethereum wallet detected. Install MetaMask, Rabby or another EIP-1193 wallet.');
+        showWalletError('No wallet detected. Install MetaMask, Rabby or another EIP-1193 wallet.');
         return false;
     }
 
@@ -95,7 +113,7 @@ export async function connectWallet() {
 
     try {
         const accounts = await provider.request({ method: 'eth_requestAccounts' });
-        await ensureMainnet();
+        await ensureCorrectChain();
         handleAccountsChanged(accounts);
 
         provider.removeListener?.('accountsChanged', handleAccountsChanged);
@@ -109,7 +127,7 @@ export async function connectWallet() {
         if (error?.code === 4001) {
             showWalletError('Connection rejected.');
         } else if (error?.code === 4902) {
-            showWalletError(`${CHAIN.name} is not configured in your wallet.`);
+            showWalletError(`Could not add ${CHAIN.name} to your wallet.`);
         } else {
             console.error('Error connecting wallet:', error);
             showWalletError('Failed to connect wallet. Please try again.');
@@ -290,3 +308,5 @@ export const TOKEN_ADDRESSES = {
     USDC: TOKENS.USDC.address,
     ROUGE: TOKENS.XRGE.address
 };
+
+export { CHAIN };

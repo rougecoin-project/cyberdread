@@ -47,7 +47,7 @@ export const PROJECTS = [
         url: 'https://rougecoin.xyz',
         icon: 'assets/img/rougecoin-icon.png',
         status: 'live',
-        blurb: 'Community ERC-20 on Ethereum mainnet.'
+        blurb: 'Community ERC-20 on Base.'
     },
     {
         name: 'Rougee',
@@ -76,18 +76,42 @@ export const PLAYLIST = [
 ];
 
 /**
- * Ethereum mainnet token addresses used by the wallet and swap modules.
+ * Base network token addresses used by the wallet and swap modules.
+ *
+ * XRGE lives on Base, not Ethereum mainnet. The site previously pointed at
+ * 0xA1c7D450130bb77c6a23DdFAeCbC4a060215384b on mainnet, which is a real
+ * XRGE contract but not the one with the live pool.
+ *
+ * All addresses below were verified on-chain against Base
+ * (symbol() and decimals() via https://mainnet.base.org).
  */
 export const TOKENS = {
     ETH:  { symbol: 'ETH',  address: 'ETH', decimals: 18 },
-    WETH: { symbol: 'WETH', address: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2', decimals: 18 },
-    USDT: { symbol: 'USDT', address: '0xdAC17F958D2ee523a2206206994597C13D831ec7', decimals: 6 },
-    USDC: { symbol: 'USDC', address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', decimals: 6 },
-    XRGE: { symbol: 'XRGE', address: '0xA1c7D450130bb77c6a23DdFAeCbC4a060215384b', decimals: 18 }
+    WETH: { symbol: 'WETH', address: '0x4200000000000000000000000000000000000006', decimals: 18 },
+    USDC: { symbol: 'USDC', address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', decimals: 6 },
+    USDT: { symbol: 'USDT', address: '0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2', decimals: 6 },
+    XRGE: { symbol: 'XRGE', address: '0x147120faEC9277ec02d957584CFCD92B56A24317', decimals: 18 }
+};
+
+/**
+ * The XRGE/USDC pool on Base, created 2025-10-22.
+ *
+ * Named explicitly because DEXScreener does not currently index it (the
+ * pool is below its liquidity/volume threshold), so market.js falls back to
+ * GeckoTerminal, which addresses pools directly.
+ */
+export const XRGE_POOL = {
+    network: 'base',
+    address: '0x059e10d26c64a63d04e1814f46305210eddc447d',
+    pair: 'XRGE/USDC'
 };
 
 export const CHAIN = {
-    id: 1,
-    hexId: '0x1',
-    name: 'Ethereum Mainnet'
+    id: 8453,
+    hexId: '0x2105',
+    name: 'Base',
+    explorer: 'https://basescan.org',
+    // Used when a wallet does not have Base configured yet.
+    rpcUrls: ['https://mainnet.base.org'],
+    nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 }
 };

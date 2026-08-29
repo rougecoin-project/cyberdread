@@ -2,7 +2,7 @@
  * RougeCoin module - token panel backed by live market data.
  */
 import { playSound, SOUNDS } from '../sound.js';
-import { TOKENS } from '../../data/site-config.js';
+import { TOKENS, CHAIN, XRGE_POOL } from '../../data/site-config.js';
 import {
     fetchXrgeMarket,
     MarketStatus,
@@ -67,8 +67,8 @@ export async function loadMarketData() {
         FIELDS.forEach(id => setField(id, '--'));
         if (changeElement) changeElement.style.color = '';
         setField('rougeUpdated', status === MarketStatus.NO_PAIR
-            ? 'No indexed liquidity pool for this token yet. Verify the contract on a block explorer.'
-            : 'Market data source unreachable. Retrying shortly.');
+            ? `No price data for the ${XRGE_POOL.pair} pool on ${CHAIN.name} yet.`
+            : 'Market data sources unreachable. Retrying shortly.');
         return;
     }
 
@@ -77,7 +77,18 @@ export async function loadMarketData() {
     setField('rougeCap', formatCompactUsd(market.marketCap));
     setField('rougeLiquidity', formatCompactUsd(market.liquidityUsd));
     setField('rougeVolume', formatCompactUsd(market.volume24h));
-    setField('rougeUpdated', `${market.dex} - updated ${new Date(market.updatedAt).toLocaleTimeString()}`);
+    setField('rougeUpdated', [
+        market.pairLabel || XRGE_POOL.pair,
+        `on ${market.dex}`,
+        `via ${market.source}`,
+        `updated ${new Date(market.updatedAt).toLocaleTimeString()}`
+    ].join(' - '));
+
+    const link = document.getElementById('marketPairLink');
+    if (link && market.pairUrl) {
+        link.href = market.pairUrl;
+        link.hidden = false;
+    }
 
     if (changeElement) {
         changeElement.style.color = market.change24h >= 0
