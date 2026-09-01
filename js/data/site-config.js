@@ -15,9 +15,13 @@ export const SITE = {
     bio: [
         "I see you made it -- welcome to the liminal surface of dust that falls",
         "from the inner workings of my ICE server, {Dread_OS}.",
-        "I'm a netrunner, and other things: I build on-chain tools, ship weird",
-        "web experiments, make browser games, and make music somewhere between",
-        "synthwave and trap."
+        "I'm a netrunner, and other things: a quantum-safe L1 (RougeChain), an",
+        "encrypted wallet/messenger (Qwalla), a forum that doesn't shadowban",
+        "(AntiReddit), a gen-AI studio (GltchRunner), browser games, and music",
+        "somewhere between synthwave and trap.",
+        "",
+        "Six languages across 33 public repos. This desktop is one of them.",
+        "The stuff that pays the bills lives at brandonmenard.dev."
     ]
 };
 
@@ -29,8 +33,10 @@ export const LINKS = [
     { id: 'telegram',  label: 'Telegram',     url: 'https://t.me/rougecoinv3',            img: 'assets/img/telegram-icon.png' },
     { id: 'rougecoin', label: 'rougecoin.xyz', url: 'https://rougecoin.xyz',              img: 'assets/img/web-icon.png' },
     { id: 'rougee',    label: 'rougee.io',    url: 'https://rougee.io',                   img: 'assets/img/signup-icon.png' },
-    { id: 'rougechain', label: 'rougechain.io', url: 'https://rougechain.io',             img: 'assets/img/web-icon.png' },
-    { id: 'itch',      label: 'itch.io',      url: 'https://cyberdreadx.itch.io',         img: 'assets/img/web-icon.png' }
+    { id: 'rougechain', label: 'rougechain.io', url: 'https://rougechain.io',             img: 'assets/img/rougechain-icon.png' },
+    { id: 'itch',      label: 'itch.io',      url: 'https://cyberdreadx.itch.io',         img: 'assets/img/web-icon.png' },
+    { id: 'github',    label: 'GitHub',       url: 'https://github.com/cyberdreadx',      img: 'assets/img/file-icon.png' },
+    { id: 'lab',       label: 'The Lab',      url: 'https://brandonmenard.dev/lab',       img: 'assets/img/web-icon.png' }
 ];
 
 /**
@@ -44,11 +50,11 @@ export const ROUGECHAIN = {
     tagline: 'Quantum-safe Layer 1',
     // From rougechain.io's own description -- kept verbatim so the site does
     // not drift from the chain's marketing.
-    summary: 'Post-quantum Layer 1 secured by NIST-approved ML-DSA-65 (CRYSTALS-Dilithium). Quantum-safe from genesis, not patched in later.',
+    summary: 'Post-quantum Layer 1 secured by NIST-approved ML-DSA-65 (CRYSTALS-Dilithium). Quantum-safe from genesis, not patched in later. XRGE is the native token; the Base ERC-20 is the same token, bridged.',
     features: [
         'Built-in DEX',
         'NFTs',
-        'ETH / USDC bridge',
+        'ETH / USDC bridge (in and out)',
         'Encrypted mail & messenger'
     ]
 };
@@ -80,25 +86,39 @@ export const PROJECTS = [
         blurb: 'LITE DBZ in ~700 lines of code. Playable in browser.'
     },
     {
-        name: 'ZionAI',
-        url: 'https://zionai.one',
-        icon: 'assets/img/zionai-icon.jfif',
-        status: 'live',
-        blurb: 'AI tooling experiment.'
-    },
-    {
         name: 'RougeChain',
         url: 'https://rougechain.io',
-        icon: 'assets/img/rougecoin-icon.png',
+        icon: 'assets/img/rougechain-icon.png',
         status: 'live',
         blurb: 'Quantum-safe Layer 1 secured by ML-DSA-65. DEX, NFTs, bridge, encrypted mail.'
+    },
+    {
+        name: 'Qwalla',
+        url: 'https://qwalla.io',
+        icon: 'assets/img/qwalla-icon.png',
+        status: 'live',
+        blurb: 'Encrypted wallet, messenger and mail in one app. Value and words down the same private pipe.'
+    },
+    {
+        name: 'AntiReddit',
+        url: 'https://antireddit.com',
+        icon: 'assets/img/antireddit-icon.png',
+        status: 'live',
+        blurb: 'The forum the internet forgot how to be. No shadowbans, public mod logs, self-promo allowed.'
+    },
+    {
+        name: 'GltchRunner',
+        url: 'https://gltchrunner.com',
+        icon: 'assets/img/gltchrunner-icon.png',
+        status: 'live',
+        blurb: 'AI image and video generation with model personas, plus a creator earnings program.'
     },
     {
         name: 'RougeCoin (XRGE)',
         url: 'https://rougecoin.xyz',
         icon: 'assets/img/rougecoin-icon.png',
         status: 'live',
-        blurb: 'XRGE traded as an ERC-20 on Base. Community + market side of the token.'
+        blurb: 'XRGE bridged to Base as an ERC-20. Where the token trades today.'
     },
     {
         name: 'Rougee',
