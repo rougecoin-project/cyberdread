@@ -1707,6 +1707,7 @@ body, html {
 .status-live     { color: var(--ok); }
 .status-wip      { color: var(--warn); }
 .status-archived { color: var(--text-muted); }
+.status-game     { color: var(--accent); }
 
 /* --- RougeCoin panel ---------------------------------------------- */
 

@@ -16,7 +16,8 @@ export const SITE = {
         "I see you made it -- welcome to the liminal surface of dust that falls",
         "from the inner workings of my ICE server, {Dread_OS}.",
         "I'm a netrunner, and other things: I build on-chain tools, ship weird",
-        "web experiments, and make music somewhere between synthwave and trap."
+        "web experiments, make browser games, and make music somewhere between",
+        "synthwave and trap."
     ]
 };
 
@@ -27,14 +28,36 @@ export const LINKS = [
     { id: 'youtube',   label: 'YouTube',      url: 'https://www.youtube.com/@cyberdread', img: 'assets/img/youtube-icon.png' },
     { id: 'telegram',  label: 'Telegram',     url: 'https://t.me/rougecoinv3',            img: 'assets/img/telegram-icon.png' },
     { id: 'rougecoin', label: 'rougecoin.xyz', url: 'https://rougecoin.xyz',              img: 'assets/img/web-icon.png' },
-    { id: 'rougee',    label: 'rougee.io',    url: 'https://rougee.io',                   img: 'assets/img/signup-icon.png' }
+    { id: 'rougee',    label: 'rougee.io',    url: 'https://rougee.io',                   img: 'assets/img/signup-icon.png' },
+    { id: 'itch',      label: 'itch.io',      url: 'https://cyberdreadx.itch.io',         img: 'assets/img/web-icon.png' }
 ];
 
 /**
  * Projects listed in the explorer and by the terminal's `projects` command.
- * Add new work here -- `status` renders as a badge: live | wip | archived.
+ * Add new work here -- `status` renders as a badge: live | wip | archived | game.
  */
 export const PROJECTS = [
+    {
+        name: 'Dead Harvest',
+        url: 'https://cyberdreadx.itch.io/dead-harvest-beta-v01',
+        icon: 'assets/img/game-dead-harvest.jpg',
+        status: 'game',
+        blurb: 'Post-quantum horror survival. Playable in browser. (beta v0.1)'
+    },
+    {
+        name: 'Neon Dead',
+        url: 'https://cyberdreadx.itch.io/neon-dead',
+        icon: 'assets/img/game-neon-dead.jpg',
+        status: 'game',
+        blurb: 'Pixel zombie cyber waves. Playable in browser.'
+    },
+    {
+        name: 'Dragon Brawler Z',
+        url: 'https://cyberdreadx.itch.io/dragon-brawler-z',
+        icon: 'assets/img/game-dragon-brawler-z.png',
+        status: 'game',
+        blurb: 'LITE DBZ in ~700 lines of code. Playable in browser.'
+    },
     {
         name: 'ZionAI',
         url: 'https://zionai.one',
