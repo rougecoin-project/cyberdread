@@ -29,8 +29,29 @@ export const LINKS = [
     { id: 'telegram',  label: 'Telegram',     url: 'https://t.me/rougecoinv3',            img: 'assets/img/telegram-icon.png' },
     { id: 'rougecoin', label: 'rougecoin.xyz', url: 'https://rougecoin.xyz',              img: 'assets/img/web-icon.png' },
     { id: 'rougee',    label: 'rougee.io',    url: 'https://rougee.io',                   img: 'assets/img/signup-icon.png' },
+    { id: 'rougechain', label: 'rougechain.io', url: 'https://rougechain.io',             img: 'assets/img/web-icon.png' },
     { id: 'itch',      label: 'itch.io',      url: 'https://cyberdreadx.itch.io',         img: 'assets/img/web-icon.png' }
 ];
+
+/**
+ * RougeChain -- the post-quantum L1. XRGE is the ticker across both the
+ * chain and the Base ERC-20, so the RougeCoin panel and the terminal's
+ * `chain` command read this to keep the two straight.
+ */
+export const ROUGECHAIN = {
+    name: 'RougeChain',
+    url: 'https://rougechain.io',
+    tagline: 'Quantum-safe Layer 1',
+    // From rougechain.io's own description -- kept verbatim so the site does
+    // not drift from the chain's marketing.
+    summary: 'Post-quantum Layer 1 secured by NIST-approved ML-DSA-65 (CRYSTALS-Dilithium). Quantum-safe from genesis, not patched in later.',
+    features: [
+        'Built-in DEX',
+        'NFTs',
+        'ETH / USDC bridge',
+        'Encrypted mail & messenger'
+    ]
+};
 
 /**
  * Projects listed in the explorer and by the terminal's `projects` command.
@@ -66,11 +87,18 @@ export const PROJECTS = [
         blurb: 'AI tooling experiment.'
     },
     {
+        name: 'RougeChain',
+        url: 'https://rougechain.io',
+        icon: 'assets/img/rougecoin-icon.png',
+        status: 'live',
+        blurb: 'Quantum-safe Layer 1 secured by ML-DSA-65. DEX, NFTs, bridge, encrypted mail.'
+    },
+    {
         name: 'RougeCoin (XRGE)',
         url: 'https://rougecoin.xyz',
         icon: 'assets/img/rougecoin-icon.png',
         status: 'live',
-        blurb: 'Community ERC-20 on Base.'
+        blurb: 'XRGE traded as an ERC-20 on Base. Community + market side of the token.'
     },
     {
         name: 'Rougee',

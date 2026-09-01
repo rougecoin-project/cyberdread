@@ -956,7 +956,9 @@ body, html {
 
 /* RougeCoin Interface Styles */
 .rougecoin-content {
-    padding: 15px;
+    padding: 12px;
+    /* Belt and braces: nothing in this panel should ever scroll sideways. */
+    overflow-x: hidden;
     color: var(--accent);
 }
 
@@ -964,9 +966,15 @@ body, html {
     display: flex;
     align-items: center;
     flex-direction: column;
-    margin-bottom: 20px;
+    margin-bottom: 14px;
     border-bottom: 1px solid rgba(var(--accent-rgb), 0.2);
-    padding-bottom: 15px;
+    padding-bottom: 12px;
+    text-align: center;
+}
+
+.rougecoin-header h2 {
+    margin: 0;
+    font-size: clamp(18px, 5vw, 26px);
 }
 
 .rougecoin-logo {
@@ -980,25 +988,36 @@ body, html {
 .rougecoin-tagline {
     font-style: italic;
     opacity: 0.7;
-    margin-top: 5px;
+    margin: 5px 0 0;
+    font-size: clamp(11px, 3vw, 14px);
+    overflow-wrap: anywhere;
 }
 
 .rougecoin-sections {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
+    /* auto-fit, not repeat(2, 1fr): two hardcoded columns could not fit in a
+     * ~370px phone window, and grid children default to min-width: auto, so
+     * the panel overflowed horizontally and clipped its own left edge. */
+    grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+    gap: 14px;
 }
 
 .rougecoin-section {
+    /* Lets the section shrink below its min-content width instead of
+     * pushing the grid wider than the window. */
+    min-width: 0;
     background-color: rgba(0, 30, 60, 0.5);
     border: 1px solid rgba(var(--accent-rgb), 0.2);
     border-radius: 5px;
-    padding: 15px;
+    padding: 12px;
     box-shadow: 0 0 10px rgba(var(--accent-rgb), 0.2);
 }
 
 .rougecoin-section h3 {
     margin-top: 0;
+    margin-bottom: 10px;
+    font-size: clamp(13px, 3.6vw, 16px);
+    letter-spacing: 0.04em;
     border-bottom: 1px solid rgba(var(--accent-rgb), 0.2);
     padding-bottom: 5px;
     color: var(--accent);
@@ -1007,18 +1026,29 @@ body, html {
 .rougecoin-links {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
 }
 
 .rougecoin-link {
     display: flex;
     align-items: center;
+    gap: 8px;
+    min-width: 0;
     text-decoration: none;
     color: var(--accent);
     padding: 8px;
+    font-size: clamp(12px, 3.2vw, 14px);
+    line-height: 1.3;
     border-radius: 4px;
     background-color: rgba(var(--accent-rgb), 0.1);
     transition: all 0.3s ease;
+}
+
+/* Keep the icon at full size and let the label take the remaining width. */
+.rougecoin-link .ico { flex: none; }
+.rougecoin-link span {
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 
 .rougecoin-link:hover {
@@ -1029,7 +1059,8 @@ body, html {
 .rougecoin-link img {
     width: 24px;
     height: 24px;
-    margin-right: 10px;
+    flex: none;
+    /* margin-right removed: the flex `gap` above now handles the spacing. */
 }
 
 .rougecoin-features {
@@ -1072,6 +1103,37 @@ body, html {
 }
 
 /* Swap Interface Styles */
+/* The chain blurb reads as an intro to the whole panel, so it spans. */
+.chain-section {
+    grid-column: 1 / -1;
+}
+
+.chain-summary {
+    margin: 0 0 10px;
+    font-size: clamp(11px, 3vw, 13px);
+    line-height: 1.55;
+    color: var(--text);
+}
+
+.chain-features {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.chain-features li {
+    padding: 3px 8px;
+    font-size: clamp(10px, 2.7vw, 11px);
+    letter-spacing: 0.04em;
+    color: var(--accent);
+    background: rgba(var(--accent-rgb), 0.08);
+    border: 1px solid rgba(var(--accent-rgb), 0.25);
+    border-radius: 999px;
+}
+
 .swap-section {
     grid-column: 1 / -1;
 }
@@ -1193,6 +1255,10 @@ body, html {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    /* Wraps instead of ellipsising "Wallet not connected" down to
+     * "Wallet not conn..." in a narrow panel. */
+    flex-wrap: wrap;
+    gap: 8px;
     background-color: rgba(0, 20, 40, 0.7);
     padding: 10px;
     border-radius: 5px;
@@ -1206,7 +1272,9 @@ body, html {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 180px;
+    /* A connected 0x… address still ellipsises; the placeholder text no
+     * longer has to, because the row can wrap. */
+    max-width: 100%;
 }
 
 .connect-wallet-btn {
@@ -1360,6 +1428,11 @@ body, html {
     align-items: center;
     text-decoration: none;
     position: relative;
+    /* Matches the thumb's outer box (100 + 5px padding + 1px border each
+     * side) so every tile is the same width and the absolutely positioned
+     * status badge lands on the artwork instead of floating off beside a
+     * long label. */
+    width: 112px;
 }
 
 /* --- Taskbar ------------------------------------------------------ */
@@ -1713,7 +1786,7 @@ body, html {
 
 .market-data {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(128px, 100%), 1fr));
     gap: 8px;
 }
 
@@ -1721,6 +1794,7 @@ body, html {
     display: flex;
     flex-direction: column;
     gap: 3px;
+    min-width: 0;
     padding: 8px 10px;
     background: var(--surface-2);
     border: 1px solid rgba(var(--accent-rgb), 0.2);
@@ -1739,7 +1813,10 @@ body, html {
 
 .market-value {
     font-family: var(--font-mono);
-    font-size: 15px;
+    /* Scales down on narrow windows so long values like $0.00000132 stay on
+     * one line instead of forcing the tile wider. */
+    font-size: clamp(12px, 3.4vw, 15px);
+    overflow-wrap: anywhere;
     color: var(--accent);
 }
 
@@ -1835,6 +1912,60 @@ body, html {
     }
 
     .icon { transform: scale(0.9); }
+
+    /* Phones get a denser panel: the desktop paddings ate most of the
+     * usable width and pushed content out of the window. */
+    .explorer,
+    #rougeCoinInterface {
+        width: 96vw;
+        height: min(78dvh, 640px);
+    }
+
+    .rougecoin-content { padding: 10px; }
+    .rougecoin-section { padding: 10px; }
+    .rougecoin-sections { gap: 10px; }
+
+    .rougecoin-logo {
+        width: 40px;
+        height: 40px;
+        margin-bottom: 6px;
+    }
+
+    .explorer-content h2 {
+        margin: 0 0 10px;
+        font-size: 17px;
+    }
+
+    .folder-content p,
+    .swap-disclaimer,
+    .market-updated { font-size: 11px; }
+
+    /* Project tiles: three across on a phone instead of one-and-a-bit. */
+    .project-thumb {
+        width: 76px;
+        height: 76px;
+    }
+
+    .project-item { width: 88px; }
+
+    .project-label { font-size: 11px; }
+
+    /* 20px gap + 20px padding + a 10px margin per tile left almost no room
+     * for the tiles themselves on a narrow screen. */
+    .image-grid {
+        gap: 10px;
+        padding: 10px;
+        justify-content: center;
+    }
+
+    .project-item { margin: 4px; }
+}
+
+/* Long project names wrap inside the tile instead of widening it. */
+.project-label {
+    max-width: 100%;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
 }
 
 /* Start menu visibility is class-driven now, not inline styles. */

@@ -5,7 +5,7 @@
  * out of sync with the rest of the desktop.
  */
 import { playSound, SOUNDS } from '../sound.js';
-import { SITE, LINKS, PROJECTS, TOKENS } from '../../data/site-config.js';
+import { SITE, LINKS, PROJECTS, TOKENS, ROUGECHAIN } from '../../data/site-config.js';
 import { fetchXrgeMarket, MarketStatus, formatUsd, formatCompactUsd, formatChange } from '../web3/market.js';
 import { setTheme, listThemes, getTheme } from './settings.js';
 
@@ -100,6 +100,18 @@ const COMMANDS = {
         describe: 'where else to find me',
         run() {
             LINKS.forEach(link => printLink(link.label, link.url));
+        }
+    },
+
+    chain: {
+        describe: 'about RougeChain, the L1',
+        run() {
+            print(`${ROUGECHAIN.name} -- ${ROUGECHAIN.tagline}`, 'term-heading');
+            print(ROUGECHAIN.summary);
+            print();
+            ROUGECHAIN.features.forEach(feature => print(`  - ${feature}`, 'term-muted'));
+            print();
+            printLink('', ROUGECHAIN.url);
         }
     },
 
