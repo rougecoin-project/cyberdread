@@ -319,6 +319,13 @@ body, html {
     display: flex;
     flex-wrap: wrap;
     width: 100%;
+    /* Without this the default align-content: stretch spreads the wrapped
+     * rows over the full height of the explorer, leaving ~200px of dead
+     * space between each row of folders. */
+    align-content: flex-start;
+    gap: 4px;
+    padding: 10px;
+    box-sizing: border-box;
 }
 .folder-content {
     display: none;
@@ -1797,6 +1804,66 @@ body, html {
 .status-wip      { color: var(--warn); }
 .status-archived { color: var(--text-muted); }
 .status-game     { color: var(--accent); }
+
+/* --- Repos folder -------------------------------------------------- */
+
+.repos-intro {
+    margin: 0 0 12px;
+    font-size: clamp(11px, 3vw, 13px);
+    color: var(--text-muted);
+}
+
+.repo-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.repo-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 12px;
+    text-decoration: none;
+    color: var(--text);
+    background: var(--surface-2);
+    border: 1px solid rgba(var(--accent-rgb), 0.2);
+    border-left: 2px solid rgba(var(--accent-rgb), 0.5);
+    border-radius: var(--radius);
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.repo-row:hover {
+    background: rgba(var(--accent-rgb), 0.1);
+    border-color: var(--accent);
+}
+
+.repo-name {
+    font-family: var(--font-mono);
+    font-size: clamp(12px, 3.2vw, 14px);
+    color: var(--accent);
+    overflow-wrap: anywhere;
+}
+
+.repo-desc {
+    font-size: clamp(11px, 2.9vw, 12px);
+    line-height: 1.5;
+    color: var(--text);
+    opacity: 0.85;
+}
+
+.repo-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 10px;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+/* The language reads as the primary tag, so it keeps the accent. */
+.repo-lang { color: var(--accent); }
 
 /* --- RougeCoin panel ---------------------------------------------- */
 

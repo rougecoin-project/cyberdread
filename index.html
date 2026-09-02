@@ -232,6 +232,10 @@
                         <img src="assets/img/folder-icon.png" alt="" width="40" height="40">
                         <span class="folder-label">Projects</span>
                     </button>
+                    <button type="button" class="folder" onclick="showContent('repos')">
+                        <img src="assets/img/folder-icon.png" alt="" width="40" height="40">
+                        <span class="folder-label">Repos</span>
+                    </button>
                     <button type="button" class="folder" onclick="showContent('links')">
                         <img src="assets/img/folder-icon.png" alt="" width="40" height="40">
                         <span class="folder-label">Links</span>
@@ -264,6 +268,18 @@
                     <h2>Projects</h2>
                     <!-- Rendered from js/data/site-config.js -->
                     <div id="projectsGrid" class="image-grid"></div>
+                </div>
+
+                <div id="repos" class="folder-content">
+                    <button type="button" class="back-button" onclick="hideContent('repos')">← Back</button>
+                    <h2>Repos</h2>
+                    <p class="repos-intro">Six languages across 33 public repos. Selected work:</p>
+                    <!-- Rendered from js/data/site-config.js -->
+                    <div id="reposList" class="repo-list"></div>
+                    <a class="market-explorer" target="_blank" rel="noopener noreferrer"
+                       href="https://github.com/cyberdreadx">
+                        All repos on GitHub →
+                    </a>
                 </div>
 
                 <div id="links" class="folder-content">

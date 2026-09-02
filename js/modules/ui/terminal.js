@@ -5,7 +5,7 @@
  * out of sync with the rest of the desktop.
  */
 import { playSound, SOUNDS } from '../sound.js';
-import { SITE, LINKS, PROJECTS, TOKENS, ROUGECHAIN } from '../../data/site-config.js';
+import { SITE, LINKS, PROJECTS, TOKENS, ROUGECHAIN, REPOS, GITHUB_USER } from '../../data/site-config.js';
 import { fetchXrgeMarket, MarketStatus, formatUsd, formatCompactUsd, formatChange } from '../web3/market.js';
 import { setTheme, listThemes, getTheme } from './settings.js';
 
@@ -93,6 +93,23 @@ const COMMANDS = {
                 print(`  ${project.blurb}`, 'term-muted');
                 printLink('', project.url);
             });
+        }
+    },
+
+    repos: {
+        describe: 'selected source repositories',
+        run() {
+            REPOS.forEach(repo => {
+                const tags = [repo.lang, repo.license, repo.stars && `${repo.stars} stars`]
+                    .filter(Boolean).join(' - ');
+                print(repo.name, 'term-heading');
+                if (repo.desc) print(`  ${repo.desc}`, 'term-muted');
+                if (tags) print(`  ${tags}`, 'term-muted');
+                printLink('', `https://github.com/${GITHUB_USER}/${repo.name}`);
+            });
+            print();
+            print('Six languages across 33 public repos.', 'term-muted');
+            printLink('', `https://github.com/${GITHUB_USER}`);
         }
     },
 

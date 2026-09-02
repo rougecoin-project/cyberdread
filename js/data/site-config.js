@@ -137,6 +137,57 @@ export const PROJECTS = [
 ];
 
 /**
+ * Source repos, shown in the explorer's Repos folder and by the terminal's
+ * `repos` command.
+ *
+ * `desc` is GitHub's own repository description, copied verbatim. Repos
+ * that have no description on GitHub leave it out rather than inventing
+ * one -- the row still shows language, licence and stars.
+ */
+export const GITHUB_USER = 'cyberdreadx';
+
+export const REPOS = [
+    {
+        name: 'rougechain-node',
+        desc: 'RougeChain full node.',
+        lang: 'TypeScript',
+        license: 'Apache-2.0'
+    },
+    {
+        name: 'xrge-node',
+        desc: 'Run your own post-quantum blockchain node on the RougeChain network.',
+        lang: 'Rust',
+        license: 'MIT'
+    },
+    {
+        name: 'rougechain-wallet',
+        desc: 'Post-quantum cryptographic wallet - browser extension.',
+        lang: 'TypeScript',
+        license: 'MIT'
+    },
+    {
+        name: 'Qwalla',
+        desc: 'Qwalla - RougeChain mobile wallet (Expo / React Native).',
+        lang: 'TypeScript'
+    },
+    {
+        name: 'cyberpunk-grok-api',
+        lang: 'TypeScript',
+        stars: 3,
+        homepage: 'https://cyberpunk-grok-api.vercel.app'
+    },
+    {
+        name: 'gltchtrade',
+        lang: 'Python',
+        license: 'MIT'
+    },
+    {
+        name: 'divine_emergence',
+        lang: 'TypeScript'
+    }
+];
+
+/**
  * Music player playlist. `src` is relative to the site root.
  */
 export const PLAYLIST = [

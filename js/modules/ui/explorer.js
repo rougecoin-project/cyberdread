@@ -2,7 +2,7 @@
  * Explorer module - file explorer window and its folder views.
  */
 import { playSound, SOUNDS } from '../sound.js';
-import { PROJECTS, LINKS } from '../../data/site-config.js';
+import { PROJECTS, LINKS, REPOS, GITHUB_USER } from '../../data/site-config.js';
 
 /** Opens the file explorer window. */
 export function openExplorer() {
@@ -109,6 +109,67 @@ export function renderExplorerContent() {
             icon: link.img
         })));
     }
+
+    const repos = document.getElementById('reposList');
+    if (repos) {
+        repos.textContent = '';
+        REPOS.forEach(repo => repos.appendChild(buildRepoRow(repo)));
+    }
+}
+
+/**
+ * Builds one repo row. Repos are text, not artwork, so they get a list
+ * row rather than the image tile the projects grid uses.
+ * @param {{name: string, desc?: string, lang?: string, license?: string,
+ *          stars?: number, homepage?: string}} repo
+ * @returns {HTMLElement}
+ */
+function buildRepoRow(repo) {
+    const row = document.createElement('a');
+    row.className = 'repo-row';
+    row.href = `https://github.com/${GITHUB_USER}/${repo.name}`;
+    row.target = '_blank';
+    row.rel = 'noopener noreferrer';
+
+    const name = document.createElement('span');
+    name.className = 'repo-name';
+    name.textContent = repo.name;
+    row.appendChild(name);
+
+    if (repo.desc) {
+        const desc = document.createElement('span');
+        desc.className = 'repo-desc';
+        desc.textContent = repo.desc;
+        row.appendChild(desc);
+    }
+
+    const meta = document.createElement('span');
+    meta.className = 'repo-meta';
+
+    if (repo.lang) {
+        const lang = document.createElement('span');
+        lang.className = 'repo-lang';
+        lang.textContent = repo.lang;
+        meta.appendChild(lang);
+    }
+    if (repo.license) {
+        const license = document.createElement('span');
+        license.textContent = repo.license;
+        meta.appendChild(license);
+    }
+    if (repo.stars) {
+        const stars = document.createElement('span');
+        stars.textContent = `${repo.stars} stars`;
+        meta.appendChild(stars);
+    }
+    if (repo.homepage) {
+        const demo = document.createElement('span');
+        demo.textContent = 'live demo';
+        meta.appendChild(demo);
+    }
+
+    if (meta.childElementCount) row.appendChild(meta);
+    return row;
 }
 
 /** Opens the lightbox for a full-size image. */
