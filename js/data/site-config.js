@@ -172,17 +172,20 @@ export const REPOS = [
     },
     {
         name: 'cyberpunk-grok-api',
+        desc: 'Cyberpunk neural interface for AI image, video and character generation - multi-engine, multi-payment, creator-friendly.',
         lang: 'TypeScript',
         stars: 3,
-        homepage: 'https://cyberpunk-grok-api.vercel.app'
+        homepage: 'https://grokrunner.gltch.app'
     },
     {
         name: 'gltchtrade',
+        desc: 'Paper-trading DEX bot: live on-chain prices via GeckoTerminal, realistic fee + slippage simulation, pluggable strategies.',
         lang: 'Python',
         license: 'MIT'
     },
     {
         name: 'divine_emergence',
+        desc: 'Marketing site for Divine Emergence - breathwork, coaching and retreats in South Florida.',
         lang: 'TypeScript'
     }
 ];
