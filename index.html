@@ -7,8 +7,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 
     <title>CyberDread — {Dread_OS}</title>
-    <meta name="description" content="{Dread_OS} — a cyberpunk desktop in your browser. Games, music, a working terminal, RougeChain (the quantum-safe L1) and live XRGE market data from Base.">
-    <link rel="canonical" href="https://cyberdread.xyz/">
+    <meta name="description" content="{Dread_OS} — a cyberpunk desktop in your browser. Games, music, a working terminal, and RougeChain, the post-quantum Layer 1 (mainnet live), with live network stats and XRGE market data.">
+    <link rel="canonical" href="https://cyberdreadx.dev/">
     <meta name="theme-color" content="#00ffff">
     <meta name="color-scheme" content="dark">
 
@@ -19,18 +19,19 @@
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="{Dread_OS}">
     <meta property="og:title" content="CyberDread — {Dread_OS}">
-    <meta property="og:description" content="A cyberpunk desktop in your browser. Music, projects, a working terminal and live XRGE market data.">
-    <meta property="og:url" content="https://cyberdread.xyz/">
-    <meta property="og:image" content="https://cyberdread.xyz/assets/img/background.png">
+    <meta property="og:description" content="A cyberpunk desktop in your browser. Music, projects, a working terminal, and RougeChain, the post-quantum Layer 1, live.">
+    <meta property="og:url" content="https://cyberdreadx.dev/">
+    <meta property="og:image" content="https://cyberdreadx.dev/assets/img/background.png">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="CyberDread — {Dread_OS}">
-    <meta name="twitter:description" content="A cyberpunk desktop in your browser. Music, projects, a working terminal and live XRGE market data.">
-    <meta name="twitter:image" content="https://cyberdread.xyz/assets/img/background.png">
+    <meta name="twitter:description" content="A cyberpunk desktop in your browser. Music, projects, a working terminal, and RougeChain, the post-quantum Layer 1, live.">
+    <meta name="twitter:image" content="https://cyberdreadx.dev/assets/img/background.png">
 
     <link rel="preload" as="image" href="assets/img/background.png">
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://api.dexscreener.com" crossorigin>
     <link rel="preconnect" href="https://api.geckoterminal.com" crossorigin>
+    <link rel="preconnect" href="https://api.rougechain.io" crossorigin>
 
     <!-- No CDN scripts. This used to pull web3.js 1.8.0 and WalletConnect v1
          (a bridge network shut down in 2023, and never actually called). -->
@@ -107,7 +108,7 @@
                     <img src="assets/img/file-icon.png" alt="" width="20" height="20"> access.exe
                 </button>
                 <button type="button" class="start-menu-item" onclick="openRougeCoin()">
-                    <img src="assets/img/rougecoin-icon.png" alt="" width="20" height="20"> RougeCoin
+                    <img src="assets/img/rougechain-icon.png" alt="" width="20" height="20"> RougeChain
                 </button>
                 <button type="button" class="start-menu-item" onclick="openSettings()">
                     <img src="assets/img/settings-icon.png" alt="" width="20" height="20"> Settings
@@ -140,8 +141,8 @@
             <span class="icon-label">Music</span>
         </button>
         <button type="button" class="icon" style="top: 170px; left: 40px;" onclick="openRougeCoin()">
-            <img src="assets/img/rougecoin-icon.png" alt="" width="48" height="48">
-            <span class="icon-label">RougeCoin</span>
+            <img src="assets/img/rougechain-icon.png" alt="" width="48" height="48">
+            <span class="icon-label">RougeChain</span>
         </button>
         <button type="button" class="icon" style="top: 170px; left: 140px;" onclick="showAccessModal()">
             <img src="assets/img/file-icon.png" alt="" width="48" height="48">
@@ -262,7 +263,7 @@
                     <button type="button" class="back-button" onclick="hideContent('about-me')">← Back</button>
                     <h2>About Me</h2>
                     <p>I see you made it — welcome to the liminal surface of dust that falls from the inner workings of my ICE server, {Dread_OS}.</p>
-                    <p>I'm a netrunner, and other things: a quantum-safe L1 (<a href="https://rougechain.io" target="_blank" rel="noopener noreferrer">RougeChain</a>), an encrypted wallet/messenger (<a href="https://qwalla.io" target="_blank" rel="noopener noreferrer">Qwalla</a>), a forum that doesn't shadowban (<a href="https://antireddit.com" target="_blank" rel="noopener noreferrer">AntiReddit</a>), a gen-AI studio (<a href="https://gltchrunner.com" target="_blank" rel="noopener noreferrer">GltchRunner</a>), browser games, and music somewhere between synthwave and trap.</p>
+                    <p>I'm a netrunner, and other things: a post-quantum Layer 1 with mainnet live (<a href="https://rougechain.io" target="_blank" rel="noopener noreferrer">RougeChain</a>), its encrypted wallet and messenger, now on the App Store (<a href="https://qwalla.io" target="_blank" rel="noopener noreferrer">Qwalla</a>), a forum that doesn't shadowban (<a href="https://antireddit.com" target="_blank" rel="noopener noreferrer">AntiReddit</a>), a gen-AI studio (<a href="https://gltchrunner.com" target="_blank" rel="noopener noreferrer">GltchRunner</a>), browser games, and music somewhere between synthwave and trap.</p>
                     <p>Six languages across 33 public repos — the source is on <a href="https://github.com/cyberdreadx" target="_blank" rel="noopener noreferrer">GitHub</a>. The stuff that pays the bills lives at <a href="https://brandonmenard.dev" target="_blank" rel="noopener noreferrer">brandonmenard.dev</a>.</p>
                     <p class="muted">Tip: open <strong>term.exe</strong> and type <code>help</code> — everything here is reachable from the shell too.</p>
                 </div>
@@ -366,10 +367,10 @@
             </div>
         </section>
 
-        <!-- RougeCoin -->
-        <section id="rougeCoinInterface" class="explorer app-window" style="display: none;" aria-label="RougeCoin">
+        <!-- RougeChain / XRGE. Lists and copy render from ROUGECHAIN in js/data/site-config.js -->
+        <section id="rougeCoinInterface" class="explorer app-window" style="display: none;" aria-label="RougeChain">
             <header class="explorer-header window-header">
-                <span>RougeCoin (XRGE)</span>
+                <span>RougeChain · XRGE</span>
                 <span class="window-buttons">
                     <button type="button" onclick="toggleFullScreenWindow('rougeCoinInterface')" aria-label="Maximize">⛶</button>
                     <button type="button" data-close onclick="closeRougeCoin()" aria-label="Close">✕</button>
@@ -377,35 +378,64 @@
             </header>
             <div class="explorer-content rougecoin-content">
                 <div class="rougecoin-header">
-                    <img src="assets/img/rougecoin-icon.png" alt="" class="rougecoin-logo" width="64" height="64">
-                    <h2>RougeCoin</h2>
-                    <p class="rougecoin-tagline">Native to <strong>RougeChain</strong> · bridged to <strong>Base</strong> as an ERC-20</p>
-                    <button type="button" class="contract-copy" onclick="copyContractAddress()">
-                        <svg class="ico" aria-hidden="true"><use href="#i-copy"/></svg>
-                        <code>0x1471…4317</code>
-                        <span id="contractCopyStatus" class="copy-status"></span>
-                    </button>
+                    <img src="assets/img/rougechain-icon.png" alt="" class="rougecoin-logo" width="64" height="64">
+                    <h2>RougeChain</h2>
+                    <p class="rougecoin-tagline">Post-quantum from genesis · <strong>mainnet live</strong> · native token <strong>XRGE</strong></p>
+                    <div class="chain-cta">
+                        <a class="chain-cta-main" href="https://rougechain.io" target="_blank" rel="noopener noreferrer">rougechain.io →</a>
+                        <a class="chain-cta-buy" data-buy-xrge href="https://rougechain.io/buy" target="_blank" rel="noopener noreferrer">Buy XRGE</a>
+                    </div>
                 </div>
 
                 <div class="rougecoin-sections">
                     <section class="rougecoin-section chain-section">
-                        <h3><svg class="ico" aria-hidden="true"><use href="#i-shield"/></svg> RougeChain — L1</h3>
-                        <p class="chain-summary">
-                            Post-quantum Layer 1 secured by NIST-approved <strong>ML-DSA-65</strong>
-                            (CRYSTALS-Dilithium). Quantum-safe from genesis, not patched in later.
-                            <strong>XRGE</strong> is the native token — the Base ERC-20 below is the
-                            same token, bridged.
-                        </p>
-                        <ul class="chain-features">
-                            <li>Built-in DEX</li>
-                            <li>NFTs</li>
-                            <li>ETH / USDC bridge (in and out)</li>
-                            <li>Encrypted mail &amp; messenger</li>
-                        </ul>
+                        <h3><svg class="ico" aria-hidden="true"><use href="#i-shield"/></svg> Network — live</h3>
+                        <div class="market-data">
+                            <div class="market-item">
+                                <span class="market-label">Block height</span>
+                                <span class="market-value" id="chainHeight">—</span>
+                            </div>
+                            <div class="market-item">
+                                <span class="market-label">Finalized</span>
+                                <span class="market-value" id="chainFinalized">—</span>
+                            </div>
+                            <div class="market-item">
+                                <span class="market-label">Validators</span>
+                                <span class="market-value" id="chainValidators">—</span>
+                            </div>
+                            <div class="market-item">
+                                <span class="market-label">Peers</span>
+                                <span class="market-value" id="chainPeers">—</span>
+                            </div>
+                            <div class="market-item">
+                                <span class="market-label">Fees burned</span>
+                                <span class="market-value" id="chainBurned">—</span>
+                            </div>
+                        </div>
+                        <p id="chainUpdated" class="market-updated"></p>
                         <a class="market-explorer" target="_blank" rel="noopener noreferrer"
-                           href="https://rougechain.io">
-                            rougechain.io →
+                           href="https://rougechain.io/blockchain">
+                            Open the explorer →
                         </a>
+                    </section>
+
+                    <section class="rougecoin-section eco-section">
+                        <h3><svg class="ico" aria-hidden="true"><use href="#i-shield"/></svg> Post-quantum Layer 1</h3>
+                        <p class="chain-summary" id="chainSummary"></p>
+                        <ul class="chain-features" id="chainCrypto"></ul>
+                        <div id="chainEcosystem" class="eco"></div>
+                    </section>
+
+                    <section class="rougecoin-section">
+                        <h3>XRGE — one token, two networks</h3>
+                        <p class="chain-summary" id="xrgeNative"></p>
+                        <p class="chain-summary" id="xrgeBase"></p>
+                        <button type="button" class="contract-copy" onclick="copyContractAddress()">
+                            <svg class="ico" aria-hidden="true"><use href="#i-copy"/></svg>
+                            <span>Base contract</span>
+                            <code>0x1471…4317</code>
+                            <span id="contractCopyStatus" class="copy-status"></span>
+                        </button>
                     </section>
 
                     <section class="rougecoin-section">
@@ -433,6 +463,9 @@
                             </div>
                         </div>
                         <p id="rougeUpdated" class="market-updated"></p>
+                        <a class="rougecoin-link buy-link" data-buy-xrge target="_blank" rel="noopener noreferrer" href="https://rougechain.io/buy">
+                            <svg class="ico" aria-hidden="true"><use href="#i-swap"/></svg><span>Buy XRGE on Aerodrome</span>
+                        </a>
                         <a id="marketPairLink" class="market-explorer" hidden target="_blank" rel="noopener noreferrer" href="#">
                             View the pool chart →
                         </a>
@@ -443,25 +476,8 @@
                     </section>
 
                     <section class="rougecoin-section">
-                        <h3>Connect</h3>
-                        <div class="rougecoin-links">
-                            <a href="https://t.me/rougecoinv3" target="_blank" rel="noopener noreferrer" class="rougecoin-link">
-                                <svg class="ico" aria-hidden="true"><use href="#i-telegram"/></svg><span>Telegram community</span>
-                            </a>
-                            <a href="https://www.youtube.com/@rougecoin" target="_blank" rel="noopener noreferrer" class="rougecoin-link">
-                                <svg class="ico" aria-hidden="true"><use href="#i-youtube"/></svg><span>RougeCoin on YouTube</span>
-                            </a>
-                            <a href="https://rougecoin.xyz" target="_blank" rel="noopener noreferrer" class="rougecoin-link">
-                                <svg class="ico" aria-hidden="true"><use href="#i-globe"/></svg><span>rougecoin.xyz</span>
-                            </a>
-                            <a href="https://rougee.io" target="_blank" rel="noopener noreferrer" class="rougecoin-link">
-                                <svg class="ico" aria-hidden="true"><use href="#i-user-plus"/></svg><span>rougee.io</span>
-                            </a>
-                            <a href="https://app.uniswap.org/swap?chain=base&amp;outputCurrency=0x147120faEC9277ec02d957584CFCD92B56A24317"
-                               target="_blank" rel="noopener noreferrer" class="rougecoin-link buy-link">
-                                <svg class="ico" aria-hidden="true"><use href="#i-swap"/></svg><span>Buy on Uniswap</span>
-                            </a>
-                        </div>
+                        <h3>Community</h3>
+                        <div class="rougecoin-links" id="chainCommunity"></div>
                     </section>
 
                     <section class="rougecoin-section swap-section">
@@ -515,8 +531,9 @@
                                 Connect Wallet to Swap
                             </button>
                             <p class="swap-disclaimer">
-                                Estimates are indicative. XRGE trades on <strong>Base</strong>; the
-                                swap is executed on Uniswap, which quotes the final rate.
+                                Estimates are indicative. XRGE trades on <strong>Base</strong>. The
+                                swap opens on Aerodrome with the pair selected; enter the amount there
+                                for the final quote.
                             </p>
                         </div>
                     </section>

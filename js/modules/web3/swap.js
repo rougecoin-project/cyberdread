@@ -1,5 +1,5 @@
 /**
- * Swap module - estimates and Uniswap hand-off.
+ * Swap module - estimates and the Aerodrome hand-off.
  */
 import { TOKENS, CHAIN } from '../../data/site-config.js';
 import { fetchXrgeMarket, fetchEthPrice, MarketStatus } from './market.js';
@@ -20,8 +20,8 @@ async function inputTokenUsd(symbol) {
 /**
  * Recalculates the estimated XRGE output for the entered amount.
  *
- * Everything here is indicative only -- the real quote comes from Uniswap's
- * router when the swap is executed.
+ * Everything here is indicative only -- the real quote comes from Aerodrome
+ * when the swap is executed.
  */
 export async function calculateSwapEstimate() {
     const amountField = document.getElementById('fromAmount');
@@ -83,35 +83,26 @@ export async function calculateSwapEstimate() {
         impactField.classList.toggle('impact-high', impact !== null && impact > 5);
     }
 
-    if (feeField) feeField.textContent = 'quoted by Uniswap';
+    if (feeField) feeField.textContent = 'quoted by Aerodrome';
 }
 
 /**
- * Opens Uniswap pre-filled with the entered swap.
+ * Opens Aerodrome, where the XRGE/USDC pool lives, with the pair selected.
  *
- * Targets Base, where the XRGE pool lives. Uses the current (non-hash)
- * app.uniswap.org route; the old `/#/swap` format dates from Uniswap v2's
- * interface.
+ * Aerodrome's swap URL takes the two tokens (`eth` for native ETH) and the
+ * chain, but no amount, so the visitor enters the amount there.
  */
-export function redirectToUniswap() {
-    const amountField = document.getElementById('fromAmount');
-    const tokenField = document.getElementById('fromToken');
-
-    const amount = parseFloat(amountField?.value);
-    const symbol = tokenField?.value || 'ETH';
+export function redirectToAerodrome() {
+    const symbol = document.getElementById('fromToken')?.value || 'ETH';
 
     const params = new URLSearchParams({
-        chain: 'base',
-        inputCurrency: symbol === 'ETH' ? 'ETH' : TOKENS[symbol].address,
-        outputCurrency: TOKENS.XRGE.address
+        from: symbol === 'ETH' ? 'eth' : TOKENS[symbol].address.toLowerCase(),
+        to: TOKENS.XRGE.address.toLowerCase(),
+        chain0: String(CHAIN.id),
+        chain1: String(CHAIN.id)
     });
 
-    if (Number.isFinite(amount) && amount > 0) {
-        params.set('exactField', 'input');
-        params.set('exactAmount', String(amount));
-    }
-
-    window.open(`https://app.uniswap.org/swap?${params}`, '_blank', 'noopener,noreferrer');
+    window.open(`https://aerodrome.finance/swap?${params}`, '_blank', 'noopener,noreferrer');
 }
 
 /** Debounces estimate recalculation while typing. */

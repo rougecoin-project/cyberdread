@@ -7,7 +7,7 @@
  * injected provider directly, which is ~400KB less to download.
  */
 import { playSound, SOUNDS } from '../sound.js';
-import { redirectToUniswap } from './swap.js';
+import { redirectToAerodrome } from './swap.js';
 import { TOKENS, CHAIN } from '../../data/site-config.js';
 
 let provider = null;
@@ -180,7 +180,7 @@ function updateWalletUI() {
         addressElement.textContent = `${userAccount.slice(0, 6)}...${userAccount.slice(-4)}`;
         addressElement.classList.add('wallet-connected');
         connectButton.textContent = 'Connected';
-        swapButton.textContent = 'Swap on Uniswap';
+        swapButton.textContent = 'Swap on Aerodrome';
         swapButton.disabled = false;
         if (balances) balances.style.display = 'flex';
         getTokenBalance();
@@ -274,10 +274,10 @@ function showWalletError(message) {
 }
 
 /**
- * Hands the swap off to Uniswap with the entered amounts pre-filled.
+ * Hands the swap off to Aerodrome with the pair selected.
  *
  * This site does not execute swaps itself: routing, slippage and approvals
- * are Uniswap's job, and pretending otherwise with a fake progress spinner
+ * are Aerodrome's job, and pretending otherwise with a fake progress spinner
  * (what the old code did) is misleading.
  */
 export async function performSwap() {
@@ -287,7 +287,7 @@ export async function performSwap() {
     }
 
     playSound(SOUNDS.CLICK);
-    redirectToUniswap();
+    redirectToAerodrome();
 }
 
 /** Wires up inputs that should refresh balances/estimates. */

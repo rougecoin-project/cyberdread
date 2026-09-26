@@ -27,12 +27,13 @@ npm run dev          # netlify dev, serves the site + functions on :8888
 
 **Everything that goes stale lives in [`js/data/site-config.js`](js/data/site-config.js).**
 Edit that one file and the whole desktop follows — the explorer, the terminal,
-the music player and the token panel all read from it.
+the music player and the RougeChain panel all read from it.
 
 | What | Where |
 | --- | --- |
 | Bio, handle, tagline, OS version | `SITE` |
 | Social / external links | `LINKS` |
+| RougeChain copy, ecosystem apps, community links, buy link | `ROUGECHAIN` |
 | Project tiles (`status`: `live`, `wip`, `archived`) | `PROJECTS` |
 | Music player tracks | `PLAYLIST` |
 | Token contract addresses | `TOKENS` |
@@ -59,13 +60,14 @@ js/
       terminal.js             term.exe — the dsh shell
       settings.js             themes and display/audio preferences
       music-player.js         playback + spectrum visualizer
-      rouge-coin.js           token panel
+      rouge-coin.js           RougeChain panel: live network, ecosystem, XRGE
       chat.js                 message board client
       tooltips.js             first-run tour
     web3/
+      rougechain.js           RougeChain node API (height, validators, fees)
       market.js               DEXScreener client
       wallet.js               EIP-1193 wallet (no dependencies)
-      swap.js                 estimates + Uniswap hand-off
+      swap.js                 estimates + Aerodrome hand-off
 netlify/functions/            chat backend + Dead Circuit claim/download
 netlify/lib/                  shared code for the functions
 dead-circuit/                 Dead Circuit zine: store, reader, gate, PDF
@@ -134,7 +136,7 @@ Crypto is valued at today's price with 10% tolerance, must be newer than
 
 3. **Stripe Payment Link** → Edit → *After payment* → *Don't show
    confirmation page* → redirect to
-   `https://cyberdread.xyz/dead-circuit/thanks/?session_id={CHECKOUT_SESSION_ID}`.
+   `https://cyberdreadx.dev/dead-circuit/thanks/?session_id={CHECKOUT_SESSION_ID}`.
 
 ## term.exe
 
@@ -145,7 +147,8 @@ everything; notable commands:
 | --- | --- |
 | `about`, `whoami` | bio and handle |
 | `projects`, `links` | the same data the explorer shows |
-| `xrge` | live RougeCoin market data |
+| `chain` | RougeChain live: height, validators, peers, fees burned, apps |
+| `xrge` | live XRGE market data on Base |
 | `neofetch` | system summary |
 | `theme <name>` | `ice`, `acid`, `magenta`, `amber` |
 | `matrix` | digital rain |
@@ -154,8 +157,13 @@ Tab completes, Up/Down walks history, Ctrl+L clears.
 
 ## Notes on the Web3 parts
 
+- **RougeChain is the centre.** The panel reads live network stats from the
+  public node API (`api.rougechain.io/api/stats` and `/validators`, CORS
+  open). If the node does not answer, the panel says so and points to the
+  explorer rather than showing stale or invented numbers.
 - The site **does not execute swaps**. It shows an indicative estimate and
-  hands off to Uniswap, which quotes and routes the real trade.
+  hands off to Aerodrome (where the XRGE/USDC pool lives) with the pair
+  selected. Aerodrome's URL takes no amount, so the visitor enters it there.
 - Market data comes from DEXScreener, falling back to GeckoTerminal (see
   below). When neither has data the UI says so — it never falls back to
   generated numbers.
@@ -171,15 +179,9 @@ XRGE lives on **Base** (chain 8453), not Ethereum mainnet:
 | Contract | `0x147120faEC9277ec02d957584CFCD92B56A24317` |
 | Pool | XRGE/USDC on Aerodrome, `0x059e10d2…c447d` |
 
-DEXScreener is the primary price source, but it does **not** currently index
-this pool — its liquidity and volume sit below DEXScreener's threshold, and
-its token, pair and search endpoints all return empty for this address. So
-`market.js` falls back to [GeckoTerminal](https://www.geckoterminal.com/base/pools/0x059e10d26c64a63d04e1814f46305210eddc447d),
-which addresses pools directly and does carry it. The panel labels which
-source answered.
-
-If the pool later gets indexed, DEXScreener wins automatically and the
-fallback goes quiet — no code change needed.
+DEXScreener is the primary price source; whenever it has no data for the
+pool, `market.js` falls back to [GeckoTerminal](https://www.geckoterminal.com/base/pools/0x059e10d26c64a63d04e1814f46305210eddc447d),
+which addresses pools directly. The panel labels which source answered.
 
 ## Deployment
 
