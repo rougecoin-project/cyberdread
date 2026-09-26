@@ -15,6 +15,12 @@ export default {
         "gate": "dc@gate"
     },
     "languageLabel": "Language",
+    "disclaimer": {
+        "kicker": "Read this first",
+        "title": "Unofficial. Untested. Speculative.",
+        "body": "Dead Circuit is an unofficial, independent field guide to a robot apocalypse that has not happened. We have not tested anything in it. It gathers general knowledge that is already public, and the dispatches are fiction. It is not official emergency guidance, and it is not medical, legal or safety advice. In a real emergency, follow your local authorities and get proper training.",
+        "short": "Unofficial and untested. Built from publicly available knowledge, for entertainment and ideas. Not official, medical, legal or safety advice."
+    },
     "store": {
         "deadline": "11 Nov 2026, midnight Eastern",
         "windowClosed": "Window closed",

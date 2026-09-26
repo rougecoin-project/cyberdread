@@ -143,6 +143,16 @@ Crypto is valued at today's price with 10% tolerance, must be newer than
    confirmation page* → redirect to
    `https://cyberdreadx.dev/dead-circuit/thanks/?session_id={CHECKOUT_SESSION_ID}`.
 
+### Unofficial, untested
+
+Every page says plainly that Dead Circuit is an unofficial, untested field
+guide to a fictional robot apocalypse, built from knowledge that is already
+public, and not official, medical, legal or safety advice. The text is the
+`disclaimer` block in each language file; `dead-circuit/js/notice.js` renders
+it as a box on the store, the letter page (so it is in every PDF) and the
+mobile zine, and as one line on the cover, the locked page and the store's
+last section.
+
 ### Free preview vs the paid issue
 
 The issue is 39 pages. Only the first six (cover, letter, contents, the

@@ -9,6 +9,7 @@
 import { html, raw } from './dom.js';
 import { rich } from './i18n.js';
 import { PAGE_ORDER, folioOf } from './issue.js';
+import { disclaimerBox, disclaimerLine } from './notice.js';
 
 const ART = '/dead-circuit/art';
 
@@ -121,6 +122,7 @@ export function sheets(L, { ids = PAGE_ORDER, linked = false } = {}) {
       </div>
       <div class="cover-stamp"><span>${S.cover.stamp}</span><strong>01</strong></div>
       <p class="cover-bar">${S.cover.bar}</p>
+      ${disclaimerLine(L, 'cover-fine')}
     </article>`,
 
         letter: () => html`
@@ -137,6 +139,7 @@ export function sheets(L, { ids = PAGE_ORDER, linked = false } = {}) {
         <h2>${S.letter.title}</h2>
         ${S.letter.body.map((p) => html`<p>${p}</p>`)}
         <p class="letter-sign">${S.letter.sign}</p>
+        ${disclaimerBox(L, 'letter-disclaimer')}
       </div>
       ${folio('letter')}
     </article>`,

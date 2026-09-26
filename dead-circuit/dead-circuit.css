@@ -2943,3 +2943,93 @@ s { text-decoration: line-through; }
 .source-list { padding-top: 22px; font-size: 15px; line-height: 1.35; }
 .source-list strong { font-size: 15px; }
 .source-list li { margin-bottom: 16px; }
+
+/* ------------------------------------------------ unofficial / untested */
+.disclaimer {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  max-width: 38rem;
+  border: 2px solid var(--color-hazard);
+  border-inline-start-width: 6px;
+  background: rgba(255, 61, 31, 0.08);
+  font-family: var(--font-display);
+}
+
+.disclaimer-kicker {
+  margin: 0 0 2px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-hazard);
+}
+
+.disclaimer strong {
+  display: block;
+  font-size: 17px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+}
+
+.disclaimer p:last-child {
+  margin: 6px 0 0;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.disclaimer-line {
+  margin: 12px 0 0;
+  font-family: var(--font-display);
+  font-size: 12px;
+  line-height: 1.35;
+  opacity: 0.75;
+}
+
+/* The letter page: same box, sized to the spread. */
+.letter-body .letter-disclaimer {
+  margin-top: 18px;
+  padding: 10px 12px;
+}
+
+.letter-body .letter-disclaimer p:last-child {
+  max-width: none;
+  margin-top: 4px;
+  font-size: 12.5px;
+  line-height: 1.35;
+}
+
+.letter-body .letter-disclaimer strong {
+  font-size: 15px;
+}
+
+/* One quiet line along the foot of the cover, under the volt bar. */
+.cover-fine {
+  position: absolute;
+  z-index: 1;
+  inset-inline: 40px;
+  bottom: 10px;
+  margin: 0;
+  font-size: 10.5px;
+  color: var(--color-paper);
+  opacity: 0.8;
+}
+
+.zine-disclaimer {
+  margin: 16px;
+}
+
+.store-end-fine {
+  max-width: 38rem;
+  margin-inline: auto;
+}
+
+.store-end .store-end-fine {
+  margin-top: 16px;
+  font-size: 13px;
+}
+
+.letter-body .letter-disclaimer .disclaimer-kicker {
+  font-size: 11px;
+  line-height: 1.3;
+}
