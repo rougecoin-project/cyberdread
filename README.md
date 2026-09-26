@@ -111,8 +111,8 @@ noise. `dc-download` fetches the buyer's edition, decrypts it with the
 `DC_PDF_KEY` environment variable, and streams it, only for a 15-minute
 signed link that `dc-claim` issues after it verifies a payment.
 
-English is the original PDF. The other seven are rendered from the same
-spreads by [`tools/build-dead-circuit-pdfs.mjs`](tools/build-dead-circuit-pdfs.mjs)
+All eight editions are rendered from the same spreads by
+[`tools/build-dead-circuit-pdfs.mjs`](tools/build-dead-circuit-pdfs.mjs)
 through `/dead-circuit/print/?lang=xx`, with their fonts embedded.
 
 | Paid with | Verified by |
@@ -143,23 +143,37 @@ Crypto is valued at today's price with 10% tolerance, must be newer than
    confirmation page* → redirect to
    `https://cyberdreadx.dev/dead-circuit/thanks/?session_id={CHECKOUT_SESSION_ID}`.
 
-**Rebuilding the translated editions** (after editing copy in
-`dead-circuit/js/i18n/`), with the same key that is set in Netlify:
+### Free preview vs the paid issue
+
+The issue is 39 pages. Only the first six (cover, letter, contents, the
+first dispatch, *Ten minutes*, *Seventy-two hours*) are on the site; the
+reader ends on a locked page listing the rest, and the mobile zine ends the
+same way. `dead-circuit/js/issue.js` holds the page order and the `PREVIEW`
+list.
+
+The public language files (`dead-circuit/js/i18n/<lang>.js`) hold only the
+site UI and the preview. The paid chapters are **not on the site at all**:
+they are committed only as ciphertext, `content/issue-01/<lang>.json.enc`,
+sealed with the same `DC_PDF_KEY`. The plain `.json` beside them is
+git-ignored.
+
+**Editing the paid chapters, then rebuilding the PDFs:**
 
 ```bash
-npx serve . -l 8765 &                         # any static server on the repo root
-DC_PDF_KEY=<key> node tools/build-dead-circuit-pdfs.mjs        # es fr it pt ja zh ar
+DC_PDF_KEY=<key> node tools/issue-content.mjs open     # .enc -> editable .json
+# edit content/issue-01/en.json (and the same keys in the other languages)
+node dead-circuit/js/i18n/check.mjs                    # every language mirrors English
+DC_PDF_KEY=<key> node tools/issue-content.mjs seal     # .json -> .enc
+npx serve . -l 8765 &                                  # any static server on the repo root
+DC_PDF_KEY=<key> node tools/build-dead-circuit-pdfs.mjs            # all 8 editions
 ```
 
-It needs Playwright, plus Japanese, Chinese and Arabic fonts on the machine
-(Noto Sans/Serif JP and SC, Noto Kufi/Naskh Arabic). Plain PDFs land in
-`dist-pdf/`, which is git-ignored; commit only `dead-circuit/sealed/`.
-
-**Replacing the English original**: seal it with the same key.
-
-```bash
-DC_PDF_KEY=<key> node -e "const c=require('crypto'),f=require('fs'),k=Buffer.from(process.env.DC_PDF_KEY,'hex'),iv=c.randomBytes(12),x=c.createCipheriv('aes-256-gcm',k,iv),e=Buffer.concat([x.update(f.readFileSync(process.argv[1])),x.final()]);f.writeFileSync('dead-circuit/sealed/issue-01.en.pdf.enc',Buffer.concat([iv,e,x.getAuthTag()]))" ./Dead-Circuit-Issue-01.pdf
-```
+The build needs Playwright, plus Japanese, Chinese and Arabic fonts on the
+machine (Noto Sans/Serif JP and SC, Noto Kufi/Naskh Arabic). It serves
+print-sized copies of the photos to keep each PDF near 3 MB (Japanese and
+Chinese are larger because of their fonts). Plain PDFs land in `dist-pdf/`,
+which is git-ignored; commit only `dead-circuit/sealed/` and
+`content/issue-01/*.enc`.
 
 ## term.exe
 
