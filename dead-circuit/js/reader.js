@@ -4,14 +4,15 @@
  */
 import { pages } from './copy.js';
 import { html, ICONS, pad2 } from './dom.js';
-import { PDF_NAME, PDF_URL, PRICE_LABEL } from './offer.js';
+import { PRICE_LABEL } from './offer.js';
 import { sheets } from './sheets.js';
 import { zineBody } from './zine.js';
 
 const PAGES = sheets({ linked: true });
 const COUNT = PAGES.length;
 
-const pdfLink = (label) => html`<a class="pdf-link" href="${PDF_URL}" download="${PDF_NAME}">${ICONS.download}${label}</a>`;
+// The PDF is only handed out after payment, so this goes to Take the file.
+const pdfLink = (label) => html`<a class="pdf-link" href="/dead-circuit/thanks/">${ICONS.download}${label}</a>`;
 
 const root = document.getElementById('app');
 root.innerHTML = String(html`
@@ -23,7 +24,7 @@ root.innerHTML = String(html`
         <a href="/dead-circuit/" class="buy-mini">Buy · ${PRICE_LABEL}</a>
         <button type="button" data-ref="prev" aria-label="Previous page">${ICONS.left}</button>
         <button type="button" data-ref="next" aria-label="Next page">${ICONS.right}</button>
-        ${pdfLink('Download PDF')}
+        ${pdfLink('Get the PDF')}
       </div>
     </header>
     <div class="stage" data-ref="stage">
@@ -38,7 +39,7 @@ root.innerHTML = String(html`
       <p>Dead Circuit <span>01</span></p>
       <div class="zine-actions">
         <a href="/dead-circuit/" class="buy-mini">${PRICE_LABEL}</a>
-        ${pdfLink('Save')}
+        ${pdfLink('PDF')}
       </div>
     </header>
   </article>`);

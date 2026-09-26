@@ -66,7 +66,8 @@ js/
       market.js               DEXScreener client
       wallet.js               EIP-1193 wallet (no dependencies)
       swap.js                 estimates + Uniswap hand-off
-netlify/functions/            chat backend (Netlify Blobs)
+netlify/functions/            chat backend + Dead Circuit claim/download
+netlify/lib/                  shared code for the functions
 dead-circuit/                 Dead Circuit zine: store, reader, gate, PDF
 ```
 
@@ -75,11 +76,49 @@ dead-circuit/                 Dead Circuit zine: store, reader, gate, PDF
 `/dead-circuit/` is the storefront for the Dead Circuit zine, issue 01, and
 it's also plain HTML and ES modules. Its pages are `/dead-circuit/` (the offer and
 countdown), `read/` (a page-flipping reader on desktop and a scrolling zine
-on mobile), `thanks/` (the PDF download) and `gate/` (the dc@gate puzzle).
+on mobile), `thanks/` (Take the file) and `gate/` (the dc@gate puzzle).
 
 Price, deadline, the Stripe Payment Link and the crypto wallets live in
-[`dead-circuit/js/offer.js`](dead-circuit/js/offer.js). The magazine copy
-lives in `dead-circuit/js/copy.js`.
+[`dead-circuit/js/offer.js`](dead-circuit/js/offer.js), which the claim
+function reads too. The magazine copy lives in `dead-circuit/js/copy.js`.
+Fonts are self-hosted in `dead-circuit/fonts/` (SIL OFL).
+
+### How buyers get the PDF
+
+The PDF is **not in this repo** (the repo is public). It lives in Netlify
+Blobs and is only handed out by `dc-download` for a 15-minute signed link that
+`dc-claim` issues after it verifies a payment:
+
+| Paid with | Verified by |
+| --- | --- |
+| Card | Stripe redirects to `thanks/?session_id=…`; the function asks Stripe whether that checkout is paid. |
+| ETH / XRGE on Base | Base RPC: the transfer must land in the wallet, succeed, and be worth ~$24. |
+| BTC | mempool.space: an output to the wallet, one confirmation. |
+| SOL | Solana RPC: the wallet's balance went up by ~$24. |
+| dc@gate | The puzzle answer, checked by hash on the server. |
+
+Crypto is valued at today's price with 10% tolerance, must be newer than
+`SALE_START`, and every payment is good for 5 downloads.
+
+### One-time setup
+
+1. **Upload the PDF** to the site's blob store (Netlify CLI, logged in and
+   linked to the site):
+   ```bash
+   netlify blobs:set dead-circuit issue-01.pdf --input ./Dead-Circuit-Issue-01.pdf
+   ```
+2. **Environment variables** (Site configuration → Environment variables):
+
+   | Name | Value |
+   | --- | --- |
+   | `DC_DOWNLOAD_SECRET` | Any random string of 32+ characters, e.g. `openssl rand -hex 32`. |
+   | `STRIPE_SECRET_KEY` | A Stripe restricted key with **Checkout Sessions: Read**. |
+   | `STRIPE_PAYMENT_LINK_ID` | Optional. The link's `plink_…` id, so only this link's checkouts count. |
+   | `BASE_RPC_URL`, `SOLANA_RPC_URL`, `BTC_API_URL` | Optional. Swap in a paid RPC if the public ones rate-limit. |
+
+3. **Stripe Payment Link** → Edit → *After payment* → *Don't show
+   confirmation page* → redirect to
+   `https://cyberdread.xyz/dead-circuit/thanks/?session_id={CHECKOUT_SESSION_ID}`.
 
 ## term.exe
 

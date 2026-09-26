@@ -47,7 +47,7 @@ function render() {
           <button type="button" class="buy buy-volt" data-buy="crypto" ${disabled}>Pay with crypto</button>
         </div>
         <p class="store-deck">
-          ${pages.length} pages. Card opens Stripe at ${PRICE_LABEL}. After it clears, take the file.
+          ${pages.length} pages. Card opens Stripe at ${PRICE_LABEL} and brings you back to the file.
           Crypto is the same file once ${PRICE_LABEL} hits one wallet.
         </p>
         <p class="store-note" data-ref="note" hidden></p>
@@ -78,8 +78,8 @@ function render() {
     <section class="store-end">
       <h2>Half off now. ${FULL_PRICE_LABEL} when the clock hits zero.</h2>
       <p>
-        Pay by card and Stripe charges ${PRICE_LABEL}. Then use Take the file. Pay with crypto by sending
-        ${PRICE_LABEL} to one wallet, then take the same file. After ${DEADLINE_LABEL} the price is
+        Pay by card and Stripe charges ${PRICE_LABEL}, then sends you straight to the file. Pay with crypto by
+        sending ${PRICE_LABEL} to one wallet, then paste the transaction id on Take the file. After ${DEADLINE_LABEL} the price is
         ${FULL_PRICE_LABEL}.
       </p>
       <button type="button" class="buy buy-volt" data-buy="card" ${disabled}>${buyLabel(`Pay ${PRICE_LABEL}, half of ${FULL_PRICE_LABEL}`)}</button>
@@ -130,7 +130,7 @@ root.addEventListener('click', (event) => {
             window.location.assign(STRIPE_PAYMENT_LINK);
             return;
         }
-        note(`Send ${PRICE_LABEL} on one chain. That is half of ${FULL_PRICE_LABEL}. Keep the transaction id, then take the file.`);
+        note(`Send ${PRICE_LABEL} on one chain. That is half of ${FULL_PRICE_LABEL}. Send it in one transfer from a regular wallet, then paste the transaction id on Take the file.`);
         ref('wallets').hidden = false;
         return;
     }
