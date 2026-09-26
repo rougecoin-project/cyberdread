@@ -17,13 +17,16 @@ function secret() {
 
 const sign = (payload) => createHmac('sha256', secret()).update(payload).digest('base64url');
 
-/** @param {string} ref what was paid, e.g. `stripe:cs_...` or `btc:<txid>` */
-export function issueToken(ref, now = Date.now()) {
-    const payload = Buffer.from(JSON.stringify({ ref, exp: now + TOKEN_TTL_MS })).toString('base64url');
+/**
+ * @param {string} ref what was paid, e.g. `stripe:cs_...` or `btc:<txid>`
+ * @param {string} [lang] which edition of the PDF the link downloads
+ */
+export function issueToken(ref, lang = 'en', now = Date.now()) {
+    const payload = Buffer.from(JSON.stringify({ ref, lang, exp: now + TOKEN_TTL_MS })).toString('base64url');
     return `${payload}.${sign(payload)}`;
 }
 
-/** @returns {{ref: string, exp: number} | null} */
+/** @returns {{ref: string, lang?: string, exp: number} | null} */
 export function readToken(token, now = Date.now()) {
     if (typeof token !== 'string' || token.length > 2048) return null;
     const [payload, signature] = token.split('.');

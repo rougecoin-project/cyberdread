@@ -8,18 +8,14 @@
 [functions]
   node_bundler = "esbuild"
 
-# The sealed (encrypted) Dead Circuit PDF ships with the download function;
-# DC_PDF_KEY decrypts it at request time. See netlify/lib/dead-circuit/sealed-pdf.mjs.
-[functions."dc-download"]
-  included_files = ["netlify/private/issue-01.pdf.enc"]
-
-# The sealed file is useless without the key, but it has no reason to be
-# served as a static file either.
-[[redirects]]
-  from = "/netlify/private/*"
-  to = "/404"
-  status = 404
-  force = true
+# Sealed (encrypted) Dead Circuit PDFs, one per language. Public on purpose:
+# they are noise without DC_PDF_KEY, which only dc-download holds.
+# See netlify/lib/dead-circuit/sealed-pdf.mjs.
+[[headers]]
+  for = "/dead-circuit/sealed/*"
+  [headers.values]
+    X-Robots-Tag = "noindex"
+    Cache-Control = "public, max-age=3600"
 
 [[headers]]
   for = "/*"

@@ -39,7 +39,7 @@ async function redeem(token) {
         const response = await fetch(CLAIM_URL, {
             method: 'POST',
             headers: { 'content-type': 'application/json' },
-            body: JSON.stringify({ method: 'gate', token })
+            body: JSON.stringify({ method: 'gate', token, lang: L.code })
         });
         const result = await response.json();
         return result.ok ? result.url : null;

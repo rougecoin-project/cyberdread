@@ -73,7 +73,8 @@ async function claim(body) {
         const response = await fetch(CLAIM_URL, {
             method: 'POST',
             headers: { 'content-type': 'application/json' },
-            body: JSON.stringify(body)
+            // The PDF comes in the language this page is showing.
+            body: JSON.stringify({ ...body, lang: L.code })
         });
         return await response.json();
     } catch {
