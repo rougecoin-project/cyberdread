@@ -4,11 +4,12 @@
  */
 import { html, pad2 } from './dom.js';
 import { bindPicker, loadLanguage, picker, t } from './i18n.js';
+import { PAGE_COUNT } from './issue.js';
 import { DEADLINE, FULL_PRICE_LABEL, PRICE_LABEL, STRIPE_PAYMENT_LINK, WALLETS, splitLeft } from './offer.js';
 
 const L = await loadLanguage();
 const S = L.store;
-const vars = { price: PRICE_LABEL, full: FULL_PRICE_LABEL, deadline: S.deadline, pages: L.pages.length };
+const vars = { price: PRICE_LABEL, full: FULL_PRICE_LABEL, deadline: S.deadline, pages: PAGE_COUNT };
 const tr = (text, extra) => t(text, { ...vars, ...extra });
 
 document.title = tr(L.titles.store);
@@ -20,9 +21,9 @@ document.querySelector('meta[name="description"]')?.setAttribute('content', tr(L
  */
 const PREVIEWS = [
     { art: 'avenue', caption: (L) => L.sheet.minutes.caption },
-    { art: 'shelter', caption: (L) => L.sheet.shelter.caption },
-    { art: 'night', caption: (L) => L.sheet.move.title },
-    { art: 'machine', caption: (L) => L.sheet.bots.title }
+    { art: 'shelter', caption: (L) => L.teaser.shelter },
+    { art: 'night', caption: (L) => L.teaser.move },
+    { art: 'machine', caption: (L) => L.teaser.bots }
 ];
 
 const left = () => Math.max(0, DEADLINE - Date.now());

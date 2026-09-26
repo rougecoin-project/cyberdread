@@ -1,20 +1,42 @@
 /**
- * /dead-circuit/read/ -- the page-flipping desktop viewer plus the scrolling
- * mobile zine. CSS decides which one shows (.only-desk / .only-mobile).
+ * /dead-circuit/read/ -- the free preview: the page-flipping desktop viewer
+ * plus the scrolling mobile zine (CSS decides which shows). Only the PREVIEW
+ * spreads exist on the site; the rest of the issue is only in the paid PDF,
+ * so the viewer ends on a locked page listing what the full issue holds.
  */
 import { html, ICONS, pad2 } from './dom.js';
 import { bindPicker, loadLanguage, picker, t } from './i18n.js';
+import { PAGE_COUNT, PREVIEW } from './issue.js';
 import { PRICE_LABEL } from './offer.js';
 import { sheets } from './sheets.js';
-import { zineBody } from './zine.js';
+import { lockedList, zineBody } from './zine.js';
 
 const L = await loadLanguage();
 const R = L.reader;
-const pages = L.pages;
+const K = R.locked;
 document.title = L.titles.read;
 
-const PAGES = sheets(L, { linked: true });
+const locked = PAGE_COUNT - PREVIEW.length;
+const lockedPage = String(html`
+    <article class="sheet tone-ink spread-locked">
+      <div class="locked-copy">
+        <p class="kicker kicker-volt">${K.kicker}</p>
+        <h2>${t(K.title, { count: locked })}</h2>
+        <p class="dek">${K.body}</p>
+        <a class="buy" href="/dead-circuit/">${t(K.cta, { price: PRICE_LABEL })}</a>
+      </div>
+      <div class="locked-list">
+        <h3>${K.listTitle}</h3>
+        ${lockedList(L)}
+      </div>
+    </article>`);
+
+const IDS = [...PREVIEW, 'locked'];
+const PAGES = [...sheets(L, { ids: PREVIEW, linked: true }), lockedPage];
 const COUNT = PAGES.length;
+const labelOf = (id) => (id === 'locked' ? K.badge : L.pages[id]);
+/** A contents link to a locked chapter lands on the locked page. */
+const indexOf = (id) => (IDS.includes(id) ? IDS.indexOf(id) : COUNT - 1);
 
 // The PDF is only handed out after payment, so this goes to Take the file.
 const pdfLink = (label) => html`<a class="pdf-link" href="/dead-circuit/thanks/">${ICONS.download}<span class="pdf-label">${label}</span></a>`;
@@ -37,7 +59,7 @@ root.innerHTML = String(html`
       <div class="fit-box" data-ref="fit"><div class="fit-page" data-ref="page"></div></div>
     </div>
     <nav class="dots" aria-label="${R.pagesNav}">
-      ${pages.map((label, i) => html`<button type="button" data-go="${i}" aria-label="${label}"></button>`)}
+      ${IDS.map((id) => html`<button type="button" data-go="${id}" aria-label="${labelOf(id)}"></button>`)}
     </nav>
   </div>
   <article class="only-mobile zine">
@@ -68,7 +90,7 @@ let page = 0;
 function go(target) {
     page = Math.max(0, Math.min(COUNT - 1, target));
     holder.innerHTML = PAGES[page];
-    label.textContent = `${pad2(page + 1)} — ${pages[page]}`;
+    label.textContent = IDS[page] === 'locked' ? labelOf('locked') : `${pad2(page + 1)} — ${labelOf(IDS[page])}`;
     prev.disabled = page === 0;
     next.disabled = page === COUNT - 1;
     dots.forEach((dot, i) => {
@@ -84,7 +106,7 @@ next.addEventListener('click', () => go(page + 1));
 // Dots and the contents page's entries both carry data-go.
 root.querySelector('.studio').addEventListener('click', (event) => {
     const target = event.target.closest('[data-go]');
-    if (target) go(Number(target.dataset.go));
+    if (target) go(indexOf(target.dataset.go));
 });
 
 window.addEventListener('keydown', (event) => {

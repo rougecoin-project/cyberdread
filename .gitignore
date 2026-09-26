@@ -5,3 +5,6 @@
 *.pdf
 node_modules/
 dist-pdf/
+
+# Paid chapters in plain text: local only, never commit (the repo is public)
+content/issue-01/*.json
