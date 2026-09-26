@@ -10,6 +10,9 @@ img, video { max-width: 100%; height: auto; }
 button, input, select, textarea { font: inherit; color: inherit; background: transparent; border-radius: 0; }
 button { cursor: default; }
 s { text-decoration: line-through; }
+/* `hidden` must win over component display rules (.wallet-list is a grid),
+   or the crypto wallets show before anyone asks to pay with crypto. */
+[hidden] { display: none !important; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border-width: 0; }
 
 
@@ -2114,4 +2117,94 @@ s { text-decoration: line-through; }
   .zine-bar { padding-inline: 10px; gap: 8px; }
   .zine-bar .lang-picker select { max-width: 72px; }
   .zine-actions { gap: 6px; }
+}
+
+/* Storefront preview of the issue: the editor's letter and four spreads,
+   so visitors meet the guide before any payment details. */
+.store-preview {
+  padding: 28px 20px 36px;
+  border-top: 1px solid rgb(246 240 230 / 0.12);
+}
+
+.store-preview h2 {
+  margin: 8px 0 12px;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: min(36px, 9.6vw);
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  hyphens: auto;
+  overflow-wrap: break-word;
+}
+
+.store-preview-lede {
+  max-width: 62ch;
+  margin: 0 0 12px;
+  font-size: 18px;
+  line-height: 1.5;
+}
+
+.preview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 20px 0;
+}
+
+.preview-card {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  aspect-ratio: 4 / 5;
+  background: #221f18;
+}
+
+.preview-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.preview-card span {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  padding: 28px 10px 10px;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  line-height: 1.25;
+  text-transform: uppercase;
+  color: var(--color-paper);
+  background: linear-gradient(transparent, rgb(22 20 15 / 0.92));
+}
+
+.preview-card:hover img,
+.preview-card:focus-visible img {
+  transform: scale(1.04);
+}
+
+.store-preview-cta {
+  display: inline-flex;
+}
+
+@media (min-width: 960px) {
+  .store-preview {
+    padding: 56px max(20px, calc((100% - 1100px) / 2));
+  }
+
+  .preview-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .store-preview h2 {
+    font-size: 56px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .preview-card img { transition: none; }
 }
