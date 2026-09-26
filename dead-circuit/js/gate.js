@@ -1,11 +1,11 @@
 /**
- * /dead-circuit/gate/ -- the operators' puzzle terminal. The clearance token is
- * checked by SHA-256; only its hash lives here.
+ * /dead-circuit/gate/ -- the operators' puzzle terminal. `submit` sends the
+ * token to the claim function, which checks it and hands back a download link.
+ * A cleared token is remembered so the prize survives a reload.
  */
 import { html } from './dom.js';
-import { PDF_NAME, PDF_URL } from './offer.js';
 
-const CLEARANCE_SHA256 = '79bb562c4e9a7d6eb7a7ddbac1a37e1317c69cba5b1660f60696bd5e2e9d3216';
+const CLAIM_URL = '/.netlify/functions/dc-claim';
 const MORSE = '.--. .- -.. / ...- --- .-.. -';
 const LOCK_HEX =
     '222a34203420233f5c7c7d626f7e7f6765777c61647d786067777f64637a7964677c7e60667f7b5e607a796761457e6d657f7466637a7d64607d746564767560667e7467617e7863647e7f5e';
@@ -38,9 +38,19 @@ function xxd(hex) {
     return lines.join('\n');
 }
 
-async function sha256(value) {
-    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
-    return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
+/** @returns {Promise<string | null>} a download url, or null if rejected */
+async function redeem(token) {
+    try {
+        const response = await fetch(CLAIM_URL, {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ method: 'gate', token })
+        });
+        const result = await response.json();
+        return result.ok ? result.url : null;
+    } catch {
+        return null;
+    }
 }
 
 function answer(text) {
@@ -67,8 +77,8 @@ function answer(text) {
     }
 }
 
-function cleared() {
-    try { return localStorage.getItem(STORAGE_KEY) === '1'; } catch { return false; }
+function remembered() {
+    try { return localStorage.getItem(STORAGE_KEY); } catch { return null; }
 }
 
 const root = document.getElementById('app');
@@ -106,10 +116,10 @@ function boot() {
     BOOT.forEach((line) => print(line.kind, line.text));
 }
 
-function grant() {
+function grant(url) {
     form.remove();
     scroller.insertAdjacentHTML('beforeend', String(html`
-      <a class="buy buy-volt gate-prize" href="${PDF_URL}" download="${PDF_NAME}">Take the issue</a>`));
+      <a class="buy buy-volt gate-prize" href="${url}">Take the issue</a>`));
     scroller.scrollTo({ top: scroller.scrollHeight });
 }
 
@@ -130,12 +140,13 @@ form.addEventListener('submit', async (event) => {
 
     if (cmd.toLowerCase() === 'submit' && rest.length) {
         busy = true;
-        const digest = await sha256(rest.join(' ').trim());
+        const token = rest.join(' ').trim();
+        const url = await redeem(token);
         busy = false;
-        if (digest === CLEARANCE_SHA256) {
-            try { localStorage.setItem(STORAGE_KEY, '1'); } catch { /* private mode */ }
+        if (url) {
+            try { localStorage.setItem(STORAGE_KEY, token); } catch { /* private mode */ }
             print('out', 'clearance granted. the manual is yours.');
-            grant();
+            grant(url);
         } else {
             print('out', 'rejected.');
         }
@@ -145,4 +156,5 @@ form.addEventListener('submit', async (event) => {
 });
 
 boot();
-if (cleared()) grant();
+const saved = remembered();
+if (saved) redeem(saved).then((url) => url && grant(url));
