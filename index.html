@@ -27,7 +27,7 @@
     <meta name="twitter:description" content="A cyberpunk desktop in your browser. Music, projects, a working terminal, and RougeChain, the post-quantum Layer 1, live.">
     <meta name="twitter:image" content="https://cyberdreadx.dev/assets/img/background.png">
 
-    <link rel="preload" as="image" href="assets/img/background.png">
+    <link rel="preload" as="image" href="assets/img/wallpaper-neon.jpg">
     <link rel="preload" href="assets/fonts/chakra-petch-600-latin.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="css/os.css">
@@ -332,7 +332,11 @@
                     <button type="button" class="back-button" onclick="hideContent('pictures')">← Back</button>
                     <h2>Images</h2>
                     <div class="image-grid">
-                        <button type="button" class="project-item" onclick="openImageViewer('assets/img/background.png', 'Desktop background')">
+                        <button type="button" class="project-item" onclick="openImageViewer('assets/img/wallpaper-neon.jpg', 'Neon wallpaper')">
+                            <img src="assets/img/wallpaper-neon-thumb.jpg" alt="Neon wallpaper" class="project-thumb" loading="lazy" decoding="async">
+                            <span class="project-label">wallpaper.jpg</span>
+                        </button>
+                        <button type="button" class="project-item" onclick="openImageViewer('assets/img/background.png', 'Previous desktop background')">
                             <img src="assets/img/background.png" alt="Desktop background" class="project-thumb" loading="lazy" decoding="async">
                             <span class="project-label">background.png</span>
                         </button>

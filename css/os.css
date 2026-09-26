@@ -66,9 +66,10 @@ select {
    artwork, without dimming the middle of the picture. */
 .desktop {
     background:
-        radial-gradient(130% 95% at 55% 38%, transparent 38%, rgba(2, 4, 8, 0.8) 100%),
-        linear-gradient(180deg, rgba(2, 4, 8, 0.3) 0%, rgba(2, 4, 8, 0.45) 55%, rgba(2, 4, 8, 0.85) 100%),
-        url('../assets/img/background.png') center / cover no-repeat fixed;
+        radial-gradient(120% 90% at 50% 40%, transparent 45%, rgba(2, 3, 8, 0.7) 100%),
+        linear-gradient(180deg, rgba(2, 3, 8, 0.1) 0%, rgba(2, 3, 8, 0.2) 55%, rgba(2, 3, 8, 0.8) 100%),
+        url('../assets/img/wallpaper-neon.jpg') center 32% / cover no-repeat fixed;
+    background-color: #05030a;
 }
 
 /* ---------------------------------------------------------- icon grid */
