@@ -103,12 +103,17 @@ reader's browser language is used.
 
 ### How buyers get the PDF
 
-The repo is public, so it holds only an **encrypted** copy of the PDF
-(`netlify/private/issue-01.pdf.enc`, AES-256-GCM). `dc-download` decrypts it
-with the `DC_PDF_KEY` environment variable, and only for a 15-minute signed
-link that `dc-claim` issues after it verifies a payment. A PDF uploaded to
-Netlify Blobs (store `dead-circuit`, key `issue-01.pdf`) takes precedence if
-present.
+The PDF comes in **all eight languages**, and buyers get the edition for the
+language they are reading the site in. The repo is public, so it holds only
+**encrypted** copies (`dead-circuit/sealed/issue-01.<lang>.pdf.enc`,
+AES-256-GCM), served as ordinary static files: without the key they are
+noise. `dc-download` fetches the buyer's edition, decrypts it with the
+`DC_PDF_KEY` environment variable, and streams it, only for a 15-minute
+signed link that `dc-claim` issues after it verifies a payment.
+
+English is the original PDF. The other seven are rendered from the same
+spreads by [`tools/build-dead-circuit-pdfs.mjs`](tools/build-dead-circuit-pdfs.mjs)
+through `/dead-circuit/print/?lang=xx`, with their fonts embedded.
 
 | Paid with | Verified by |
 | --- | --- |
@@ -138,11 +143,22 @@ Crypto is valued at today's price with 10% tolerance, must be newer than
    confirmation page* → redirect to
    `https://cyberdreadx.dev/dead-circuit/thanks/?session_id={CHECKOUT_SESSION_ID}`.
 
-**Replacing the PDF** (a new issue, a corrected file): encrypt it with a new
-key, commit the new `.enc`, and update `DC_PDF_KEY` in Netlify:
+**Rebuilding the translated editions** (after editing copy in
+`dead-circuit/js/i18n/`), with the same key that is set in Netlify:
 
 ```bash
-node -e "const c=require('crypto'),f=require('fs'),k=c.randomBytes(32),iv=c.randomBytes(12),x=c.createCipheriv('aes-256-gcm',k,iv),e=Buffer.concat([x.update(f.readFileSync(process.argv[1])),x.final()]);f.writeFileSync('netlify/private/issue-01.pdf.enc',Buffer.concat([iv,e,x.getAuthTag()]));console.log('DC_PDF_KEY='+k.toString('hex'))" ./Dead-Circuit-Issue-01.pdf
+npx serve . -l 8765 &                         # any static server on the repo root
+DC_PDF_KEY=<key> node tools/build-dead-circuit-pdfs.mjs        # es fr it pt ja zh ar
+```
+
+It needs Playwright, plus Japanese, Chinese and Arabic fonts on the machine
+(Noto Sans/Serif JP and SC, Noto Kufi/Naskh Arabic). Plain PDFs land in
+`dist-pdf/`, which is git-ignored; commit only `dead-circuit/sealed/`.
+
+**Replacing the English original**: seal it with the same key.
+
+```bash
+DC_PDF_KEY=<key> node -e "const c=require('crypto'),f=require('fs'),k=Buffer.from(process.env.DC_PDF_KEY,'hex'),iv=c.randomBytes(12),x=c.createCipheriv('aes-256-gcm',k,iv),e=Buffer.concat([x.update(f.readFileSync(process.argv[1])),x.final()]);f.writeFileSync('dead-circuit/sealed/issue-01.en.pdf.enc',Buffer.concat([iv,e,x.getAuthTag()]))" ./Dead-Circuit-Issue-01.pdf
 ```
 
 ## term.exe

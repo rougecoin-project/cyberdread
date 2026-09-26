@@ -3,3 +3,5 @@
 
 # The Dead Circuit PDF lives in Netlify Blobs, never in this public repo
 *.pdf
+node_modules/
+dist-pdf/
