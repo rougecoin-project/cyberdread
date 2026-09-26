@@ -15,8 +15,9 @@ export const SITE = {
     bio: [
         "I see you made it -- welcome to the liminal surface of dust that falls",
         "from the inner workings of my ICE server, {Dread_OS}.",
-        "I'm a netrunner, and other things: a quantum-safe L1 (RougeChain), an",
-        "encrypted wallet/messenger (Qwalla), a forum that doesn't shadowban",
+        "I'm a netrunner, and other things: a post-quantum L1 (RougeChain,",
+        "mainnet live), its encrypted wallet/messenger (Qwalla, on the App",
+        "Store), a forum that doesn't shadowban",
         "(AntiReddit), a gen-AI studio (GltchRunner), browser games, and music",
         "somewhere between synthwave and trap.",
         "",
@@ -31,31 +32,90 @@ export const SITE = {
 export const LINKS = [
     { id: 'youtube',   label: 'YouTube',      url: 'https://www.youtube.com/@cyberdread', img: 'assets/img/youtube-icon.png' },
     { id: 'telegram',  label: 'Telegram',     url: 'https://t.me/rougecoinv3',            img: 'assets/img/telegram-icon.png' },
-    { id: 'rougecoin', label: 'rougecoin.xyz', url: 'https://rougecoin.xyz',              img: 'assets/img/web-icon.png' },
-    { id: 'rougee',    label: 'rougee.io',    url: 'https://rougee.io',                   img: 'assets/img/signup-icon.png' },
     { id: 'rougechain', label: 'rougechain.io', url: 'https://rougechain.io',             img: 'assets/img/rougechain-icon.png' },
+    { id: 'qwalla',    label: 'Qwalla (iOS)', url: 'https://apps.apple.com/us/app/qwalla/id6794071016', img: 'assets/img/qwalla-icon.png' },
+    { id: 'rougee',    label: 'rougee.app',   url: 'https://rougee.app',                  img: 'assets/img/signup-icon.png' },
+    { id: 'x',         label: 'X / @rougecoin', url: 'https://x.com/rougecoin',           img: 'assets/img/web-icon.png' },
     { id: 'itch',      label: 'itch.io',      url: 'https://cyberdreadx.itch.io',         img: 'assets/img/web-icon.png' },
     { id: 'github',    label: 'GitHub',       url: 'https://github.com/cyberdreadx',      img: 'assets/img/file-icon.png' },
     { id: 'lab',       label: 'The Lab',      url: 'https://brandonmenard.dev/lab',       img: 'assets/img/web-icon.png' }
 ];
 
 /**
- * RougeChain -- the post-quantum L1. XRGE is the ticker across both the
- * chain and the Base ERC-20, so the RougeCoin panel and the terminal's
- * `chain` command read this to keep the two straight.
+ * RougeChain -- the post-quantum L1, and the centre of everything here.
+ * XRGE is its native token; the same token also trades on Base as an
+ * ERC-20. The RougeChain panel, the terminal's `chain` command and the
+ * explorer all read this.
+ *
+ * Wording and links follow rougechain.io itself so the site does not drift
+ * from the chain. Check there when something changes.
  */
+const RC = 'https://rougechain.io';
+
 export const ROUGECHAIN = {
     name: 'RougeChain',
-    url: 'https://rougechain.io',
-    tagline: 'Quantum-safe Layer 1',
-    // From rougechain.io's own description -- kept verbatim so the site does
-    // not drift from the chain's marketing.
-    summary: 'Post-quantum Layer 1 secured by NIST-approved ML-DSA-65 (CRYSTALS-Dilithium). Quantum-safe from genesis, not patched in later. XRGE is the native token; the Base ERC-20 is the same token, bridged.',
-    features: [
-        'Built-in DEX',
-        'NFTs',
-        'ETH / USDC bridge (in and out)',
-        'Encrypted mail & messenger'
+    url: RC,
+    tagline: 'Post-quantum from genesis',
+    status: 'Mainnet live',
+    chainId: 'rougechain-mainnet-1',
+    // Public node API; CORS is open, so the browser reads it directly.
+    api: 'https://api.rougechain.io/api',
+    explorer: `${RC}/blockchain`,
+    summary: 'A Layer 1 blockchain built around post-quantum cryptography. Every block and transaction is signed with ML-DSA-65; messages and mail use ML-KEM-768 key exchange. Quantum-safe from genesis, not patched in later.',
+    crypto: ['ML-DSA-65 signatures', 'ML-KEM-768 key exchange'],
+    xrge: {
+        native: 'Native XRGE on RougeChain pays fees and gas, is staked to run validators, and powers the on-chain apps.',
+        base: 'XRGE on Base (ERC-20) is where it trades today, on Aerodrome. Bridge it to RougeChain to stake or use the apps.'
+    },
+    // The chain's apps, grouped the way rougechain.io groups them.
+    ecosystem: [
+        {
+            group: 'Use',
+            items: [
+                { name: 'Web Wallet', desc: 'Post-quantum wallet in the browser', url: `${RC}/wallet` },
+                { name: 'Qwalla', desc: 'Mobile wallet, on the App Store', url: 'https://apps.apple.com/us/app/qwalla/id6794071016' },
+                { name: 'Browser extension', desc: 'Chrome, Edge, Brave, Firefox, Arc, Opera', url: 'https://chromewebstore.google.com/detail/rougechain-wallet/ilkbgjgphhaolfdjkfefdfiifipmhakj' },
+                { name: 'Messenger', desc: 'End-to-end encrypted chat', url: `${RC}/messenger` },
+                { name: 'Mail', desc: 'On-chain encrypted mail', url: `${RC}/mail` }
+            ]
+        },
+        {
+            group: 'Trade',
+            items: [
+                { name: 'Swap', desc: 'On-chain token swaps', url: `${RC}/swap` },
+                { name: 'Pools', desc: 'Provide liquidity', url: `${RC}/pools` },
+                { name: 'Bridge', desc: 'ETH, USDC, XRGE from Base; BTC in as qBTC', url: `${RC}/bridge` }
+            ]
+        },
+        {
+            group: 'Build',
+            items: [
+                { name: 'Smart contracts', desc: 'Deploy WASM contracts', url: `${RC}/contracts` },
+                { name: 'Tokens', desc: 'Launch custom tokens', url: `${RC}/tokens` },
+                { name: 'NFTs', desc: 'RC-721 collections', url: `${RC}/nfts` },
+                { name: 'SDK & docs', desc: '@rougechain/sdk', url: 'https://docs.rougechain.io' },
+                { name: 'MCP agents', desc: 'AI-native integration', url: `${RC}/agents` }
+            ]
+        },
+        {
+            group: 'Participate',
+            items: [
+                { name: 'Explorer', desc: 'Blocks and transactions', url: `${RC}/blockchain` },
+                { name: 'Validators', desc: 'Stake XRGE, secure the chain', url: `${RC}/validators` },
+                { name: 'Genesis validators', desc: 'The founding ten operators', url: `${RC}/genesis-validators` },
+                { name: 'Run a node', desc: 'Node setup guide', url: 'https://docs.rougechain.io/running-a-node/' },
+                { name: 'Source', desc: 'Apache 2.0 on GitHub', url: 'https://github.com/cyberdreadx/rougechain-node' }
+            ]
+        }
+    ],
+    // Where to buy and chart XRGE on Base.
+    buyUrl: 'https://aerodrome.finance/swap?from=0x833589fcd6edb6e08f4c7c32d4f71b54bda02913&to=0x147120faec9277ec02d957584cfcd92b56a24317&chain0=8453&chain1=8453',
+    community: [
+        { label: 'Telegram', url: 'https://t.me/rougecoinv3', icon: 'i-telegram' },
+        { label: 'YouTube / @rougecoin', url: 'https://www.youtube.com/@rougecoin', icon: 'i-youtube' },
+        { label: 'X / @rougecoin', url: 'https://x.com/rougecoin', icon: 'i-globe' },
+        { label: 'Docs', url: 'https://docs.rougechain.io', icon: 'i-globe' },
+        { label: 'GitHub', url: 'https://github.com/cyberdreadx/rougechain-node', icon: 'i-globe' }
     ]
 };
 
@@ -97,14 +157,14 @@ export const PROJECTS = [
         url: 'https://rougechain.io',
         icon: 'assets/img/rougechain-icon.png',
         status: 'live',
-        blurb: 'Quantum-safe Layer 1 secured by ML-DSA-65. DEX, NFTs, bridge, encrypted mail.'
+        blurb: 'Post-quantum Layer 1, mainnet live. ML-DSA-65 signatures, ML-KEM-768 encryption. Wallet, DEX, bridge, contracts, NFTs, encrypted mail.'
     },
     {
         name: 'Qwalla',
         url: 'https://qwalla.io',
         icon: 'assets/img/qwalla-icon.png',
         status: 'live',
-        blurb: 'Encrypted wallet, messenger and mail in one app. Value and words down the same private pipe.'
+        blurb: 'Post-quantum wallet, messenger and mail for RougeChain. Free on the App Store; APK for Android.'
     },
     {
         name: 'AntiReddit',
@@ -121,18 +181,25 @@ export const PROJECTS = [
         blurb: 'AI image and video generation with model personas, plus a creator earnings program.'
     },
     {
-        name: 'RougeCoin (XRGE)',
-        url: 'https://rougecoin.xyz',
+        name: 'XRGE',
+        url: 'https://rougechain.io/buy',
         icon: 'assets/img/rougecoin-icon.png',
         status: 'live',
-        blurb: 'XRGE bridged to Base as an ERC-20. Where the token trades today.'
+        blurb: 'RougeChain\'s native token. Trades on Base (Aerodrome); bridge it over to stake or use the apps.'
     },
     {
-        name: 'Rougee',
-        url: 'https://rougee.io',
-        icon: 'assets/img/rougecoin-icon.png',
+        name: 'RouGee',
+        url: 'https://rougee.app',
+        icon: 'assets/img/signup-icon.png',
+        status: 'wip',
+        blurb: 'A photo network where the account is a key you hold, posts are signed on-chain and images live on IPFS. Testnet.'
+    },
+    {
+        name: 'qRougee',
+        url: 'https://music.rougee.app',
+        icon: 'assets/img/music-icon.png',
         status: 'live',
-        blurb: 'Social layer for the RougeCoin community.'
+        blurb: 'Streaming where tracks are minted as NFTs. Artists keep their keys; the contract handles royalties.'
     },
     {
         name: 'Dread_OS',
@@ -226,11 +293,10 @@ export const TOKENS = {
 };
 
 /**
- * The XRGE/USDC pool on Base, created 2025-10-22.
+ * The XRGE/USDC pool on Aerodrome (Base), created 2025-10-22.
  *
- * Named explicitly because DEXScreener does not currently index it (the
- * pool is below its liquidity/volume threshold), so market.js falls back to
- * GeckoTerminal, which addresses pools directly.
+ * Named explicitly so market.js can fall back to GeckoTerminal, which
+ * addresses pools directly, whenever DEXScreener has no data for it.
  */
 export const XRGE_POOL = {
     network: 'base',

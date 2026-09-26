@@ -16,7 +16,7 @@ import {
 } from './modules/ui/music-player.js';
 import { openRougeCoin, closeRougeCoin, copyContractAddress } from './modules/ui/rouge-coin.js';
 import { connectWallet, performSwap, initWalletEventListeners } from './modules/web3/wallet.js';
-import { calculateSwapEstimate, redirectToUniswap, initSwapEventListeners } from './modules/web3/swap.js';
+import { calculateSwapEstimate, redirectToAerodrome, initSwapEventListeners } from './modules/web3/swap.js';
 import { loadChatMessages, sendMessage, initChat } from './modules/ui/chat.js';
 import { initWindowManager, toggleFullScreenWindow } from './modules/ui/window-manager.js';
 import { initTerminal, openTerminal, closeTerminal } from './modules/ui/terminal.js';
@@ -72,7 +72,7 @@ Object.assign(window, {
     connectWallet,
     performSwap,
     calculateSwapEstimate,
-    redirectToUniswap,
+    redirectToAerodrome,
     loadChatMessages,
     sendMessage,
     toggleFullScreenWindow,

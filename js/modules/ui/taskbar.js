@@ -9,7 +9,7 @@ const TICKER_REFRESH_MS = 60_000;
 const WINDOW_TITLES = {
     explorer: 'Files',
     musicPlayer: 'Music',
-    rougeCoinInterface: 'RougeCoin',
+    rougeCoinInterface: 'RougeChain',
     terminal: 'term.exe',
     settingsPanel: 'Settings'
 };
@@ -97,7 +97,7 @@ async function updateTicker() {
     change.textContent = ` ${formatChange(market.change24h)}`;
 
     ticker.append(symbol, price, change);
-    ticker.title = 'RougeCoin, live from DEXScreener. Click to open the panel.';
+    ticker.title = 'XRGE, RougeChain\'s token, live. Click to open the RougeChain panel.';
 }
 
 /** Wires the taskbar up to window open/close events. */
