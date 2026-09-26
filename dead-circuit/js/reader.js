@@ -9,6 +9,7 @@ import { bindPicker, loadLanguage, picker, t } from './i18n.js';
 import { PAGE_COUNT, PREVIEW } from './issue.js';
 import { PRICE_LABEL } from './offer.js';
 import { sheets } from './sheets.js';
+import { disclaimerLine } from './notice.js';
 import { lockedList, zineBody } from './zine.js';
 
 const L = await loadLanguage();
@@ -24,6 +25,7 @@ const lockedPage = String(html`
         <h2>${t(K.title, { count: locked })}</h2>
         <p class="dek">${K.body}</p>
         <a class="buy" href="/dead-circuit/">${t(K.cta, { price: PRICE_LABEL })}</a>
+        ${disclaimerLine(L, 'locked-fine')}
       </div>
       <div class="locked-list">
         <h3>${K.listTitle}</h3>

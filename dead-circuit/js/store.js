@@ -5,6 +5,7 @@
 import { html, pad2 } from './dom.js';
 import { bindPicker, loadLanguage, picker, t } from './i18n.js';
 import { PAGE_COUNT } from './issue.js';
+import { disclaimerBox, disclaimerLine } from './notice.js';
 import { DEADLINE, FULL_PRICE_LABEL, PRICE_LABEL, STRIPE_PAYMENT_LINK, WALLETS, splitLeft } from './offer.js';
 
 const L = await loadLanguage();
@@ -68,6 +69,7 @@ function render() {
           <button type="button" class="buy buy-volt" data-buy="crypto" ${disabled}>${S.payCrypto}</button>
         </div>
         <p class="store-deck">${tr(S.deck)}</p>
+        ${disclaimerBox(L, 'store-disclaimer')}
         <p class="store-note" data-ref="note" hidden></p>
         <ul class="wallet-list" data-ref="wallets" hidden>
           ${WALLETS.map((row) => html`
@@ -111,6 +113,7 @@ function render() {
       <h2>${tr(S.endTitle)}</h2>
       <p>${tr(S.endBody)}</p>
       <button type="button" class="buy buy-volt" data-buy="card" ${disabled}>${buyLabel(S.endBuy)}</button>
+      ${disclaimerLine(L, 'store-end-fine')}
       <a href="/dead-circuit/gate/" class="store-gate" dir="ltr">dc@gate:~$</a>
     </section>
 

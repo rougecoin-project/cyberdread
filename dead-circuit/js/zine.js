@@ -7,6 +7,7 @@ import { html, raw } from './dom.js';
 import { rich, t } from './i18n.js';
 import { PAGE_COUNT, PREVIEW, folioOf } from './issue.js';
 import { PRICE_LABEL } from './offer.js';
+import { disclaimerBox } from './notice.js';
 
 const ART = '/dead-circuit/art';
 
@@ -36,6 +37,8 @@ export function zineBody(L) {
         <span>${Z.cover.tagline}</span>
       </div>
     </section>
+
+    ${disclaimerBox(L, 'zine-disclaimer')}
 
     <section class="zine-letter">
       <p class="kicker">${S.letter.kicker}</p>

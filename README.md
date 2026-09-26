@@ -33,7 +33,7 @@ the music player and the RougeChain panel all read from it.
 | --- | --- |
 | Bio, handle, tagline, OS version | `SITE` |
 | Social / external links | `LINKS` |
-| RougeChain copy, ecosystem apps, community links, buy link | `ROUGECHAIN` |
+| RougeChain copy, ecosystem apps, community links, buy links (Aerodrome, Coinbase) | `ROUGECHAIN` |
 | Project tiles (`status`: `live`, `wip`, `archived`) | `PROJECTS` |
 | Music player tracks | `PLAYLIST` |
 | Token contract addresses | `TOKENS` |
@@ -143,6 +143,16 @@ Crypto is valued at today's price with 10% tolerance, must be newer than
    confirmation page* → redirect to
    `https://cyberdreadx.dev/dead-circuit/thanks/?session_id={CHECKOUT_SESSION_ID}`.
 
+### Unofficial, untested
+
+Every page says plainly that Dead Circuit is an unofficial, untested field
+guide to a fictional robot apocalypse, built from knowledge that is already
+public, and not official, medical, legal or safety advice. The text is the
+`disclaimer` block in each language file; `dead-circuit/js/notice.js` renders
+it as a box on the store, the letter page (so it is in every PDF) and the
+mobile zine, and as one line on the cover, the locked page and the store's
+last section.
+
 ### Free preview vs the paid issue
 
 The issue is 39 pages. Only the first six (cover, letter, contents, the
@@ -198,6 +208,8 @@ Tab completes, Up/Down walks history, Ctrl+L clears.
   public node API (`api.rougechain.io/api/stats` and `/validators`, CORS
   open). If the node does not answer, the panel says so and points to the
   explorer rather than showing stale or invented numbers.
+- XRGE is bought on Aerodrome or in the Coinbase app (DEX trading on Base);
+  the panel links both.
 - The site **does not execute swaps**. It shows an indicative estimate and
   hands off to Aerodrome (where the XRGE/USDC pool lives) with the pair
   selected. Aerodrome's URL takes no amount, so the visitor enters it there.

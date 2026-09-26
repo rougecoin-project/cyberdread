@@ -15,6 +15,12 @@ export default {
         "gate": "dc@gate"
     },
     "languageLabel": "Idioma",
+    "disclaimer": {
+        "kicker": "Leia isto primeiro",
+        "title": "Não oficial. Não testado. Especulativo.",
+        "body": "Dead Circuit é um guia de campo não oficial e independente para um apocalipse robô que não aconteceu. Não testamos nada do que está nele. Ele reúne conhecimento geral que já é público, e os relatos são ficção. Não é orientação oficial de emergência nem aconselhamento médico, jurídico ou de segurança. Numa emergência real, siga as autoridades locais e faça um treinamento de verdade.",
+        "short": "Não oficial e não testado. Feito com conhecimento público, para entretenimento e ideias. Não é aconselhamento oficial, médico, jurídico ou de segurança."
+    },
     "store": {
         "deadline": "11 nov. 2026, meia-noite (horário do leste dos EUA)",
         "windowClosed": "Janela fechada",
