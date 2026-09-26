@@ -3,7 +3,7 @@
  */
 import { playSound, SOUNDS } from './modules/sound.js';
 import {
-    startSystem, showShutdownModal, closeShutdownModal, initiateShutdown, initBootScreen
+    startSystem, showShutdownModal, closeShutdownModal, initiateShutdown, initBootScreen, autoBoot
 } from './modules/system.js';
 import { initUIEventListeners, toggleStartMenu } from './modules/ui/common.js';
 import {
@@ -94,6 +94,7 @@ function initializeApp() {
     // Settings first: it sets the accent tokens before anything paints.
     initSettings();
     initBootScreen();
+    autoBoot();
 
     initWindowManager();
     initUIEventListeners();
