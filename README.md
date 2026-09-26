@@ -103,9 +103,12 @@ reader's browser language is used.
 
 ### How buyers get the PDF
 
-The PDF is **not in this repo** (the repo is public). It lives in Netlify
-Blobs and is only handed out by `dc-download` for a 15-minute signed link that
-`dc-claim` issues after it verifies a payment:
+The repo is public, so it holds only an **encrypted** copy of the PDF
+(`netlify/private/issue-01.pdf.enc`, AES-256-GCM). `dc-download` decrypts it
+with the `DC_PDF_KEY` environment variable, and only for a 15-minute signed
+link that `dc-claim` issues after it verifies a payment. A PDF uploaded to
+Netlify Blobs (store `dead-circuit`, key `issue-01.pdf`) takes precedence if
+present.
 
 | Paid with | Verified by |
 | --- | --- |
@@ -120,23 +123,27 @@ Crypto is valued at today's price with 10% tolerance, must be newer than
 
 ### One-time setup
 
-1. **Upload the PDF** to the site's blob store (Netlify CLI, logged in and
-   linked to the site):
-   ```bash
-   netlify blobs:set dead-circuit issue-01.pdf --input ./Dead-Circuit-Issue-01.pdf
-   ```
-2. **Environment variables** (Site configuration → Environment variables):
+1. **Environment variables** (Site configuration → Environment variables),
+   then redeploy so they take effect:
 
    | Name | Value |
    | --- | --- |
+   | `DC_PDF_KEY` | The 64-hex-character key the sealed PDF was encrypted with. Keep it out of the repo. |
    | `DC_DOWNLOAD_SECRET` | Any random string of 32+ characters, e.g. `openssl rand -hex 32`. |
    | `STRIPE_SECRET_KEY` | A Stripe restricted key with **Checkout Sessions: Read**. |
    | `STRIPE_PAYMENT_LINK_ID` | Optional. The link's `plink_…` id, so only this link's checkouts count. |
    | `BASE_RPC_URL`, `SOLANA_RPC_URL`, `BTC_API_URL` | Optional. Swap in a paid RPC if the public ones rate-limit. |
 
-3. **Stripe Payment Link** → Edit → *After payment* → *Don't show
+2. **Stripe Payment Link** → Edit → *After payment* → *Don't show
    confirmation page* → redirect to
    `https://cyberdreadx.dev/dead-circuit/thanks/?session_id={CHECKOUT_SESSION_ID}`.
+
+**Replacing the PDF** (a new issue, a corrected file): encrypt it with a new
+key, commit the new `.enc`, and update `DC_PDF_KEY` in Netlify:
+
+```bash
+node -e "const c=require('crypto'),f=require('fs'),k=c.randomBytes(32),iv=c.randomBytes(12),x=c.createCipheriv('aes-256-gcm',k,iv),e=Buffer.concat([x.update(f.readFileSync(process.argv[1])),x.final()]);f.writeFileSync('netlify/private/issue-01.pdf.enc',Buffer.concat([iv,e,x.getAuthTag()]));console.log('DC_PDF_KEY='+k.toString('hex'))" ./Dead-Circuit-Issue-01.pdf
+```
 
 ## term.exe
 
