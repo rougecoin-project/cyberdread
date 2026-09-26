@@ -38,19 +38,13 @@ export function focusWindow(element) {
  * @param {HTMLElement} element
  */
 function placeWindow(element) {
+    // On phones css/os.css lays every window out as a full-screen sheet, so
+    // no coordinates are written (and the window is placed properly if the
+    // screen later grows to desktop size).
+    if (isSmallScreen()) return;
+
     if (element.dataset.placed === 'true') return;
     element.dataset.placed = 'true';
-
-    if (isSmallScreen()) {
-        Object.assign(element.style, {
-            left: '2.5%',
-            top: '48px',
-            width: '95%',
-            height: 'calc(100dvh - 96px)',
-            transform: 'none'
-        });
-        return;
-    }
 
     const width = element.offsetWidth || 620;
     const height = element.offsetHeight || 460;
@@ -104,6 +98,7 @@ export function toggleFullScreenWindow(elementId) {
 
 /** Keeps windows from being dragged or resized off-screen. */
 function clampWindows() {
+    if (isSmallScreen()) return;
     document.querySelectorAll('.app-window').forEach(element => {
         if (element.classList.contains('fullscreen') || element.style.display === 'none') return;
 

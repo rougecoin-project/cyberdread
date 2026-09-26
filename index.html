@@ -28,7 +28,9 @@
     <meta name="twitter:image" content="https://cyberdreadx.dev/assets/img/background.png">
 
     <link rel="preload" as="image" href="assets/img/background.png">
+    <link rel="preload" href="assets/fonts/chakra-petch-600-latin.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="css/os.css">
     <link rel="preconnect" href="https://api.dexscreener.com" crossorigin>
     <link rel="preconnect" href="https://api.geckoterminal.com" crossorigin>
     <link rel="preconnect" href="https://api.rougechain.io" crossorigin>
@@ -81,9 +83,13 @@
 
     <div class="desktop">
         <header class="taskbar">
-            <button type="button" class="start-menu" onclick="toggleStartMenu()" aria-expanded="false" aria-controls="startMenu">Start</button>
+            <button type="button" class="start-menu" onclick="toggleStartMenu()" aria-expanded="false" aria-controls="startMenu"><span class="start-mark" aria-hidden="true"></span><span class="start-text">Start</span></button>
 
             <nav class="start-menu-dropdown" id="startMenu" aria-label="Start menu">
+                <div class="start-menu-user">
+                    <span class="start-avatar" aria-hidden="true">CD</span>
+                    <span class="start-who"><strong>cyberdread</strong><small>netrunner · {Dread_OS}</small></span>
+                </div>
                 <div class="start-menu-section">
                     <div class="start-menu-music">
                         <img src="assets/img/music-icon.png" alt="" width="24" height="24">
@@ -110,6 +116,9 @@
                 <button type="button" class="start-menu-item" onclick="openRougeCoin()">
                     <img src="assets/img/rougechain-icon.png" alt="" width="20" height="20"> RougeChain
                 </button>
+                <a class="start-menu-item" href="/dead-circuit/" target="_blank" rel="noopener">
+                    <img src="dead-circuit/favicon.svg" alt="" width="20" height="20"> Dead Circuit
+                </a>
                 <button type="button" class="start-menu-item" onclick="openSettings()">
                     <img src="assets/img/settings-icon.png" alt="" width="20" height="20"> Settings
                 </button>
@@ -118,7 +127,7 @@
                 </button>
             </nav>
 
-            <div class="os-name">{Dread_OS}</div>
+            <div class="os-name"><span>{</span>Dread_OS<span>}</span></div>
             <div id="taskbarWindows" class="taskbar-windows"></div>
             <div class="taskbar-right">
                 <button type="button" id="taskbarTicker" class="taskbar-ticker">XRGE --</button>
@@ -127,35 +136,47 @@
             </div>
         </header>
 
-        <!-- Desktop icons -->
-        <button type="button" class="icon" style="top: 60px; left: 40px;" onclick="openExplorer()">
-            <img src="assets/img/folder-icon.png" alt="" width="48" height="48">
-            <span class="icon-label">Files</span>
-        </button>
-        <button type="button" class="icon" style="top: 60px; left: 140px;" onclick="openTerminal()">
-            <img src="assets/img/file-icon.png" alt="" width="48" height="48">
-            <span class="icon-label">term.exe</span>
-        </button>
-        <button type="button" class="icon" style="top: 60px; left: 240px;" onclick="toggleMusicPlayer()">
-            <img src="assets/img/music-icon.png" alt="" width="48" height="48">
-            <span class="icon-label">Music</span>
-        </button>
-        <button type="button" class="icon" style="top: 170px; left: 40px;" onclick="openRougeCoin()">
-            <img src="assets/img/rougechain-icon.png" alt="" width="48" height="48">
-            <span class="icon-label">RougeChain</span>
-        </button>
-        <button type="button" class="icon" style="top: 170px; left: 140px;" onclick="showAccessModal()">
-            <img src="assets/img/file-icon.png" alt="" width="48" height="48">
-            <span class="icon-label">access.exe</span>
-        </button>
-        <button type="button" class="icon" style="top: 170px; left: 240px;" onclick="openSettings()">
-            <img src="assets/img/settings-icon.png" alt="" width="48" height="48">
-            <span class="icon-label">Settings</span>
-        </button>
-        <a class="icon icon-wide" style="top: 280px; left: 25px;" href="/dead-circuit/" target="_blank" rel="noopener">
-            <img src="dead-circuit/favicon.svg" alt="" width="48" height="48">
-            <span class="icon-label">Dead Circuit</span>
-        </a>
+        <!-- Status widget: a card on the desktop, the lock-screen header on phones -->
+        <section class="home-widget" aria-label="Status">
+            <p class="hw-time" data-home-time>--:--</p>
+            <p class="hw-date" data-home-date></p>
+            <div class="hw-chips">
+                <button type="button" class="hw-chip" data-home-xrge onclick="openRougeCoin()">XRGE --</button>
+                <button type="button" class="hw-chip hw-chain" onclick="openRougeCoin()"><i aria-hidden="true"></i><span data-home-chain>RougeChain</span></button>
+            </div>
+        </section>
+
+        <!-- Desktop icons: a grid, so they line up on every screen -->
+        <nav class="desktop-icons" aria-label="Desktop">
+            <button type="button" class="icon" onclick="openExplorer()">
+                <img src="assets/img/folder-icon.png" alt="" width="48" height="48">
+                <span class="icon-label">Files</span>
+            </button>
+            <button type="button" class="icon" onclick="openTerminal()">
+                <img src="assets/img/file-icon.png" alt="" width="48" height="48">
+                <span class="icon-label">term.exe</span>
+            </button>
+            <button type="button" class="icon" onclick="toggleMusicPlayer()">
+                <img src="assets/img/music-icon.png" alt="" width="48" height="48">
+                <span class="icon-label">Music</span>
+            </button>
+            <button type="button" class="icon" onclick="openRougeCoin()">
+                <img src="assets/img/rougechain-icon.png" alt="" width="48" height="48">
+                <span class="icon-label">RougeChain</span>
+            </button>
+            <button type="button" class="icon" onclick="showAccessModal()">
+                <img src="assets/img/file-icon.png" alt="" width="48" height="48">
+                <span class="icon-label">access.exe</span>
+            </button>
+            <button type="button" class="icon" onclick="openSettings()">
+                <img src="assets/img/settings-icon.png" alt="" width="48" height="48">
+                <span class="icon-label">Settings</span>
+            </button>
+            <a class="icon" href="/dead-circuit/" target="_blank" rel="noopener">
+                <img src="dead-circuit/favicon.svg" alt="" width="48" height="48">
+                <span class="icon-label">Dead Circuit</span>
+            </a>
+        </nav>
 
         <!-- Access modal -->
         <div id="accessModal" class="modal" role="dialog" aria-modal="true" aria-label="Encrypted access">

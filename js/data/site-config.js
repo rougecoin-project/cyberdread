@@ -35,7 +35,7 @@ export const LINKS = [
     { id: 'rougechain', label: 'rougechain.io', url: 'https://rougechain.io',             img: 'assets/img/rougechain-icon.png' },
     { id: 'rougecoin', label: 'rougecoin.io',  url: 'https://rougecoin.io',               img: 'assets/img/rougecoin-icon.png' },
     { id: 'qwalla',    label: 'Qwalla (iOS)', url: 'https://apps.apple.com/us/app/qwalla/id6794071016', img: 'assets/img/qwalla-icon.png' },
-    { id: 'rougee',    label: 'rougee.app',   url: 'https://rougee.app',                  img: 'assets/img/signup-icon.png' },
+    { id: 'rougee',    label: 'rougee.app',   url: 'https://rougee.app',                  img: 'assets/img/rougee-icon.png' },
     { id: 'x',         label: 'X / @rougecoin', url: 'https://x.com/rougecoin',           img: 'assets/img/web-icon.png' },
     { id: 'itch',      label: 'itch.io',      url: 'https://cyberdreadx.itch.io',         img: 'assets/img/web-icon.png' },
     { id: 'github',    label: 'GitHub',       url: 'https://github.com/cyberdreadx',      img: 'assets/img/file-icon.png' },
@@ -194,7 +194,7 @@ export const PROJECTS = [
     {
         name: 'RouGee',
         url: 'https://rougee.app',
-        icon: 'assets/img/signup-icon.png',
+        icon: 'assets/img/rougee-icon.png',
         status: 'wip',
         blurb: 'A photo network where the account is a key you hold, posts are signed on-chain and images live on IPFS. Testnet.'
     },
