@@ -94,6 +94,7 @@ function renderStatic() {
     );
 
     document.querySelectorAll('[data-buy-xrge]').forEach(a => { a.href = ROUGECHAIN.buyUrl; });
+    document.querySelectorAll('[data-buy-coinbase]').forEach(a => { a.href = ROUGECHAIN.coinbaseUrl; });
 }
 
 /** Loads live network stats from the RougeChain node. */

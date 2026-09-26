@@ -149,6 +149,7 @@ const COMMANDS = {
             printLink('site', ROUGECHAIN.url);
             printLink('explorer', ROUGECHAIN.explorer);
             printLink('buy XRGE', ROUGECHAIN.buyUrl);
+            printLink('coinbase', ROUGECHAIN.coinbaseUrl);
         }
     },
 

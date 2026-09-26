@@ -1274,6 +1274,10 @@ body, html {
     background-color: rgba(0, 150, 150, 0.5) !important;
 }
 
+.buy-link + .buy-link {
+    margin-top: 6px;
+}
+
 /* Wallet Connection Styles */
 .wallet-status {
     display: flex;

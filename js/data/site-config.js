@@ -65,7 +65,7 @@ export const ROUGECHAIN = {
     crypto: ['ML-DSA-65 signatures', 'ML-KEM-768 key exchange'],
     xrge: {
         native: 'Native XRGE on RougeChain pays fees and gas, is staked to run validators, and powers the on-chain apps.',
-        base: 'XRGE on Base (ERC-20) is where it trades today, on Aerodrome. Bridge it to RougeChain to stake or use the apps.'
+        base: 'XRGE on Base (ERC-20) is where it trades today: on Aerodrome, and in the Coinbase app through its DEX trading. Bridge it to RougeChain to stake or use the apps.'
     },
     // The chain's apps, grouped the way rougechain.io groups them.
     ecosystem: [
@@ -109,6 +109,8 @@ export const ROUGECHAIN = {
         }
     ],
     // Where to buy and chart XRGE on Base.
+    // Coinbase lists it for DEX trading on Base (the -4317 is the contract's tail).
+    coinbaseUrl: 'https://www.coinbase.com/price/base-rougecoin-4317',
     buyUrl: 'https://aerodrome.finance/swap?from=0x833589fcd6edb6e08f4c7c32d4f71b54bda02913&to=0x147120faec9277ec02d957584cfcd92b56a24317&chain0=8453&chain1=8453',
     community: [
         { label: 'Telegram', url: 'https://t.me/rougecoinv3', icon: 'i-telegram' },
@@ -185,7 +187,7 @@ export const PROJECTS = [
         url: 'https://rougechain.io/buy',
         icon: 'assets/img/rougecoin-icon.png',
         status: 'live',
-        blurb: 'RougeChain\'s native token. Trades on Base (Aerodrome); bridge it over to stake or use the apps.'
+        blurb: 'RougeChain\'s native token. Trades on Base (Aerodrome, Coinbase); bridge it over to stake or use the apps.'
     },
     {
         name: 'RouGee',
