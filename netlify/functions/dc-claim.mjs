@@ -6,6 +6,8 @@
  *   { method: 'stripe', sessionId }      -- from the Payment Link redirect
  *   { method: 'crypto', chain, tx }      -- chain is a WALLETS[].chain id
  *   { method: 'gate', token }            -- the dc@gate puzzle answer
+ * plus an optional `lang` (en, es, fr, it, pt, ja, zh, ar) choosing which
+ * edition of the PDF the download link serves; English otherwise.
  * Answers { ok: true, url } or { ok: false, pending?, code, message, params? };
  * `code` keys the reader-language text in dead-circuit/js/i18n/*.js.
  *
@@ -15,6 +17,7 @@
 import { createHash } from 'node:crypto';
 import { getStore } from '@netlify/blobs';
 import { issueToken } from '../lib/dead-circuit/tokens.mjs';
+import { edition } from '../lib/dead-circuit/sealed-pdf.mjs';
 import { CRYPTO, verifyStripe } from '../lib/dead-circuit/verify.mjs';
 
 const CLAIMS = 'dead-circuit-claims';
@@ -86,7 +89,8 @@ export default async (request) => {
         if (!result.unlimited && !(await spend(result.ref))) {
             return reply({ ok: false, code: 'used-up', message: 'That payment has already been used for its downloads. Ask for help if this is yours.' });
         }
-        const token = issueToken(result.ref);
+        // The PDF comes in the language the buyer is reading the site in.
+        const token = issueToken(result.ref, edition(String(body.lang ?? '').slice(0, 5)));
         return reply({ ok: true, url: `/.netlify/functions/dc-download?t=${encodeURIComponent(token)}` });
     } catch (error) {
         console.error('dc-claim failed:', error);
