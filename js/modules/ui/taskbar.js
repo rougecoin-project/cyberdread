@@ -2,6 +2,7 @@
  * Taskbar module - clock, open-window buttons and a live XRGE ticker.
  */
 import { fetchXrgeMarket, MarketStatus, formatUsd, formatChange } from '../web3/market.js';
+import { fetchChainStatus, formatInt } from '../web3/rougechain.js';
 
 const TICKER_REFRESH_MS = 60_000;
 
@@ -31,6 +32,34 @@ function updateClock() {
     if (date) {
         date.textContent = now.toLocaleDateString([], { month: 'short', day: 'numeric' });
     }
+
+    // The status widget (desktop card, phone home screen).
+    // Hours and minutes large, AM/PM (where the locale has it) small.
+    const homeTime = document.querySelector('[data-home-time]');
+    if (homeTime) {
+        const parts = new Intl.DateTimeFormat([], { hour: '2-digit', minute: '2-digit' }).formatToParts(now);
+        const period = parts.find(part => part.type === 'dayPeriod')?.value;
+        const main = parts.filter(part => part.type !== 'dayPeriod').map(part => part.value).join('').trim();
+        homeTime.replaceChildren(main);
+        if (period) {
+            const small = document.createElement('small');
+            small.textContent = period;
+            homeTime.append(small);
+        }
+    }
+    const homeDate = document.querySelector('[data-home-date]');
+    if (homeDate) homeDate.textContent = now.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
+}
+
+/** Block height on the status widget; says "mainnet" when the node is quiet. */
+async function updateChainChip() {
+    const chip = document.querySelector('[data-home-chain]');
+    if (!chip) return;
+    const status = await fetchChainStatus();
+    chip.textContent = status && Number.isFinite(status.height)
+        ? `Block ${formatInt(status.height)}`
+        : 'RougeChain mainnet';
+    chip.closest('.hw-chain')?.classList.toggle('hw-live', Boolean(status));
 }
 
 /** Repaints the row of buttons for currently open windows. */
@@ -80,6 +109,7 @@ async function updateTicker() {
     if (status !== MarketStatus.OK) {
         ticker.textContent = 'XRGE --';
         ticker.className = 'taskbar-ticker';
+        mirrorTicker(ticker);
         ticker.title = status === MarketStatus.NO_PAIR
             ? 'No indexed liquidity pool for XRGE yet.'
             : 'Market data source unreachable.';
@@ -98,6 +128,15 @@ async function updateTicker() {
 
     ticker.append(symbol, price, change);
     ticker.title = 'XRGE, RougeChain\'s token, live. Click to open the RougeChain panel.';
+    mirrorTicker(ticker);
+}
+
+/** Copies the taskbar ticker onto the status widget. */
+function mirrorTicker(ticker) {
+    const chip = document.querySelector('[data-home-xrge]');
+    if (!chip) return;
+    chip.replaceChildren(...[...ticker.childNodes].map(node => node.cloneNode(true)));
+    if (!ticker.childElementCount) chip.textContent = ticker.textContent;
 }
 
 /** Wires the taskbar up to window open/close events. */
@@ -107,6 +146,9 @@ export function initTaskbar() {
 
     updateTicker();
     setInterval(updateTicker, TICKER_REFRESH_MS);
+
+    updateChainChip();
+    setInterval(updateChainChip, TICKER_REFRESH_MS);
 
     document.addEventListener('window:opened', event => {
         openWindows.add(event.detail.id);

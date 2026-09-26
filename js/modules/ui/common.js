@@ -15,6 +15,8 @@ function makeDraggable(handle) {
     handle.addEventListener('pointerdown', event => {
         // Ignore drags that start on the window's own buttons.
         if (event.target.closest('button, a, input')) return;
+        // On phones windows are full-screen sheets; there is nothing to drag.
+        if (window.matchMedia('(max-width: 720px)').matches) return;
         if (target.classList.contains('fullscreen')) return;
 
         event.preventDefault();

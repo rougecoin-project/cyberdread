@@ -46,6 +46,8 @@ and in the terminal's `projects` command automatically.
 ```
 index.html                    markup + inline SVG icon sprite
 styles.css                    design tokens (:root) + components
+css/os.css                    the skin: glass windows, icon grid, dock, phone layout
+assets/fonts/                 Chakra Petch + IBM Plex Mono (SIL OFL), self-hosted
 js/
   main.js                     entry point, wires modules to the DOM
   data/site-config.js         ← content lives here

@@ -1,0 +1,864 @@
+/* ================================================================== *
+ * {Dread_OS} skin
+ *
+ * A layer over styles.css: glass panels, one type system, a real icon
+ * grid, and a phone layout that behaves like a phone (home screen,
+ * full-screen sheets, a dock). Colours still come from --accent, so the
+ * Settings themes keep working.
+ * ================================================================== */
+
+/* Chakra Petch and IBM Plex Mono, SIL Open Font License (assets/fonts). */
+@font-face { font-family: "Chakra Petch"; font-weight: 500; font-display: swap; src: url(../assets/fonts/chakra-petch-500-latin.woff2) format("woff2"); }
+@font-face { font-family: "Chakra Petch"; font-weight: 600; font-display: swap; src: url(../assets/fonts/chakra-petch-600-latin.woff2) format("woff2"); }
+@font-face { font-family: "Chakra Petch"; font-weight: 700; font-display: swap; src: url(../assets/fonts/chakra-petch-700-latin.woff2) format("woff2"); }
+@font-face { font-family: "IBM Plex Mono"; font-weight: 400; font-display: swap; src: url(../assets/fonts/ibm-plex-mono-400-latin.woff2) format("woff2"); }
+@font-face { font-family: "IBM Plex Mono"; font-weight: 500; font-display: swap; src: url(../assets/fonts/ibm-plex-mono-500-latin.woff2) format("woff2"); }
+@font-face { font-family: "IBM Plex Mono"; font-weight: 600; font-display: swap; src: url(../assets/fonts/ibm-plex-mono-600-latin.woff2) format("woff2"); }
+
+:root {
+    --bar: 54px;
+    --hot: #ff2a6d;
+    --hot-rgb: 255, 42, 109;
+    --violet: #8b5cf6;
+    --glass: rgba(8, 12, 19, 0.72);
+    --glass-strong: rgba(6, 9, 15, 0.9);
+    --line: rgba(var(--accent-rgb), 0.2);
+    --line-strong: rgba(var(--accent-rgb), 0.45);
+    --text: #e6f7fb;
+    --text-muted: rgba(230, 247, 251, 0.6);
+    --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Menlo, Consolas, monospace;
+    --font-display: "Chakra Petch", "IBM Plex Mono", system-ui, sans-serif;
+    --radius: 10px;
+    --r-win: 14px;
+    --taskbar-h: var(--bar);
+    --blur: blur(20px) saturate(150%);
+    --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+body, html,
+.explorer,
+.app-window,
+.modal,
+.taskbar,
+.start-menu-dropdown,
+.icon,
+button,
+input,
+select {
+    font-family: var(--font-mono);
+}
+
+::selection { background: rgba(var(--hot-rgb), 0.45); color: #fff; }
+
+/* Thin, themed scrollbars inside windows. */
+.app-window *, .start-menu-dropdown {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(var(--accent-rgb), 0.35) transparent;
+}
+.app-window ::-webkit-scrollbar { width: 8px; height: 8px; }
+.app-window ::-webkit-scrollbar-track { background: transparent; }
+.app-window ::-webkit-scrollbar-thumb { background: rgba(var(--accent-rgb), 0.3); border-radius: 8px; }
+.app-window ::-webkit-scrollbar-thumb:hover { background: rgba(var(--accent-rgb), 0.55); }
+
+/* ------------------------------------------------------------ wallpaper */
+
+/* A vignette and a darker floor so icons, widget and dock read against the
+   artwork, without dimming the middle of the picture. */
+.desktop {
+    background:
+        radial-gradient(120% 90% at 50% 40%, transparent 45%, rgba(2, 3, 8, 0.7) 100%),
+        linear-gradient(180deg, rgba(2, 3, 8, 0.1) 0%, rgba(2, 3, 8, 0.2) 55%, rgba(2, 3, 8, 0.8) 100%),
+        url('../assets/img/wallpaper-neon.jpg') center 32% / cover no-repeat fixed;
+    background-color: #05030a;
+}
+
+/* ---------------------------------------------------------- icon grid */
+
+.desktop-icons {
+    position: absolute;
+    z-index: 3;
+    top: 18px;
+    left: 14px;
+    bottom: calc(var(--bar) + 18px);
+    display: grid;
+    grid-auto-flow: column;
+    grid-template-rows: repeat(auto-fill, 108px);
+    grid-auto-columns: 96px;
+    gap: 4px 6px;
+    align-content: start;
+}
+
+.desktop-icons .icon {
+    position: static;
+    width: 96px;
+    height: 108px;
+    padding: 10px 4px 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 9px;
+    color: var(--text);
+    text-decoration: none;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    transform: none;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+/* Every icon sits on the same glass tile, so mismatched artwork reads as a set. */
+.desktop-icons .icon img {
+    width: 58px;
+    height: 58px;
+    padding: 9px;
+    box-sizing: border-box;
+    object-fit: contain;
+    border-radius: 16px;
+    background:
+        linear-gradient(160deg, rgba(var(--accent-rgb), 0.12), transparent 55%),
+        linear-gradient(180deg, rgba(20, 28, 40, 0.92), rgba(6, 9, 15, 0.94));
+    border: 1px solid rgba(var(--accent-rgb), 0.28);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    transition: transform 0.18s var(--ease-out), box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.desktop-icons .icon:hover,
+.desktop-icons .icon:focus-visible {
+    background: rgba(var(--accent-rgb), 0.08);
+    border-color: rgba(var(--accent-rgb), 0.25);
+    outline: none;
+}
+.desktop-icons .icon:hover img,
+.desktop-icons .icon:focus-visible img {
+    transform: translateY(-2px);
+    border-color: rgba(var(--accent-rgb), 0.7);
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.6), 0 0 22px rgba(var(--accent-rgb), 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+.desktop-icons .icon:active img { transform: scale(0.95); }
+
+.desktop-icons .icon-label {
+    max-width: 100%;
+    padding: 0;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: 0.01em;
+    color: #f2fbff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    background: none;
+    border: 0;
+    text-shadow: 0 1px 2px #000, 0 0 10px rgba(0, 0, 0, 0.95);
+}
+
+/* --------------------------------------------------------- status widget */
+
+.home-widget {
+    position: absolute;
+    z-index: 3;
+    top: 20px;
+    right: 20px;
+    width: 272px;
+    padding: 18px 20px 16px;
+    color: var(--text);
+    background: var(--glass);
+    -webkit-backdrop-filter: var(--blur);
+    backdrop-filter: var(--blur);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.hw-time {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 46px;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    color: #fff;
+    text-shadow: 0 0 24px rgba(var(--accent-rgb), 0.35);
+    font-variant-numeric: tabular-nums;
+}
+.hw-time small { margin-left: 0.18em; font-size: 0.38em; font-weight: 600; letter-spacing: 0.08em; color: var(--text-muted); }
+
+.hw-date {
+    margin: 6px 0 14px;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.hw-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.hw-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 30px;
+    padding: 0 11px;
+    font-size: 12px;
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.hw-chip:hover { border-color: var(--line-strong); background: rgba(var(--accent-rgb), 0.12); }
+.hw-chain i {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--text-muted);
+}
+.hw-chain.hw-live i {
+    background: var(--ok);
+    box-shadow: 0 0 0 0 rgba(var(--ok-rgb), 0.6);
+    animation: hw-pulse 2s ease-out infinite;
+}
+@keyframes hw-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(var(--ok-rgb), 0.6); }
+    100% { box-shadow: 0 0 0 8px rgba(var(--ok-rgb), 0); }
+}
+
+/* ------------------------------------------------------------- taskbar */
+
+.taskbar {
+    z-index: 1500;
+    height: var(--bar);
+    padding: 0 12px 0 8px;
+    gap: 10px;
+    background: linear-gradient(180deg, rgba(10, 14, 22, 0.7), rgba(4, 6, 11, 0.88));
+    -webkit-backdrop-filter: var(--blur);
+    backdrop-filter: var(--blur);
+    border-top: 1px solid rgba(var(--accent-rgb), 0.2);
+    box-shadow: 0 -20px 50px rgba(0, 0, 0, 0.4);
+}
+
+/* A thin signal line: accent into hot pink into violet. */
+.taskbar::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: -1px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent) 18%, var(--hot) 55%, var(--violet) 82%, transparent);
+    opacity: 0.9;
+    pointer-events: none;
+}
+
+.start-menu {
+    width: auto;
+    height: 38px;
+    padding: 0 18px 0 13px;
+    gap: 10px;
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #fff;
+    background:
+        linear-gradient(135deg, rgba(var(--accent-rgb), 0.28), rgba(var(--hot-rgb), 0.22));
+    border: 1px solid rgba(var(--accent-rgb), 0.55);
+    border-radius: 0;
+    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+    box-shadow: inset 0 0 18px rgba(var(--accent-rgb), 0.18);
+    transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+.start-menu:hover,
+.start-menu.active {
+    background: linear-gradient(135deg, rgba(var(--accent-rgb), 0.45), rgba(var(--hot-rgb), 0.35));
+    box-shadow: inset 0 0 22px rgba(var(--accent-rgb), 0.35);
+}
+
+.start-mark {
+    width: 14px;
+    height: 14px;
+    flex: none;
+    background: linear-gradient(135deg, var(--accent), var(--hot));
+    clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+    box-shadow: 0 0 10px var(--accent);
+    transition: transform 0.3s var(--ease-out);
+}
+.start-menu.active .start-mark { transform: rotate(45deg); }
+
+.os-name {
+    margin-left: 6px;
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: #fff;
+    white-space: nowrap;
+}
+.os-name span { color: var(--accent); text-shadow: 0 0 10px rgba(var(--accent-rgb), 0.8); }
+
+.taskbar-windows { gap: 6px; }
+
+.taskbar-window {
+    position: relative;
+    height: 36px;
+    padding: 0 14px;
+    font-size: 12px;
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--line);
+    border-radius: 9px;
+}
+.taskbar-window::after {
+    content: "";
+    position: absolute;
+    left: 30%;
+    right: 30%;
+    bottom: 3px;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+}
+.taskbar-window:hover { background: rgba(var(--accent-rgb), 0.14); border-color: var(--line-strong); }
+.taskbar-window.minimized { border-style: solid; opacity: 0.6; }
+.taskbar-window.minimized::after { background: var(--text-muted); box-shadow: none; left: 44%; right: 44%; }
+
+.taskbar-right { gap: 14px; padding-right: 6px; }
+
+.taskbar-ticker {
+    height: 30px;
+    padding: 0 12px;
+    font-size: 12px;
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+}
+.taskbar-ticker:hover { border-color: var(--line-strong); text-shadow: none; background: rgba(var(--accent-rgb), 0.12); }
+
+.taskbar-date { font-size: 12px; color: var(--text-muted); opacity: 1; }
+
+#clock {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: #fff;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ----------------------------------------------------------- start menu */
+
+.start-menu-dropdown {
+    bottom: calc(var(--bar) + 10px);
+    left: 8px;
+    width: 300px;
+    max-height: calc(100dvh - var(--bar) - 30px);
+    overflow-y: auto;
+    padding: 10px;
+    box-sizing: border-box;
+    background: var(--glass-strong);
+    -webkit-backdrop-filter: var(--blur);
+    backdrop-filter: var(--blur);
+    border: 1px solid var(--line-strong);
+    border-radius: 16px;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.65), 0 0 40px rgba(var(--accent-rgb), 0.1);
+    transform-origin: bottom left;
+}
+.start-menu-dropdown.open {
+    display: grid;
+    gap: 2px;
+    animation: os-pop 0.18s var(--ease-out);
+}
+
+.start-menu-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 6px 14px;
+    margin-bottom: 6px;
+    border-bottom: 1px solid var(--line);
+}
+.start-avatar {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    flex: none;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 16px;
+    color: #04070b;
+    background: linear-gradient(135deg, var(--accent), var(--hot));
+    clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%);
+}
+.start-who { display: grid; gap: 2px; min-width: 0; }
+.start-who strong { font-family: var(--font-display); font-size: 17px; font-weight: 700; color: #fff; }
+.start-who small { font-size: 11px; color: var(--text-muted); }
+
+.start-menu-section { padding: 0; border-bottom: 0; }
+.start-menu-music {
+    gap: 10px;
+    padding: 8px 10px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+}
+.music-controls button {
+    width: 30px;
+    height: 30px;
+    color: var(--text);
+    background: rgba(var(--accent-rgb), 0.1);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+}
+.music-controls button:hover { background: rgba(var(--accent-rgb), 0.25); }
+.music-info { color: var(--text-muted); font-size: 11px; }
+
+.start-menu-divider { height: 1px; margin: 6px 4px; background: var(--line); border: 0; }
+
+.start-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 42px;
+    padding: 6px 10px;
+    box-sizing: border-box;
+    font-size: 13px;
+    color: var(--text);
+    text-decoration: none;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    transition: background 0.12s ease, border-color 0.12s ease;
+}
+.start-menu-item:hover,
+.start-menu-item:focus-visible {
+    background: rgba(var(--accent-rgb), 0.12);
+    border: 1px solid rgba(var(--accent-rgb), 0.3);
+    color: #fff;
+    outline: none;
+}
+.start-menu-item img { width: 22px; height: 22px; margin: 0; object-fit: contain; }
+.start-menu-item:last-child:hover { background: rgba(var(--hot-rgb), 0.16); border-color: rgba(var(--hot-rgb), 0.45); }
+
+/* -------------------------------------------------------------- windows */
+
+.explorer,
+.app-window,
+.music-player {
+    color: var(--text);
+    background: linear-gradient(180deg, rgba(12, 18, 28, 0.9), rgba(5, 8, 13, 0.94));
+    -webkit-backdrop-filter: var(--blur);
+    backdrop-filter: var(--blur);
+    border: 1px solid rgba(var(--accent-rgb), 0.24);
+    border-radius: var(--r-win);
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    overflow: hidden;
+    animation: os-window 0.2s var(--ease-out);
+}
+
+.app-window.focused {
+    border-color: rgba(var(--accent-rgb), 0.5);
+    box-shadow: 0 30px 90px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(var(--accent-rgb), 0.12), 0 0 44px rgba(var(--accent-rgb), 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* Header + scrolling body as a column, so content never hides under the bar. */
+.explorer[style*="block"],
+.settings-window[style*="block"] {
+    display: flex !important;
+    flex-direction: column;
+}
+.explorer-content {
+    flex: 1;
+    min-height: 0;
+    height: auto;
+    color: var(--text);
+}
+
+.window-header,
+.explorer-header,
+.player-header {
+    flex: none;
+    min-height: 46px;
+    padding: 0 8px 0 16px;
+    box-sizing: border-box;
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text);
+    background: linear-gradient(90deg, rgba(var(--accent-rgb), 0.14), rgba(var(--hot-rgb), 0.05) 60%, transparent);
+    border-bottom: 1px solid var(--line);
+}
+.app-window:not(.focused) .window-header { color: var(--text-muted); background: rgba(255, 255, 255, 0.02); }
+
+.window-header > span:first-child {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.window-header > span:first-child::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    flex: none;
+    background: var(--accent);
+    box-shadow: 0 0 10px var(--accent);
+    transform: rotate(45deg);
+}
+.app-window:not(.focused) .window-header > span:first-child::before { background: var(--text-muted); box-shadow: none; }
+
+.window-buttons { gap: 4px; }
+.window-buttons button,
+.explorer-header .window-buttons button,
+.player-header .window-buttons button {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+    padding: 0;
+    font-size: 14px;
+    line-height: 1;
+    color: var(--text-muted);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid transparent;
+    border-radius: 9px;
+    transition: background 0.12s ease, color 0.12s ease;
+}
+.window-buttons button:hover { color: var(--accent); background: rgba(var(--accent-rgb), 0.16); }
+.window-buttons button[data-close]:hover { color: #fff; background: var(--hot); box-shadow: 0 0 16px rgba(var(--hot-rgb), 0.55); }
+
+/* Resize grip: a quiet corner instead of a solid triangle. */
+.explorer::after {
+    width: 16px;
+    height: 16px;
+    background: linear-gradient(135deg, transparent 55%, rgba(var(--accent-rgb), 0.4) 55%, rgba(var(--accent-rgb), 0.4) 62%, transparent 62%, transparent 75%, rgba(var(--accent-rgb), 0.4) 75%, rgba(var(--accent-rgb), 0.4) 82%, transparent 82%);
+    opacity: 1;
+}
+
+.app-window.fullscreen {
+    inset: 0 0 var(--bar) 0 !important;
+    border-radius: 0;
+    border-width: 0;
+    z-index: 1400 !important;
+}
+
+/* ------------------------------------------------------- window insides */
+
+.explorer-content h2,
+.folder-content h2 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: #fff;
+}
+
+.folder {
+    padding: 10px 4px;
+    border-radius: 12px;
+    color: var(--text);
+    transition: background 0.15s ease;
+}
+.folder:hover { background: rgba(var(--accent-rgb), 0.1); }
+.folder::before { display: none; }
+.folder img { filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.5)); }
+.folder-label { display: block; margin-top: 8px; padding: 0; font-size: 12px; color: var(--text); background: none; border: 0; box-shadow: none; text-shadow: none; }
+
+/* The content box is a wrapping flex row; every section takes the full row. */
+.folder-container, .folder-content { flex: 1 1 100%; min-width: 0; }
+.folder-content p { color: var(--text); line-height: 1.65; }
+.folder-content p a { color: var(--accent); }
+
+.back-button {
+    display: inline-flex;
+    width: auto;
+    margin-bottom: 12px;
+    padding: 6px 12px;
+    font-size: 12px;
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    box-shadow: none;
+    text-shadow: none;
+}
+.back-button:hover { border-color: var(--line-strong); background: rgba(var(--accent-rgb), 0.12); }
+
+.project-thumb { border-radius: 12px; border-color: var(--line); }
+.project-item:hover .project-thumb { border-color: var(--line-strong); box-shadow: 0 0 20px rgba(var(--accent-rgb), 0.2); }
+.project-label { margin-top: 8px; padding: 0; color: var(--text); font-size: 12px; background: none; text-shadow: none; }
+
+/* RougeChain panel: header and sections each take the full row (the
+   content box is a wrapping flex row, which left the header off-centre). */
+.rougecoin-header, .rougecoin-sections { flex: 1 1 100%; min-width: 0; }
+.rougecoin-header { border-bottom-color: var(--line); }
+.rougecoin-header h2 { font-family: var(--font-display); font-size: 28px; letter-spacing: 0.02em; color: #fff; }
+.rougecoin-tagline { color: var(--text-muted); font-style: normal; }
+.rougecoin-tagline strong { color: var(--accent); font-style: normal; }
+.rougecoin-section {
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+}
+.rougecoin-section h3 {
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #fff;
+    border-bottom-color: var(--line);
+}
+.rougecoin-section h3 .ico { color: var(--accent); }
+.market-item { background: rgba(0, 0, 0, 0.25); border-color: var(--line); border-radius: 10px; }
+.market-value { font-family: var(--font-display); font-size: clamp(14px, 3.6vw, 18px); font-weight: 600; color: #fff; }
+.chain-cta a { border-radius: 0; clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px); font-family: var(--font-display); letter-spacing: 0.08em; text-transform: uppercase; }
+.chain-cta-buy { background: linear-gradient(135deg, var(--accent), var(--hot)); border: 0; color: #04070b; }
+.eco-item, .rougecoin-link, .repo-row { border-radius: 10px; }
+
+/* Terminal */
+.terminal-window { background: linear-gradient(180deg, rgba(4, 8, 12, 0.94), rgba(2, 4, 7, 0.97)); border-radius: var(--r-win); }
+.terminal-body { font-size: 13.5px; }
+.term-input-row { border-top-color: var(--line); }
+
+/* Settings */
+.settings-window { background: linear-gradient(180deg, rgba(12, 18, 28, 0.92), rgba(5, 8, 13, 0.96)); border-radius: var(--r-win); }
+.settings-body h3 { font-family: var(--font-display); font-size: 12px; letter-spacing: 0.18em; }
+.theme-swatch { border-radius: 10px; min-height: 40px; }
+
+/* Music player: the theme, not the old yellow-on-grey. */
+.music-player { width: min(360px, 92vw); }
+.player-header { color: var(--text); border-bottom: 1px solid var(--line); }
+.visualization { height: 88px; background: rgba(0, 0, 0, 0.35); border-bottom: 1px solid var(--line); }
+.track-info { padding: 10px 14px; font-size: 13px; color: #fff; background: none; border-bottom: 1px solid var(--line); }
+.controls { gap: 8px; padding: 10px 14px; align-items: center; background: none; border-bottom: 1px solid var(--line); }
+.controls button {
+    width: 40px;
+    height: 40px;
+    color: var(--text);
+    background: rgba(var(--accent-rgb), 0.1);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+}
+.controls button[data-play-toggle] { color: #04070b; background: linear-gradient(135deg, var(--accent), var(--hot)); border: 0; }
+.controls button:hover { border-color: var(--line-strong); }
+#volumeSlider { flex: 1; accent-color: var(--accent); }
+.playlist { max-height: 240px; }
+.playlist-item { font-size: 12.5px; padding: 9px 14px; }
+
+/* ------------------------------------------------------ modals and tour */
+
+.modal {
+    z-index: 1600;
+    min-width: min(360px, calc(100vw - 32px));
+    padding: 24px;
+    color: var(--text);
+    background: var(--glass-strong);
+    -webkit-backdrop-filter: var(--blur);
+    backdrop-filter: var(--blur);
+    border: 1px solid var(--line-strong);
+    border-radius: 18px;
+    box-shadow: 0 30px 90px rgba(0, 0, 0, 0.7), 0 0 50px rgba(var(--accent-rgb), 0.15);
+}
+.modal p { color: var(--text); }
+.modal-button {
+    min-width: 110px;
+    min-height: 40px;
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    color: var(--text);
+    text-shadow: none;
+    background: rgba(var(--accent-rgb), 0.1);
+    border: 1px solid var(--line-strong);
+    border-radius: 10px;
+    box-shadow: none;
+}
+.modal-button:first-child { color: #04070b; background: linear-gradient(135deg, var(--accent), var(--hot)); border: 0; }
+
+.tooltip {
+    z-index: 1700;
+    color: var(--text);
+    background: var(--glass-strong);
+    -webkit-backdrop-filter: var(--blur);
+    backdrop-filter: var(--blur);
+    border: 1px solid var(--line-strong);
+    border-radius: 12px;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.6);
+}
+
+.power-up-screen { z-index: 9000; }
+.shutdown-screen { z-index: 8000; }
+.power-up-title { font-family: var(--font-display); font-weight: 700; letter-spacing: 0.24em; }
+
+/* ------------------------------------------------------------ motion */
+
+@keyframes os-window {
+    from { opacity: 0; transform: translateY(10px) scale(0.985); }
+    to { opacity: 1; transform: none; }
+}
+@keyframes os-pop {
+    from { opacity: 0; transform: translateY(8px) scale(0.98); }
+    to { opacity: 1; transform: none; }
+}
+@keyframes os-sheet {
+    from { opacity: 0; transform: translateY(28px); }
+    to { opacity: 1; transform: none; }
+}
+
+/* ================================================================== *
+ * Phones: a home screen, a dock, and windows as full-screen sheets
+ * ================================================================== */
+
+@media (max-width: 720px) {
+    :root {
+        --bar: calc(64px + env(safe-area-inset-bottom, 0px));
+        --safe-top: env(safe-area-inset-top, 0px);
+    }
+
+    /* Fixed backgrounds jank on mobile Safari; the page does not scroll anyway. */
+    .desktop { background-attachment: scroll; }
+
+    /* Lock-screen header: big clock, date, live chips. */
+    .home-widget {
+        top: calc(var(--safe-top) + 28px);
+        left: 20px;
+        right: 20px;
+        width: auto;
+        padding: 0;
+        text-align: center;
+        background: none;
+        border: 0;
+        box-shadow: none;
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+    .hw-time { font-size: clamp(64px, 20vw, 84px); font-weight: 500; text-shadow: 0 2px 20px rgba(0, 0, 0, 0.6), 0 0 30px rgba(var(--accent-rgb), 0.3); }
+    .hw-date { margin: 8px 0 16px; font-size: 13px; color: rgba(255, 255, 255, 0.8); text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8); }
+    .hw-chips { justify-content: center; }
+    .hw-chip {
+        min-height: 34px;
+        padding: 0 14px;
+        font-size: 12.5px;
+        background: rgba(8, 12, 19, 0.6);
+        -webkit-backdrop-filter: var(--blur);
+        backdrop-filter: var(--blur);
+    }
+
+    /* App grid: four across, like a phone. */
+    .desktop-icons {
+        top: auto;
+        left: 12px;
+        right: 12px;
+        bottom: calc(var(--bar) + 18px);
+        grid-auto-flow: row;
+        grid-template-rows: none;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-auto-columns: auto;
+        grid-auto-rows: 100px;
+        gap: 6px 4px;
+        align-content: end;
+    }
+    .desktop-icons .icon { width: auto; height: 100px; padding: 6px 0 4px; gap: 8px; }
+    .desktop-icons .icon img { width: 62px; height: 62px; padding: 10px; border-radius: 18px; }
+    .desktop-icons .icon:hover { background: none; border-color: transparent; }
+    .desktop-icons .icon-label { font-size: 11.5px; }
+
+    /* The taskbar becomes a dock. */
+    .taskbar {
+        height: var(--bar);
+        padding: 0 14px env(safe-area-inset-bottom, 0px);
+        gap: 12px;
+    }
+    .start-menu { height: 44px; padding: 0 18px 0 14px; }
+    .taskbar-ticker, .taskbar-date { display: none; }
+    .taskbar-right { padding-right: 0; }
+    #clock { font-size: 17px; }
+
+    /* Start menu: a bottom sheet with thumb-sized rows. */
+    .start-menu-dropdown {
+        left: 8px;
+        right: 8px;
+        width: auto;
+        bottom: calc(var(--bar) + 8px);
+        max-height: calc(100dvh - var(--bar) - var(--safe-top) - 24px);
+        padding: 12px;
+        border-radius: 22px;
+        transform-origin: bottom center;
+    }
+    .start-menu-dropdown.open { grid-template-columns: 1fr 1fr; gap: 6px; animation-name: os-sheet; }
+    .start-menu-user, .start-menu-section, .start-menu-divider { grid-column: 1 / -1; }
+    .start-menu-divider { display: none; }
+    .start-menu-item {
+        min-height: 54px;
+        font-size: 14px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+    }
+
+    /* Every window is a sheet between the status area and the dock. */
+    .explorer,
+    .app-window,
+    .music-player {
+        position: fixed !important;
+        top: calc(var(--safe-top) + 10px) !important;
+        left: 8px !important;
+        right: 8px !important;
+        bottom: calc(var(--bar) + 8px) !important;
+        width: auto !important;
+        height: auto !important;
+        min-width: 0 !important;
+        min-height: 0 !important;
+        max-width: none !important;
+        max-height: none !important;
+        transform: none !important;
+        resize: none;
+        border-radius: 20px;
+        animation: os-sheet 0.26s var(--ease-out);
+    }
+    /* Short windows sit on the dock instead of stretching to the top. */
+    .music-player,
+    .settings-window {
+        top: auto !important;
+        max-height: calc(100dvh - var(--bar) - var(--safe-top) - 24px) !important;
+        overflow-y: auto;
+    }
+    .app-window.fullscreen { inset: calc(var(--safe-top) + 10px) 8px calc(var(--bar) + 8px) 8px !important; border-radius: 20px; border-width: 1px; }
+
+    .window-header,
+    .explorer-header,
+    .player-header { min-height: 54px; cursor: default; font-size: 13px; }
+    .window-buttons button,
+    .explorer-header .window-buttons button,
+    .player-header .window-buttons button { width: 40px; height: 40px; min-width: 40px; min-height: 40px; font-size: 16px; border-radius: 12px; }
+    /* Sheets are already full-screen. */
+    .window-buttons button[aria-label="Maximize"] { display: none; }
+    .explorer::after { display: none; }
+
+    .terminal-window, .settings-window, .explorer, #rougeCoinInterface { width: auto; height: auto; }
+    .terminal-body { font-size: 13px; }
+
+    .modal { width: calc(100vw - 32px); box-sizing: border-box; }
+}
+
+/* Small phones (iPhone SE and narrower). */
+@media (max-width: 360px) {
+    .desktop-icons .icon img { width: 56px; height: 56px; padding: 9px; border-radius: 16px; }
+    .desktop-icons .icon-label { font-size: 10.5px; }
+    .hw-chip { padding: 0 11px; font-size: 11.5px; }
+}
+
+/* Short phones in landscape: no room for the big clock. */
+@media (max-width: 720px) and (max-height: 560px) {
+    .home-widget { display: none; }
+    .desktop-icons { top: 12px; align-content: start; overflow-y: auto; }
+}
