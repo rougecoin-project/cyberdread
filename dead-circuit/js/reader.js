@@ -2,35 +2,41 @@
  * /dead-circuit/read/ -- the page-flipping desktop viewer plus the scrolling
  * mobile zine. CSS decides which one shows (.only-desk / .only-mobile).
  */
-import { pages } from './copy.js';
 import { html, ICONS, pad2 } from './dom.js';
+import { bindPicker, loadLanguage, picker, t } from './i18n.js';
 import { PRICE_LABEL } from './offer.js';
 import { sheets } from './sheets.js';
 import { zineBody } from './zine.js';
 
-const PAGES = sheets({ linked: true });
+const L = await loadLanguage();
+const R = L.reader;
+const pages = L.pages;
+document.title = L.titles.read;
+
+const PAGES = sheets(L, { linked: true });
 const COUNT = PAGES.length;
 
 // The PDF is only handed out after payment, so this goes to Take the file.
-const pdfLink = (label) => html`<a class="pdf-link" href="/dead-circuit/thanks/">${ICONS.download}${label}</a>`;
+const pdfLink = (label) => html`<a class="pdf-link" href="/dead-circuit/thanks/">${ICONS.download}<span class="pdf-label">${label}</span></a>`;
 
 const root = document.getElementById('app');
 root.innerHTML = String(html`
   <div class="only-desk studio">
     <header class="studio-bar">
-      <p class="wordmark">Dead Circuit <span>Issue 01</span></p>
+      <p class="wordmark">Dead Circuit <span>${R.wordmarkIssue}</span></p>
       <p class="studio-page" aria-live="polite" data-ref="label"></p>
       <div class="studio-actions">
-        <a href="/dead-circuit/" class="buy-mini">Buy · ${PRICE_LABEL}</a>
-        <button type="button" data-ref="prev" aria-label="Previous page">${ICONS.left}</button>
-        <button type="button" data-ref="next" aria-label="Next page">${ICONS.right}</button>
-        ${pdfLink('Get the PDF')}
+        ${picker(L)}
+        <a href="/dead-circuit/" class="buy-mini">${t(R.buy, { price: PRICE_LABEL })}</a>
+        <button type="button" data-ref="prev" aria-label="${R.previous}">${ICONS.left}</button>
+        <button type="button" data-ref="next" aria-label="${R.next}">${ICONS.right}</button>
+        ${pdfLink(R.getPdf)}
       </div>
     </header>
     <div class="stage" data-ref="stage">
       <div class="fit-box" data-ref="fit"><div class="fit-page" data-ref="page"></div></div>
     </div>
-    <nav class="dots" aria-label="Pages">
+    <nav class="dots" aria-label="${R.pagesNav}">
       ${pages.map((label, i) => html`<button type="button" data-go="${i}" aria-label="${label}"></button>`)}
     </nav>
   </div>
@@ -38,13 +44,15 @@ root.innerHTML = String(html`
     <header class="zine-bar">
       <p>Dead Circuit <span>01</span></p>
       <div class="zine-actions">
+        ${picker(L)}
         <a href="/dead-circuit/" class="buy-mini">${PRICE_LABEL}</a>
-        ${pdfLink('PDF')}
+        ${pdfLink(R.pdfShort)}
       </div>
     </header>
   </article>`);
 
-root.querySelector('.zine').insertAdjacentHTML('beforeend', zineBody());
+root.querySelector('.zine').insertAdjacentHTML('beforeend', zineBody(L));
+bindPicker(root);
 
 const ref = (name) => root.querySelector(`[data-ref="${name}"]`);
 const label = ref('label');
@@ -81,12 +89,14 @@ root.querySelector('.studio').addEventListener('click', (event) => {
 
 window.addEventListener('keydown', (event) => {
     const tag = event.target?.tagName;
-    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
-    if (event.key === 'ArrowRight' || event.key === 'PageDown') {
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+    // In a right-to-left language the next page is to the left.
+    const [forward, back] = L.dir === 'rtl' ? ['ArrowLeft', 'ArrowRight'] : ['ArrowRight', 'ArrowLeft'];
+    if (event.key === forward || event.key === 'PageDown') {
         event.preventDefault();
         go(page + 1);
     }
-    if (event.key === 'ArrowLeft' || event.key === 'PageUp') {
+    if (event.key === back || event.key === 'PageUp') {
         event.preventDefault();
         go(page - 1);
     }
@@ -96,8 +106,9 @@ let touchX = 0;
 stage.addEventListener('touchstart', (event) => { touchX = event.changedTouches[0]?.clientX ?? 0; }, { passive: true });
 stage.addEventListener('touchend', (event) => {
     const end = event.changedTouches[0]?.clientX ?? touchX;
-    if (touchX - end > 48) go(page + 1);
-    if (end - touchX > 48) go(page - 1);
+    const swipe = (L.dir === 'rtl' ? -1 : 1) * (touchX - end);
+    if (swipe > 48) go(page + 1);
+    if (swipe < -48) go(page - 1);
 });
 
 // Scale the fixed 1100x680 spread down to whatever the stage allows.

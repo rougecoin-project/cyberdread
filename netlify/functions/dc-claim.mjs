@@ -6,7 +6,8 @@
  *   { method: 'stripe', sessionId }      -- from the Payment Link redirect
  *   { method: 'crypto', chain, tx }      -- chain is a WALLETS[].chain id
  *   { method: 'gate', token }            -- the dc@gate puzzle answer
- * Answers { ok: true, url } or { ok: false, pending?, message }.
+ * Answers { ok: true, url } or { ok: false, pending?, code, message, params? };
+ * `code` keys the reader-language text in dead-circuit/js/i18n/*.js.
  *
  * Each payment can be claimed MAX_CLAIMS times, so a buyer can re-download
  * but a shared receipt link runs dry.
@@ -42,16 +43,16 @@ async function verify(body) {
     if (body?.method === 'stripe') return verifyStripe(body.sessionId);
     if (body?.method === 'crypto') {
         const check = CRYPTO[body.chain];
-        if (!check) return { ok: false, message: 'Pick the chain you paid on.' };
+        if (!check) return { ok: false, code: 'bad-chain', message: 'Pick the chain you paid on.' };
         return check(String(body.tx ?? '').trim());
     }
     if (body?.method === 'gate') {
         const token = String(body.token ?? '').trim().slice(0, 200);
         return sha256(token) === CLEARANCE_SHA256
             ? { ok: true, ref: 'gate', unlimited: true }
-            : { ok: false, message: 'rejected.' };
+            : { ok: false, code: 'gate-rejected', message: 'rejected.' };
     }
-    return { ok: false, message: 'Unknown claim.' };
+    return { ok: false, code: 'unknown', message: 'Unknown claim.' };
 }
 
 /** Counts this claim against the payment; false once it has run out. */
@@ -67,29 +68,29 @@ async function spend(ref) {
 }
 
 export default async (request) => {
-    if (request.method !== 'POST') return reply({ ok: false, message: 'Method not allowed' }, 405);
+    if (request.method !== 'POST') return reply({ ok: false, code: 'unknown', message: 'Method not allowed' }, 405);
     if (throttled(request.headers.get('x-nf-client-connection-ip') || 'unknown')) {
-        return reply({ ok: false, message: 'Too many tries. Wait a minute.' }, 429);
+        return reply({ ok: false, code: 'throttled', message: 'Too many tries. Wait a minute.' }, 429);
     }
 
     let body;
     try {
         body = await request.json();
     } catch {
-        return reply({ ok: false, message: 'Bad request.' }, 400);
+        return reply({ ok: false, code: 'unknown', message: 'Bad request.' }, 400);
     }
 
     try {
         const result = await verify(body);
         if (!result.ok) return reply(result);
         if (!result.unlimited && !(await spend(result.ref))) {
-            return reply({ ok: false, message: 'That payment has already been used for its downloads. Ask for help if this is yours.' });
+            return reply({ ok: false, code: 'used-up', message: 'That payment has already been used for its downloads. Ask for help if this is yours.' });
         }
         const token = issueToken(result.ref);
         return reply({ ok: true, url: `/.netlify/functions/dc-download?t=${encodeURIComponent(token)}` });
     } catch (error) {
         console.error('dc-claim failed:', error);
-        return reply({ ok: false, pending: true, message: 'Could not check that payment right now. Try again in a minute.' }, 502);
+        return reply({ ok: false, pending: true, code: 'unavailable', message: 'Could not check that payment right now. Try again in a minute.' }, 502);
     }
 };
 
