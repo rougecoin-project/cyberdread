@@ -67,7 +67,19 @@ js/
       wallet.js               EIP-1193 wallet (no dependencies)
       swap.js                 estimates + Uniswap hand-off
 netlify/functions/            chat backend (Netlify Blobs)
+dead-circuit/                 Dead Circuit zine: store, reader, gate, PDF
 ```
+
+## Dead Circuit
+
+`/dead-circuit/` is the storefront for the Dead Circuit zine, issue 01, and
+it's also plain HTML and ES modules. Its pages are `/dead-circuit/` (the offer and
+countdown), `read/` (a page-flipping reader on desktop and a scrolling zine
+on mobile), `thanks/` (the PDF download) and `gate/` (the dc@gate puzzle).
+
+Price, deadline, the Stripe Payment Link and the crypto wallets live in
+[`dead-circuit/js/offer.js`](dead-circuit/js/offer.js). The magazine copy
+lives in `dead-circuit/js/copy.js`.
 
 ## term.exe
 
