@@ -1255,7 +1255,10 @@ s { text-decoration: line-through; }
   margin: 8px 0 12px;
   font-family: var(--font-display);
   font-weight: 900;
-  font-size: 40px;
+  /* Long single words (DESINTERESSANTE) must fit a 360px phone. */
+  font-size: min(40px, 9.6vw);
+  hyphens: auto;
+  overflow-wrap: break-word;
   line-height: 0.9;
   letter-spacing: -0.03em;
   text-transform: uppercase;
