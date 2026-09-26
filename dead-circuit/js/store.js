@@ -14,6 +14,17 @@ const tr = (text, extra) => t(text, { ...vars, ...extra });
 document.title = tr(L.titles.store);
 document.querySelector('meta[name="description"]')?.setAttribute('content', tr(L.titles.storeDescription));
 
+/**
+ * Spreads previewed on the storefront. Captions reuse the issue's own
+ * translated lines, so the preview needs no strings of its own.
+ */
+const PREVIEWS = [
+    { art: 'avenue', caption: (L) => L.sheet.minutes.caption },
+    { art: 'shelter', caption: (L) => L.sheet.shelter.caption },
+    { art: 'night', caption: (L) => L.sheet.move.title },
+    { art: 'machine', caption: (L) => L.sheet.bots.title }
+];
+
 const left = () => Math.max(0, DEADLINE - Date.now());
 const isClosed = () => left() === 0;
 
@@ -64,6 +75,20 @@ function render() {
         <a href="/dead-circuit/thanks/" class="store-sample">${S.alreadyPaid}</a>
         <a href="/dead-circuit/read/" class="store-sample store-sample-second">${S.lookInside}</a>
       </div>
+    </section>
+
+    <section class="store-preview">
+      <p class="kicker kicker-volt">${L.sheet.letter.kicker}</p>
+      <h2>${L.sheet.letter.title}</h2>
+      ${L.sheet.letter.body.map((p) => html`<p class="store-preview-lede">${p}</p>`)}
+      <div class="preview-grid">
+        ${PREVIEWS.map(({ art, caption }) => html`
+          <a class="preview-card" href="/dead-circuit/read/">
+            <img src="/dead-circuit/art/${art}.jpg" alt="" loading="lazy" decoding="async">
+            <span>${caption(L)}</span>
+          </a>`)}
+      </div>
+      <a href="/dead-circuit/read/" class="buy buy-volt store-preview-cta">${S.lookInside}</a>
     </section>
 
     <section class="store-paper">
