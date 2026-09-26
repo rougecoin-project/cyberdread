@@ -33,6 +33,7 @@ export const LINKS = [
     { id: 'youtube',   label: 'YouTube',      url: 'https://www.youtube.com/@cyberdread', img: 'assets/img/youtube-icon.png' },
     { id: 'telegram',  label: 'Telegram',     url: 'https://t.me/rougecoinv3',            img: 'assets/img/telegram-icon.png' },
     { id: 'rougechain', label: 'rougechain.io', url: 'https://rougechain.io',             img: 'assets/img/rougechain-icon.png' },
+    { id: 'rougecoin', label: 'rougecoin.io',  url: 'https://rougecoin.io',               img: 'assets/img/rougecoin-icon.png' },
     { id: 'qwalla',    label: 'Qwalla (iOS)', url: 'https://apps.apple.com/us/app/qwalla/id6794071016', img: 'assets/img/qwalla-icon.png' },
     { id: 'rougee',    label: 'rougee.app',   url: 'https://rougee.app',                  img: 'assets/img/signup-icon.png' },
     { id: 'x',         label: 'X / @rougecoin', url: 'https://x.com/rougecoin',           img: 'assets/img/web-icon.png' },
@@ -113,6 +114,7 @@ export const ROUGECHAIN = {
     coinbaseUrl: 'https://www.coinbase.com/price/base-rougecoin-4317',
     buyUrl: 'https://aerodrome.finance/swap?from=0x833589fcd6edb6e08f4c7c32d4f71b54bda02913&to=0x147120faec9277ec02d957584cfcd92b56a24317&chain0=8453&chain1=8453',
     community: [
+        { label: 'rougecoin.io / XRGE home', url: 'https://rougecoin.io', icon: 'i-globe' },
         { label: 'Telegram', url: 'https://t.me/rougecoinv3', icon: 'i-telegram' },
         { label: 'YouTube / @rougecoin', url: 'https://www.youtube.com/@rougecoin', icon: 'i-youtube' },
         { label: 'X / @rougecoin', url: 'https://x.com/rougecoin', icon: 'i-globe' },
@@ -184,7 +186,7 @@ export const PROJECTS = [
     },
     {
         name: 'XRGE',
-        url: 'https://rougechain.io/buy',
+        url: 'https://rougecoin.io',
         icon: 'assets/img/rougecoin-icon.png',
         status: 'live',
         blurb: 'RougeChain\'s native token. Trades on Base (Aerodrome, Coinbase); bridge it over to stake or use the apps.'
