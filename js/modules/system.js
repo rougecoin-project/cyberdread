@@ -43,6 +43,21 @@ export function initBootScreen() {
     if (button && returning) button.textContent = 'Reconnect';
 }
 
+/** How long the BIOS lines stay up before the boot starts on its own. */
+const AUTO_BOOT_DELAY_MS = 900;
+
+/**
+ * Boots without waiting for a click. The Start button stays in the page,
+ * hidden, and comes back after a shutdown so powering off stays off.
+ * Browsers block the startup sound until the first gesture; playSound()
+ * already swallows that, so the boot is silent rather than broken.
+ */
+export function autoBoot() {
+    const button = document.getElementById('startButton');
+    if (button) button.hidden = true;
+    setTimeout(startSystem, AUTO_BOOT_DELAY_MS);
+}
+
 /**
  * Runs the boot sequence, then reveals the desktop.
  */
@@ -126,7 +141,10 @@ export function initiateShutdown() {
         const powerUp = document.getElementById('powerUpScreen');
         if (powerUp) powerUp.style.display = 'flex';
         const button = document.getElementById('startButton');
-        if (button) button.disabled = false;
+        if (button) {
+            button.disabled = false;
+            button.hidden = false;
+        }
         initBootScreen();
     }, 2200);
 }
