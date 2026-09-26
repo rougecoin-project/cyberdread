@@ -80,8 +80,24 @@ on mobile), `thanks/` (Take the file) and `gate/` (the dc@gate puzzle).
 
 Price, deadline, the Stripe Payment Link and the crypto wallets live in
 [`dead-circuit/js/offer.js`](dead-circuit/js/offer.js), which the claim
-function reads too. The magazine copy lives in `dead-circuit/js/copy.js`.
-Fonts are self-hosted in `dead-circuit/fonts/` (SIL OFL).
+function reads too. Fonts are self-hosted in `dead-circuit/fonts/` (SIL OFL).
+
+### Languages
+
+Every word on the Dead Circuit pages lives in one file per language in
+[`dead-circuit/js/i18n/`](dead-circuit/js/i18n/): English (`en.js`, the
+source), Spanish, French, Italian, Portuguese (Brazil), Japanese,
+Chinese (Simplified) and Arabic (right-to-left). Each page has a language
+picker; `?lang=es` links straight to a language, and otherwise the
+reader's browser language is used.
+
+- **Editing copy:** change `en.js`, then the same key in the other files.
+- **Checking a translation:** `node dead-circuit/js/i18n/check.mjs` confirms
+  every file has the same keys, placeholders and fixed values as English.
+- **Adding a language:** copy `en.js` to `xx.js`, translate the strings, and
+  add it to `LANGS` in `dead-circuit/js/i18n.js`.
+- Payment errors from the server are sent as codes (`errors` in each file),
+  so they show up in the reader's language too.
 
 ### How buyers get the PDF
 

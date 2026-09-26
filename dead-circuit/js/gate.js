@@ -4,6 +4,7 @@
  * A cleared token is remembered so the prize survives a reload.
  */
 import { html } from './dom.js';
+import { bindPicker, loadLanguage, picker, t } from './i18n.js';
 
 const CLAIM_URL = '/.netlify/functions/dc-claim';
 const MORSE = '.--. .- -.. / ...- --- .-.. -';
@@ -11,19 +12,13 @@ const LOCK_HEX =
     '222a34203420233f5c7c7d626f7e7f6765777c61647d786067777f64637a7964677c7e60667f7b5e607a796761457e6d657f7466637a7d64607d746564767560667e7467617e7863647e7f5e';
 const STORAGE_KEY = 'dc-box-clearance';
 
-const BOOT = [
-    { kind: 'out', text: 'DEAD CIRCUIT GATE' },
-    { kind: 'out', text: 'The issue is for sale on the floor. This room is not.' },
-    { kind: 'out', text: 'Type help.' }
-];
+const L = await loadLanguage();
+const G = L.gate;
+document.title = L.titles.gate;
 
 const FILES = {
-    'README': [
-        'Operators derive the clearance token, then submit it.',
-        'Tourists use the door on the floor.',
-        'man gate — if you are actually lost.'
-    ].join('\n'),
-    'note.txt': 'password: apocalypse\nif that worked, everyone would already be inside.',
+    'README': G.readme.join('\n'),
+    'note.txt': G.note.join('\n'),
     'capture.sig': MORSE
 };
 
@@ -61,19 +56,16 @@ function answer(text) {
         case 'ls': return 'README\ncapture.sig\nlock.bin\nnote.txt';
         case 'whoami': return 'guest';
         case 'man':
-            return arg === 'gate'
-                ? ['Three layers, in order.', 'The capture is sound.', 'That sound is the repeating pad.',
-                    'What it opens is a textbook seal.', "The seal's plaintext is the token."].join('\n')
-                : 'man gate';
+            return arg === 'gate' ? G.man.join('\n') : 'man gate';
         case 'cat':
-            if (!arg) return 'cat what';
-            if (arg === 'lock.bin') return 'lock.bin: not text. xxd it.';
-            return FILES[arg] ?? `no such file: ${arg}`;
+            if (!arg) return G.catWhat;
+            if (arg === 'lock.bin') return G.notText;
+            return FILES[arg] ?? t(G.noFile, { arg });
         case 'xxd':
-            if (arg !== 'lock.bin') return arg ? `xxd: ${arg}: not a binary we keep` : 'xxd what';
+            if (arg !== 'lock.bin') return arg ? t(G.notBinary, { arg }) : G.xxdWhat;
             return xxd(LOCK_HEX);
         case 'submit': return 'submit <token>';
-        default: return `unknown: ${cmd}`;
+        default: return t(G.unknown, { cmd });
     }
 }
 
@@ -86,16 +78,20 @@ root.innerHTML = String(html`
   <div class="gate">
     <header class="gate-bar">
       <p>dc@gate <span>:~$</span></p>
-      <a href="/dead-circuit/">Leave</a>
+      <div class="gate-bar-end">
+        ${picker(L)}
+        <a href="/dead-circuit/">${G.leave}</a>
+      </div>
     </header>
     <div class="gate-scroll">
       <div data-ref="log"></div>
       <form class="gate-form">
         <label for="gate-cmd">guest$</label>
-        <input id="gate-cmd" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" autofocus>
+        <input id="gate-cmd" dir="ltr" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" autofocus>
       </form>
     </div>
   </div>`);
+bindPicker(root);
 
 const scroller = root.querySelector('.gate-scroll');
 const log = root.querySelector('[data-ref="log"]');
@@ -106,6 +102,7 @@ let busy = false;
 function print(kind, text) {
     const pre = document.createElement('pre');
     pre.className = kind === 'in' ? 'gate-in' : 'gate-out';
+    pre.dir = kind === 'in' ? 'ltr' : 'auto';
     pre.textContent = kind === 'in' ? `guest$ ${text}` : text;
     log.append(pre);
     scroller.scrollTo({ top: scroller.scrollHeight });
@@ -113,13 +110,13 @@ function print(kind, text) {
 
 function boot() {
     log.replaceChildren();
-    BOOT.forEach((line) => print(line.kind, line.text));
+    G.boot.forEach((line) => print('out', line));
 }
 
 function grant(url) {
     form.remove();
     scroller.insertAdjacentHTML('beforeend', String(html`
-      <a class="buy buy-volt gate-prize" href="${url}">Take the issue</a>`));
+      <a class="buy buy-volt gate-prize" href="${url}">${G.prize}</a>`));
     scroller.scrollTo({ top: scroller.scrollHeight });
 }
 
@@ -145,10 +142,10 @@ form.addEventListener('submit', async (event) => {
         busy = false;
         if (url) {
             try { localStorage.setItem(STORAGE_KEY, token); } catch { /* private mode */ }
-            print('out', 'clearance granted. the manual is yours.');
+            print('out', G.granted);
             grant(url);
         } else {
-            print('out', 'rejected.');
+            print('out', G.rejected);
         }
         return;
     }

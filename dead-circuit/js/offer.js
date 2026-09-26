@@ -5,7 +5,6 @@
 
 /** Fixed close. 11 Nov 2026, 00:00 America/New_York (EST). Does not reset. */
 export const DEADLINE = Date.parse('2026-11-11T05:00:00.000Z');
-export const DEADLINE_LABEL = '11 Nov 2026, midnight Eastern';
 export const PRICE_LABEL = '$24';
 export const FULL_PRICE_LABEL = '$48';
 export const PRICE_USD = 24;

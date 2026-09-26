@@ -1,10 +1,10 @@
 /**
  * The 26 desktop spreads of issue 01, rendered as HTML strings.
- * `sheets({ linked })` returns one string per page; with `linked` the contents
- * page renders its entries as buttons carrying `data-go`.
+ * `sheets(L, { linked })` returns one string per page in language L; with
+ * `linked` the contents page renders its entries as buttons carrying `data-go`.
  */
-import { arms, builds, checklist, hungers, machines, minutes, patterns, peopleRules, primer, shelterRules, specs, toc } from './copy.js';
 import { html } from './dom.js';
+import { rich } from './i18n.js';
 
 const ART = '/dead-circuit/art';
 
@@ -13,12 +13,16 @@ const FOLIOS = {
     waste: '15', med: '16', denial: '22', emp: '23', runners: '24', tools: '25'
 };
 
-const folio = (n, light = false) => html`
+export function sheets(L, { linked = false } = {}) {
+    const { arms, builds, checklist, hungers, machines, minutes, patterns, peopleRules, primer, shelterRules, specs, toc } = L;
+    const S = L.sheet;
+
+    const folio = (n, light = false) => html`
     <footer class="${light ? 'folio folio-light' : 'folio'}">
-      <span>Dead Circuit</span><span>Issue 01</span><span>${n}</span>
+      <span>Dead Circuit</span><span>${S.folioIssue}</span><span>${n}</span>
     </footer>`;
 
-function build(id) {
+    function build(id) {
     const page = builds.find((item) => item.id === id);
     if (!page) return html``;
     return html`
@@ -35,54 +39,48 @@ function build(id) {
       <p class="${page.light ? 'source-line source-line-light' : 'source-line'}">${page.foot}</p>
       ${folio(FOLIOS[id] ?? '00', page.light)}
     </article>`;
-}
+    }
 
-const tocEntry = (item) => html`
+    const tocEntry = (item) => html`
     <span class="toc-n">${item.n}</span>
     <span><strong>${item.title}</strong><em>${item.deck}</em></span>`;
 
-export function sheets({ linked = false } = {}) {
     const all = [
         html`
     <article class="sheet tone-ink cover">
       <img class="cover-photo" src="${ART}/cover.jpg" alt="">
       <div class="cover-scrim"></div>
       <div class="cover-copy">
-        <p class="kicker kicker-paper">Dead Circuit · Field quarterly</p>
-        <h1 class="cover-title">How to<br>survive a<br>robot<br><em>apocalypse</em></h1>
-        <p class="cover-deck">A manual for people who intend to stay boring, quiet, and alive.</p>
+        <p class="kicker kicker-paper">${S.cover.kicker}</p>
+        <h1 class="cover-title">${rich(S.cover.title)}</h1>
+        <p class="cover-deck">${S.cover.deck}</p>
       </div>
-      <div class="cover-stamp"><span>Issue</span><strong>01</strong></div>
-      <p class="cover-bar">No signal. No heroics. Twenty-six pages.</p>
+      <div class="cover-stamp"><span>${S.cover.stamp}</span><strong>01</strong></div>
+      <p class="cover-bar">${S.cover.bar}</p>
     </article>`,
 
         html`
     <article class="sheet tone-paper spread-letter">
       <div class="letter-index">
-        <p class="kicker">How to use it</p>
-        <h2 class="index-title">Read once.<br>Then go.</h2>
+        <p class="kicker">${S.letter.indexKicker}</p>
+        <h2 class="index-title">${rich(S.letter.indexTitle)}</h2>
         <ol class="toc">
           ${primer.map((item) => html`<li><div class="toc-static">${tocEntry(item)}</div></li>`)}
         </ol>
       </div>
       <div class="letter-body">
-        <p class="kicker">Editor’s letter</p>
-        <h2>Be uninteresting.</h2>
-        <p>Machines are fast, tireless, and networked. You are none of those, and that is the
-          advantage. They hunt the average plan: the highway, the shelter on the radio, the
-          reunion at home.</p>
-        <p>This issue is the work: water you can dose, food you can count, a stove that stays
-          outside, a metal box that kills a radio signal, two caches, and a way to talk that does
-          not light a hill.</p>
-        <p class="letter-sign">You are still here. — The desk</p>
+        <p class="kicker">${S.letter.kicker}</p>
+        <h2>${S.letter.title}</h2>
+        ${S.letter.body.map((p) => html`<p>${p}</p>`)}
+        <p class="letter-sign">${S.letter.sign}</p>
       </div>
       ${folio('02')}
     </article>`,
 
         html`
     <article class="sheet tone-paper spread-contents">
-      <p class="kicker">In this issue</p>
-      <h2>Twenty-three ways to stay boring.</h2>
+      <p class="kicker">${S.contents.kicker}</p>
+      <h2>${S.contents.title}</h2>
       <ol class="contents-grid">
         ${toc.map((item) => html`<li>${linked
             ? html`<button type="button" data-go="${item.page}">${tocEntry(item)}</button>`
@@ -94,15 +92,15 @@ export function sheets({ linked = false } = {}) {
         html`
     <article class="sheet tone-ink spread-minutes">
       <header class="spread-head light">
-        <p class="kicker kicker-volt">The first ten minutes</p>
-        <h2>Assume the network is already hostile.</h2>
+        <p class="kicker kicker-volt">${S.minutes.kicker}</p>
+        <h2>${S.minutes.title}</h2>
       </header>
       <div class="minute-grid">
         ${minutes.map((step) => html`<section><span>${step.n}</span><h3>${step.title}</h3><p>${step.body}</p></section>`)}
       </div>
       <figure class="minute-photo">
-        <img src="${ART}/avenue.jpg" alt="A person slips into an alley past a street of frozen cars.">
-        <figcaption>If the avenue stops, you are already late. Leave sideways.</figcaption>
+        <img src="${ART}/avenue.jpg" alt="${S.minutes.photoAlt}">
+        <figcaption>${S.minutes.caption}</figcaption>
       </figure>
       ${folio('04', true)}
     </article>`,
@@ -112,8 +110,8 @@ export function sheets({ linked = false } = {}) {
         html`
     <article class="sheet tone-paper spread-pattern">
       <div class="pattern-quote">
-        <p class="kicker">Do not be the average human</p>
-        <blockquote>The predictable route is a schedule with your name on it.</blockquote>
+        <p class="kicker">${S.pattern.kicker}</p>
+        <blockquote>${S.pattern.quote}</blockquote>
       </div>
       <div class="pattern-side">
         <img src="${ART}/avenue.jpg" alt="">
@@ -127,10 +125,9 @@ export function sheets({ linked = false } = {}) {
         html`
     <article class="sheet tone-hazard spread-starve">
       <header class="spread-head">
-        <p class="kicker">Logistics, not legend</p>
-        <h2>Starve the machines.</h2>
-        <p class="dek">They need power, bandwidth, and a mechanic. You need water. Trade accordingly. Do not
-          try to hack the uprising unless that was already your job.</p>
+        <p class="kicker">${S.starve.kicker}</p>
+        <h2>${S.starve.title}</h2>
+        <p class="dek">${S.starve.dek}</p>
       </header>
       <div class="hunger-list">
         ${hungers.map((row) => html`<section><h3>${row.need}</h3><p>${row.deny}</p></section>`)}
@@ -147,16 +144,16 @@ export function sheets({ linked = false } = {}) {
         html`
     <article class="sheet tone-paper spread-shelter">
       <figure>
-        <img src="${ART}/shelter.jpg" alt="A concrete basement with water jugs, a paper map, and one lamp.">
-        <figcaption>Good shelter is dumb shelter.</figcaption>
+        <img src="${ART}/shelter.jpg" alt="${S.shelter.photoAlt}">
+        <figcaption>${S.shelter.caption}</figcaption>
       </figure>
       <div class="shelter-copy">
-        <p class="kicker">Where you sleep</p>
-        <h2>A room that cannot ping home.</h2>
+        <p class="kicker">${S.shelter.kicker}</p>
+        <h2>${S.shelter.title}</h2>
         <ul>
           ${shelterRules.map((rule) => html`<li><strong>${rule.k}</strong><span>${rule.v}</span></li>`)}
         </ul>
-        <p class="shelter-foot">Water, then food, then warmth. Three days of water before a longer hide.</p>
+        <p class="shelter-foot">${S.shelter.foot}</p>
       </div>
       ${folio('13')}
     </article>`,
@@ -168,19 +165,17 @@ export function sheets({ linked = false } = {}) {
         html`
     <article class="sheet tone-ink spread-move">
       <figure>
-        <img src="${ART}/night.jpg" alt="A cyclist rides under an overpass at night, drones far off.">
+        <img src="${ART}/night.jpg" alt="${S.move.photoAlt}">
       </figure>
       <div class="move-copy">
-        <p class="kicker kicker-volt">Movement</p>
-        <h2>Walls, not shadows.</h2>
+        <p class="kicker kicker-volt">${S.move.kicker}</p>
+        <h2>${S.move.title}</h2>
         <div class="move-split">
-          <section><h3>Day</h3><p>Only under thick cover. Woods, ruins, drains you already know. Open ground is a gallery.</p></section>
-          <section><h3>Night</h3><p>Move slow. Darkness does not hide you from heat. Break the line of sight with a wall.</p></section>
+          <section><h3>${S.move.day}</h3><p>${S.move.dayBody}</p></section>
+          <section><h3>${S.move.night}</h3><p>${S.move.nightBody}</p></section>
         </div>
         <ul>
-          <li>Cross one person at a time, at the narrowest point, then wait.</li>
-          <li>Never travel as a convoy of lights and engines.</li>
-          <li>Cache supplies in two places. If one burns, you still eat.</li>
+          ${S.move.rules.map((rule) => html`<li>${rule}</li>`)}
         </ul>
       </div>
       ${folio('17', true)}
@@ -189,29 +184,28 @@ export function sheets({ linked = false } = {}) {
         html`
     <article class="sheet tone-paper spread-people">
       <header class="spread-head">
-        <p class="kicker">The real variable</p>
-        <h2>Other humans.</h2>
+        <p class="kicker">${S.people.kicker}</p>
+        <h2>${S.people.title}</h2>
       </header>
       <ol class="people-list">
         ${peopleRules.map((rule) => html`<li><span>${rule.n}</span><div><h3>${rule.t}</h3><p>${rule.d}</p></div></li>`)}
       </ol>
-      <p class="people-pull">Searching for the late is how groups die.</p>
+      <p class="people-pull">${S.people.pull}</p>
       ${folio('18')}
     </article>`,
 
         html`
     <article class="sheet tone-ink spread-bots">
       <figure>
-        <img src="${ART}/machine.jpg" alt="A boxy ground robot with one camera eye waits on a stair landing.">
+        <img src="${ART}/machine.jpg" alt="${S.bots.photoAlt}">
       </figure>
       <div class="bots-copy">
-        <p class="kicker kicker-volt">Identification</p>
-        <h2>If you meet one, name it first.</h2>
+        <p class="kicker kicker-volt">${S.bots.kicker}</p>
+        <h2>${S.bots.title}</h2>
         <div class="bot-grid">
           ${machines.map((bot) => html`<section><p>${bot.kind}</p><h3>${bot.name}</h3><span>${bot.body}</span></section>`)}
         </div>
-        <p class="bots-rule">Cornered? Break the line of sight, then change direction. Tracking follows the last
-          vector. Doors, not hallways. Smoke once, then leave.</p>
+        <p class="bots-rule">${S.bots.rule}</p>
       </div>
       ${folio('19', true)}
     </article>`,
@@ -219,27 +213,26 @@ export function sheets({ linked = false } = {}) {
         html`
     <article class="sheet tone-paper spread-specs">
       <header class="spread-head">
-        <p class="kicker">Field notes</p>
-        <h2>The brochure, corrected.</h2>
+        <p class="kicker">${S.specs.kicker}</p>
+        <h2>${S.specs.title}</h2>
       </header>
       <div class="spec-grid">
         ${specs.map((item) => html`<section><strong>${item.n}</strong><h3>${item.l}</h3><p>${item.d}</p></section>`)}
       </div>
-      <p class="source-line">Boston Dynamics Spot specs and instructions for use. Gao et al., Scientific Reports, 2021.</p>
+      <p class="source-line">${S.specs.source}</p>
       ${folio('20')}
     </article>`,
 
         html`
     <article class="sheet tone-ink spread-arms">
       <header class="spread-head light">
-        <p class="kicker kicker-volt">Ordnance</p>
-        <h2>What actually shoots back.</h2>
+        <p class="kicker kicker-volt">${S.arms.kicker}</p>
+        <h2>${S.arms.title}</h2>
       </header>
       <div class="arm-list">
         ${arms.map((item) => html`<section><h3>${item.name}</h3><p>${item.d}</p></section>`)}
       </div>
-      <p class="arms-foot">A 2017 U.S. trial called the drones “very resilient against damage.” Weather, wire, a
-        ceiling, and the watt-hour do the rest. Not a recipe, and not a shopping list.</p>
+      <p class="arms-foot">${S.arms.foot}</p>
       ${folio('21', true)}
     </article>`,
 
@@ -251,20 +244,17 @@ export function sheets({ linked = false } = {}) {
         html`
     <article class="sheet tone-volt spread-end">
       <div class="end-list">
-        <p class="kicker">Pocket checklist</p>
-        <h2>Eight lines.</h2>
+        <p class="kicker">${S.end.kicker}</p>
+        <h2>${S.end.title}</h2>
         <ol>
           ${checklist.map((item) => html`<li><span>${item.n}</span>${item.t}</li>`)}
         </ol>
       </div>
       <aside>
-        <img src="${ART}/grid.jpg" alt="A substation arcs as the city behind it goes dark.">
-        <h3>What actually wins</h3>
-        <p>Not a chosen-one speech. Logistics. Plants stop. Networks split. Weather, mud, and
-          missing parts do the rest.</p>
-        <p>This is fiction until it isn’t. The same habits beat a blackout, a flood, a quake.
-          Practice the boring version while the toasters are still on your side.</p>
-        <p class="end-mark">End of signal</p>
+        <img src="${ART}/grid.jpg" alt="${S.end.photoAlt}">
+        <h3>${S.end.winsTitle}</h3>
+        ${S.end.wins.map((p) => html`<p>${p}</p>`)}
+        <p class="end-mark">${S.end.mark}</p>
       </aside>
       ${folio('26')}
     </article>`
