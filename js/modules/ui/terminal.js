@@ -7,6 +7,7 @@
 import { playSound, SOUNDS } from '../sound.js';
 import { SITE, LINKS, PROJECTS, TOKENS, ROUGECHAIN, REPOS, GITHUB_USER } from '../../data/site-config.js';
 import { fetchXrgeMarket, MarketStatus, formatUsd, formatCompactUsd, formatChange } from '../web3/market.js';
+import { fetchChainStatus, formatInt, formatXrge } from '../web3/rougechain.js';
 import { setTheme, listThemes, getTheme } from './settings.js';
 
 const HISTORY_KEY = 'dreados:term-history';
@@ -121,19 +122,38 @@ const COMMANDS = {
     },
 
     chain: {
-        describe: 'about RougeChain, the L1',
-        run() {
-            print(`${ROUGECHAIN.name} -- ${ROUGECHAIN.tagline}`, 'term-heading');
+        describe: 'RougeChain, the post-quantum L1 -- live',
+        async run() {
+            print(`${ROUGECHAIN.name} -- ${ROUGECHAIN.tagline} (${ROUGECHAIN.status})`, 'term-heading');
             print(ROUGECHAIN.summary);
             print();
-            ROUGECHAIN.features.forEach(feature => print(`  - ${feature}`, 'term-muted'));
+
+            const pending = print('querying the RougeChain node...', 'term-muted');
+            const status = await fetchChainStatus();
+            pending.remove();
+            if (status) {
+                print(`  chain       ${status.chainId}`);
+                print(`  height      ${formatInt(status.height)}  (finalized ${formatInt(status.finalized)})`);
+                print(`  validators  ${status.validators === null ? '--' : formatInt(status.validators)}`);
+                print(`  peers       ${formatInt(status.peers)}`);
+                print(`  burned      ${formatXrge(status.feesBurned)}`, 'term-muted');
+            } else {
+                print('  node unreachable -- the chain may be fine; try the explorer.', 'term-error');
+            }
             print();
-            printLink('', ROUGECHAIN.url);
+
+            ROUGECHAIN.ecosystem.forEach(({ group, items }) => {
+                print(`  ${group.toLowerCase()}: ${items.map(item => item.name).join(', ')}`, 'term-muted');
+            });
+            print();
+            printLink('site', ROUGECHAIN.url);
+            printLink('explorer', ROUGECHAIN.explorer);
+            printLink('buy XRGE', ROUGECHAIN.buyUrl);
         }
     },
 
     xrge: {
-        describe: 'live RougeCoin market data',
+        describe: 'live XRGE market data (Base)',
         async run() {
             const pending = print('querying DEXScreener...', 'term-muted');
             const { status, data: market } = await fetchXrgeMarket();
@@ -149,7 +169,7 @@ const COMMANDS = {
                 return;
             }
 
-            print('XRGE / RougeCoin', 'term-heading');
+            print('XRGE on Base -- RougeChain\'s token', 'term-heading');
             print(`  price       ${formatUsd(market.priceUsd)}`);
             print(`  24h         ${formatChange(market.change24h)}`,
                 market.change24h >= 0 ? 'term-ok' : 'term-error');

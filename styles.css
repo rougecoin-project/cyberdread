@@ -1127,7 +1127,8 @@ body, html {
 
 /* Swap Interface Styles */
 /* The chain blurb reads as an intro to the whole panel, so it spans. */
-.chain-section {
+.chain-section,
+.eco-section {
     grid-column: 1 / -1;
 }
 
@@ -2094,3 +2095,92 @@ a.icon { text-decoration: none; }
 }
 
 .explorer-content { overflow-y: auto; }
+
+/* --- RougeChain panel ---------------------------------------------- */
+
+.chain-cta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.chain-cta a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 0 14px;
+    border-radius: 4px;
+    font-weight: bold;
+    letter-spacing: 0.04em;
+    text-decoration: none;
+    font-size: clamp(12px, 3.2vw, 14px);
+}
+
+.chain-cta-main {
+    color: var(--accent);
+    border: 1px solid rgba(var(--accent-rgb), 0.6);
+    background: rgba(var(--accent-rgb), 0.08);
+}
+
+.chain-cta-buy {
+    color: #001417;
+    background: var(--accent);
+    border: 1px solid var(--accent);
+}
+
+.chain-cta a:hover { filter: brightness(1.15); }
+
+.eco {
+    display: grid;
+    gap: 14px;
+    margin-top: 14px;
+}
+
+.eco-group h4 {
+    margin: 0 0 6px;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    opacity: 0.7;
+}
+
+.eco-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(150px, 100%), 1fr));
+    gap: 6px;
+}
+
+.eco-item {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+    padding: 8px 10px;
+    text-decoration: none;
+    color: var(--text);
+    background: rgba(var(--accent-rgb), 0.06);
+    border: 1px solid rgba(var(--accent-rgb), 0.22);
+    border-radius: 4px;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.eco-item strong {
+    color: var(--accent);
+    font-size: 13px;
+    overflow-wrap: anywhere;
+}
+
+.eco-item span {
+    font-size: 11px;
+    opacity: 0.75;
+    overflow-wrap: anywhere;
+}
+
+.eco-item:hover,
+.eco-item:focus-visible {
+    background: rgba(var(--accent-rgb), 0.16);
+    border-color: rgba(var(--accent-rgb), 0.6);
+}
+
+.contract-copy span:not(.copy-status) { opacity: 0.75; }
