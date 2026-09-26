@@ -66,8 +66,75 @@ js/
       market.js               DEXScreener client
       wallet.js               EIP-1193 wallet (no dependencies)
       swap.js                 estimates + Uniswap hand-off
-netlify/functions/            chat backend (Netlify Blobs)
+netlify/functions/            chat backend + Dead Circuit claim/download
+netlify/lib/                  shared code for the functions
+dead-circuit/                 Dead Circuit zine: store, reader, gate, PDF
 ```
+
+## Dead Circuit
+
+`/dead-circuit/` is the storefront for the Dead Circuit zine, issue 01, and
+it's also plain HTML and ES modules. Its pages are `/dead-circuit/` (the offer and
+countdown), `read/` (a page-flipping reader on desktop and a scrolling zine
+on mobile), `thanks/` (Take the file) and `gate/` (the dc@gate puzzle).
+
+Price, deadline, the Stripe Payment Link and the crypto wallets live in
+[`dead-circuit/js/offer.js`](dead-circuit/js/offer.js), which the claim
+function reads too. Fonts are self-hosted in `dead-circuit/fonts/` (SIL OFL).
+
+### Languages
+
+Every word on the Dead Circuit pages lives in one file per language in
+[`dead-circuit/js/i18n/`](dead-circuit/js/i18n/): English (`en.js`, the
+source), Spanish, French, Italian, Portuguese (Brazil), Japanese,
+Chinese (Simplified) and Arabic (right-to-left). Each page has a language
+picker; `?lang=es` links straight to a language, and otherwise the
+reader's browser language is used.
+
+- **Editing copy:** change `en.js`, then the same key in the other files.
+- **Checking a translation:** `node dead-circuit/js/i18n/check.mjs` confirms
+  every file has the same keys, placeholders and fixed values as English.
+- **Adding a language:** copy `en.js` to `xx.js`, translate the strings, and
+  add it to `LANGS` in `dead-circuit/js/i18n.js`.
+- Payment errors from the server are sent as codes (`errors` in each file),
+  so they show up in the reader's language too.
+
+### How buyers get the PDF
+
+The PDF is **not in this repo** (the repo is public). It lives in Netlify
+Blobs and is only handed out by `dc-download` for a 15-minute signed link that
+`dc-claim` issues after it verifies a payment:
+
+| Paid with | Verified by |
+| --- | --- |
+| Card | Stripe redirects to `thanks/?session_id=…`; the function asks Stripe whether that checkout is paid. |
+| ETH / XRGE on Base | Base RPC: the transfer must land in the wallet, succeed, and be worth ~$24. |
+| BTC | mempool.space: an output to the wallet, one confirmation. |
+| SOL | Solana RPC: the wallet's balance went up by ~$24. |
+| dc@gate | The puzzle answer, checked by hash on the server. |
+
+Crypto is valued at today's price with 10% tolerance, must be newer than
+`SALE_START`, and every payment is good for 5 downloads.
+
+### One-time setup
+
+1. **Upload the PDF** to the site's blob store (Netlify CLI, logged in and
+   linked to the site):
+   ```bash
+   netlify blobs:set dead-circuit issue-01.pdf --input ./Dead-Circuit-Issue-01.pdf
+   ```
+2. **Environment variables** (Site configuration → Environment variables):
+
+   | Name | Value |
+   | --- | --- |
+   | `DC_DOWNLOAD_SECRET` | Any random string of 32+ characters, e.g. `openssl rand -hex 32`. |
+   | `STRIPE_SECRET_KEY` | A Stripe restricted key with **Checkout Sessions: Read**. |
+   | `STRIPE_PAYMENT_LINK_ID` | Optional. The link's `plink_…` id, so only this link's checkouts count. |
+   | `BASE_RPC_URL`, `SOLANA_RPC_URL`, `BTC_API_URL` | Optional. Swap in a paid RPC if the public ones rate-limit. |
+
+3. **Stripe Payment Link** → Edit → *After payment* → *Don't show
+   confirmation page* → redirect to
+   `https://cyberdread.xyz/dead-circuit/thanks/?session_id={CHECKOUT_SESSION_ID}`.
 
 ## term.exe
 

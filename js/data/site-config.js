@@ -65,6 +65,13 @@ export const ROUGECHAIN = {
  */
 export const PROJECTS = [
     {
+        name: 'Dead Circuit',
+        url: '/dead-circuit/',
+        icon: 'dead-circuit/og.jpg',
+        status: 'live',
+        blurb: 'Field magazine, issue 01: how to survive a robot apocalypse. Read it, or take the PDF.'
+    },
+    {
         name: 'Dead Harvest',
         url: 'https://cyberdreadx.itch.io/dead-harvest-beta-v01',
         icon: 'assets/img/game-dead-harvest.jpg',

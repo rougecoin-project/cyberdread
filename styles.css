@@ -1426,6 +1426,13 @@ body, html {
 
 /* --- Desktop icons and folders now use <button> -------------------- */
 
+/* Icons that open a page are links: no underline, and room for a
+ * two-word label on one line. */
+a.icon { text-decoration: none; }
+.icon-wide { width: 110px; }
+.icon-wide .icon-label { white-space: nowrap; }
+.icon-wide img { margin-inline: auto; }
+
 .icon,
 .folder,
 .start-menu-item,
