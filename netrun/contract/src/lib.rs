@@ -9,7 +9,13 @@
 //!   Implant NFT for all three. An illegal path reverts (the run stays open to try again).
 //! * `abandon`: closes an open run (the fee is not returned).
 //! * `withdraw` `{"amount":quanta}` (owner): moves collected entry fees to the owner.
+//! * `withdraw_scrap` `{"amount":n}` (owner): moves SCRAP out, e.g. when moving to a new contract.
 //! * `info` (free query): fee, run counters, whether setup ran.
+//! * `leaderboard` (free query): the top [`TOP_N`] players by SCRAP the contract has paid them.
+//! * `stats` (free query): the caller's SCRAP earned, runs, full breaches and leaderboard rank.
+//!
+//! Players are listed by address hash, sha256 of the raw public key: the 32 bytes a `rouge1…`
+//! address encodes, so the page can show the address without the contract storing 3.9 KB keys.
 //!
 //! Runs expire [`EXPIRY_BLOCKS`] after H+1; an expired run can simply be replaced by a new one.
 //! Methods that take no payment revert if anything is attached, so nothing can get stuck here.
@@ -56,7 +62,8 @@ mod chain {
     static mut CALLER: [u8; CALLER_CAP] = [0; CALLER_CAP];
     static mut CALLER_LOWER: [u8; CALLER_CAP] = [0; CALLER_CAP];
     static mut ARGS: [u8; 1024] = [0; 1024];
-    static mut OUT: [u8; 1024] = [0; 1024];
+    static mut OUT: [u8; 2048] = [0; 2048];
+    static mut CALLER_BYTES: [u8; CALLER_CAP / 2] = [0; CALLER_CAP / 2];
     static mut SELF_ADDR: [u8; 64] = [0; 64];
 
     /// Fail the call: every effect is discarded and any attached payment stays with the player.
@@ -102,6 +109,36 @@ mod chain {
         while i < src.len() { dst[i] = src[i].to_ascii_lowercase(); i += 1; }
     }
 
+    /// sha256 of the caller's raw public key: what a `rouge1…` address encodes. The host hands
+    /// the key over as hex, so it is decoded first, 8 characters at a time.
+    fn address_hash(raw_hex: &[u8]) -> [u8; 32] {
+        if raw_hex.len() % 2 != 0 { revert(); }
+        let out = unsafe { &mut (&mut *core::ptr::addr_of_mut!(CALLER_BYTES))[..raw_hex.len() / 2] };
+        const LO: u64 = 0x0f0f_0f0f_0f0f_0f0f;
+        const ONE: u64 = 0x0101_0101_0101_0101;
+        let chunks = raw_hex.len() / 8;
+        let src = raw_hex.as_ptr();
+        let dst = out.as_mut_ptr();
+        for c in 0..chunks {
+            // Raw reads/writes: the slice-based version spent ~40k fuel on bounds checks and copies.
+            let x = u64::from_le(unsafe { core::ptr::read_unaligned(src.add(c * 8) as *const u64) });
+            // '0'-'9' keep their low nibble; letters (bit 6 set) add 9: 'a'/'A' (…0001) → 10.
+            let n = (x & LO) + ((x >> 6) & ONE) * 9;
+            // Byte k of `n` is the k-th character's nibble; pair them up as (even << 4) | odd…
+            let p = ((n & 0x00ff_00ff_00ff_00ff) << 4 | (n >> 8)) & 0x00ff_00ff_00ff_00ff;
+            // …and pack the four resulting bytes together.
+            let p = (p | (p >> 8)) & 0x0000_ffff_0000_ffff;
+            let p = (p | (p >> 16)) as u32;
+            unsafe { core::ptr::write_unaligned(dst.add(c * 4) as *mut u32, p.to_le()) };
+        }
+        let mut i = chunks * 8;
+        while i < raw_hex.len() {
+            out[i / 2] = hex_nibble(raw_hex[i]) << 4 | hex_nibble(raw_hex[i + 1]);
+            i += 2;
+        }
+        sha(out)
+    }
+
     fn attached() -> (i64, [u8; 16], usize) {
         let mut sym = [0u8; 16];
         let n = unsafe { host_get_attached_symbol(sym.as_mut_ptr(), 16) };
@@ -139,6 +176,82 @@ mod chain {
     }
 
     fn height() -> i64 { unsafe { host_get_block_height() } }
+
+    // ------------------------------------------------------------ players
+
+    /// How many players the leaderboard keeps.
+    const TOP_N: usize = 10;
+    /// Leaderboard entry: address hash (32) · SCRAP earned (8) · full breaches (4).
+    const ENTRY: usize = 44;
+
+    /// Per-player record: address hash (32, zero until first computed) · SCRAP earned (8) ·
+    /// runs (4) · full breaches (4).
+    #[derive(Clone, Copy)]
+    struct Player { addr: [u8; 32], scrap: u64, runs: u32, full: u32 }
+
+    fn player_key(caller_hash: &[u8; 32]) -> [u8; 33] {
+        let mut k = [0u8; 33];
+        k[0] = b'p';
+        k[1..].copy_from_slice(caller_hash);
+        k
+    }
+
+    fn load_player(caller_hash: &[u8; 32]) -> Option<Player> {
+        let key = player_key(caller_hash);
+        let mut v = [0u8; 48];
+        let n = unsafe { host_storage_read(key.as_ptr(), 33, v.as_mut_ptr(), 48) };
+        if n != 48 { return None; }
+        let mut addr = [0u8; 32];
+        addr.copy_from_slice(&v[..32]);
+        Some(Player {
+            addr,
+            scrap: u64::from_be_bytes(v[32..40].try_into().unwrap_or([0; 8])),
+            runs: u32::from_be_bytes(v[40..44].try_into().unwrap_or([0; 4])),
+            full: u32::from_be_bytes(v[44..48].try_into().unwrap_or([0; 4])),
+        })
+    }
+
+    fn save_player(caller_hash: &[u8; 32], p: &Player) {
+        let key = player_key(caller_hash);
+        let mut v = [0u8; 48];
+        v[..32].copy_from_slice(&p.addr);
+        v[32..40].copy_from_slice(&p.scrap.to_be_bytes());
+        v[40..44].copy_from_slice(&p.runs.to_be_bytes());
+        v[44..48].copy_from_slice(&p.full.to_be_bytes());
+        unsafe { host_storage_write(key.as_ptr(), 33, v.as_ptr(), 48) };
+    }
+
+    /// The stored top list and how many entries it holds.
+    fn load_top(buf: &mut [u8; TOP_N * ENTRY]) -> usize {
+        let n = unsafe { host_storage_read(b"top".as_ptr(), 3, buf.as_mut_ptr(), (TOP_N * ENTRY) as u32) };
+        if n <= 0 { 0 } else { n as usize / ENTRY }
+    }
+
+    fn entry_scrap(buf: &[u8], i: usize) -> u64 {
+        u64::from_be_bytes(buf[i * ENTRY + 32..i * ENTRY + 40].try_into().unwrap_or([0; 8]))
+    }
+
+    /// Puts the player at their place in the top list (highest SCRAP first; on a tie, whoever
+    /// got there first stays ahead). Players below the last place are left out.
+    fn update_top(p: &Player) {
+        let mut buf = [0u8; TOP_N * ENTRY];
+        let mut n = load_top(&mut buf);
+        // Drop the player's old entry, if any.
+        if let Some(at) = (0..n).find(|&i| buf[i * ENTRY..i * ENTRY + 32] == p.addr) {
+            buf.copy_within((at + 1) * ENTRY..n * ENTRY, at * ENTRY);
+            n -= 1;
+        }
+        let pos = (0..n).find(|&i| entry_scrap(&buf, i) < p.scrap).unwrap_or(n);
+        if pos >= TOP_N { return; }
+        let keep = if n == TOP_N { n - 1 } else { n };
+        buf.copy_within(pos * ENTRY..keep * ENTRY, (pos + 1) * ENTRY);
+        let e = &mut buf[pos * ENTRY..(pos + 1) * ENTRY];
+        e[..32].copy_from_slice(&p.addr);
+        e[32..40].copy_from_slice(&p.scrap.to_be_bytes());
+        e[40..44].copy_from_slice(&p.full.to_be_bytes());
+        let total = (keep + 1) * ENTRY;
+        unsafe { host_storage_write(b"top".as_ptr(), 3, buf.as_ptr(), total as u32) };
+    }
 
     /// Whether `setup` has run. `host_storage_read` returns -1 for a missing key and -2 when the
     /// value is larger than the buffer, so a 1-byte probe of the owner key answers -2 if it exists.
@@ -297,6 +410,12 @@ mod chain {
         }
         write_u64(&key, now as u64);
         let runs = bump(b"s_runs");
+        let mut p = load_player(&low).unwrap_or_else(|| {
+            bump(b"s_players");
+            Player { addr: [0; 32], scrap: 0, runs: 0, full: 0 }
+        });
+        p.runs = p.runs.saturating_add(1);
+        save_player(&low, &p);
         let mut o = Out::new();
         o.s(b"{\"height\":").n(now as u64).s(b",\"ready\":").n(now as u64 + 2).s(b",\"run\":").n(runs).s(b"}");
         reply(b"jack_in", &o);
@@ -399,6 +518,16 @@ mod chain {
             };
         }
 
+        // Leaderboard: only SCRAP that actually reached the player counts.
+        if (paid && scrap > 0) || full {
+            let mut p = load_player(&low).unwrap_or(Player { addr: [0; 32], scrap: 0, runs: 0, full: 0 });
+            if p.addr == [0; 32] { p.addr = address_hash(raw); }
+            if paid { p.scrap = p.scrap.saturating_add(scrap as u64); }
+            if full { p.full = p.full.saturating_add(1); }
+            save_player(&low, &p);
+            update_top(&p);
+        }
+
         o.s(b"{\"daemons\":[");
         for d in 0..3 { if d > 0 { o.s(b","); } o.s(if up[d] { b"true" } else { b"false" }); }
         o.s(b"],\"scrap\":").n(scrap as u64).s(b",\"scrap_paid\":").s(if paid || scrap == 0 { b"true" } else { b"false" });
@@ -438,6 +567,62 @@ mod chain {
         reply(b"withdraw", &o);
     }
 
+    #[no_mangle]
+    pub extern "C" fn withdraw_scrap() {
+        refuse_payment();
+        let (raw, _) = caller();
+        let mut owner = [0u8; CALLER_CAP];
+        let n = unsafe { host_storage_read(b"owner".as_ptr(), 5, owner.as_mut_ptr(), CALLER_CAP as u32) };
+        if n <= 0 || &owner[..n as usize] != raw { revert(); }
+        let mut amt = [0u64; 1];
+        if ints_after(args(), b"amount", &mut amt) != 1 || amt[0] == 0 || amt[0] > i64::MAX as u64 { revert(); }
+        if unsafe { host_token_transfer(TOKEN.as_ptr(), TOKEN.len() as u32, raw.as_ptr(), raw.len() as u32, amt[0] as i64) } != 0 {
+            revert();
+        }
+        let mut o = Out::new();
+        o.s(b"{\"withdrawn_scrap\":").n(amt[0]).s(b"}");
+        reply(b"withdraw_scrap", &o);
+    }
+
+    fn hex_out(o: &mut Out, bytes: &[u8]) {
+        const HEX: &[u8; 16] = b"0123456789abcdef";
+        for &b in bytes { o.s(&[HEX[(b >> 4) as usize], HEX[(b & 15) as usize]]); }
+    }
+
+    /// Free query: `{"players":n,"top":[{"addr":"<address hash hex>","scrap":n,"full":n},…]}`.
+    #[no_mangle]
+    pub extern "C" fn leaderboard() {
+        let mut buf = [0u8; TOP_N * ENTRY];
+        let n = load_top(&mut buf);
+        let mut o = Out::new();
+        o.s(b"{\"players\":").n(read_u64(b"s_players").unwrap_or(0)).s(b",\"top\":[");
+        for i in 0..n {
+            let e = &buf[i * ENTRY..(i + 1) * ENTRY];
+            if i > 0 { o.s(b","); }
+            o.s(b"{\"addr\":\"");
+            hex_out(&mut o, &e[..32]);
+            o.s(b"\",\"scrap\":").n(entry_scrap(&buf, i))
+                .s(b",\"full\":").n(u32::from_be_bytes(e[40..44].try_into().unwrap_or([0; 4])) as u64).s(b"}");
+        }
+        o.s(b"]}");
+        answer(&o);
+    }
+
+    /// Free query: the caller's totals and leaderboard place (`rank` is null outside the top list).
+    #[no_mangle]
+    pub extern "C" fn stats() {
+        let (_, low) = caller();
+        let p = load_player(&low).unwrap_or(Player { addr: [0; 32], scrap: 0, runs: 0, full: 0 });
+        let mut buf = [0u8; TOP_N * ENTRY];
+        let n = load_top(&mut buf);
+        let rank = if p.addr == [0; 32] { None } else { (0..n).find(|&i| buf[i * ENTRY..i * ENTRY + 32] == p.addr) };
+        let mut o = Out::new();
+        o.s(b"{\"scrap\":").n(p.scrap).s(b",\"runs\":").n(p.runs as u64).s(b",\"full\":").n(p.full as u64).s(b",\"rank\":");
+        match rank { Some(r) => { o.n(r as u64 + 1); } None => { o.s(b"null"); } }
+        o.s(b"}");
+        answer(&o);
+    }
+
     /// Free query: game constants and counters.
     #[no_mangle]
     pub extern "C" fn info() {
@@ -446,6 +631,7 @@ mod chain {
         o.s(b"{\"fee\":").n(ENTRY_FEE as u64).s(b",\"expiry\":").n(EXPIRY_BLOCKS as u64)
             .s(b",\"runs\":").n(read_u64(b"s_runs").unwrap_or(0))
             .s(b",\"full_breaches\":").n(read_u64(b"s_full").unwrap_or(0))
+            .s(b",\"players\":").n(read_u64(b"s_players").unwrap_or(0))
             .s(b",\"setup\":").s(if ready { b"true" } else { b"false" }).s(b"}");
         answer(&o);
     }

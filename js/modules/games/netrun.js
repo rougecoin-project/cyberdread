@@ -19,6 +19,7 @@ const EXTENSION_URL = ROUGECHAIN.ecosystem.flatMap((g) => g.items).find((i) => /
 const QWALLA_URL = 'https://qwalla.io';
 const isPhone = () => matchMedia('(pointer: coarse)').matches;
 const NUDGE_AFTER_MS = 8000;
+const NETRUN_TOP = 10;
 
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const short = (pk) => (pk ? `${pk.slice(0, 6)}…${pk.slice(-4)}` : '');
@@ -104,6 +105,7 @@ async function connect() {
         state.player = await chain.connect();
         playSound(SOUNDS.OPEN);
         render();
+        if (state.mode === 'top') return refreshTop();
         await refreshLive();
     } catch (error) {
         state.live = { phase: error.message === 'no-wallet' ? 'no-wallet' : 'idle', note: error.message === 'no-wallet' ? '' : `Wallet: ${error.message}` };
@@ -116,6 +118,56 @@ async function refreshInventory() {
     state.inventory = await chain.inventory(state.player).catch(() => state.inventory);
 }
 
+/* ----------------------------------------------------------- leaderboard */
+
+/** Loads the on-chain top list and, if connected, the player's own totals. */
+async function refreshTop() {
+    if (!chain.isConfigured()) return render();
+    state.top = { ...(state.top || {}), loading: true };
+    render();
+    try {
+        const [board, mine, myHash] = await Promise.all([
+            chain.leaderboard(),
+            state.player ? chain.stats(state.player).catch(() => null) : null,
+            state.player ? chain.addressHash(state.player).catch(() => null) : null
+        ]);
+        state.top = { board, mine, myHash, at: Date.now() };
+    } catch (error) {
+        state.top = { error: `Could not reach RougeChain: ${error.message}` };
+    }
+    if (state.mode === 'top') render();
+}
+
+function renderLeaderboard() {
+    const T = state.top;
+    if (!chain.isConfigured()) return panel('LEADERBOARD', '<p>The leaderboard goes live with the NETRUN contract.</p>');
+    if (!T || (T.loading && !T.board)) return panel('LEADERBOARD', '<p class="nr-wait"><span class="nr-spin"></span><span>Reading the chain…</span></p>');
+    if (T.error) return panel('LINK DOWN', `<p>${esc(T.error)}</p><button type="button" class="nr-btn" data-act="to-top">Retry</button>`);
+    const rows = T.board.top || [];
+    const addrShort = (a) => `${a.slice(0, 10)}…${a.slice(-6)}`;
+    const list = rows.length
+        ? rows.map((r, i) => {
+            const address = chain.toAddress(r.addr);
+            const me = T.myHash === r.addr;
+            return `<li class="${me ? 'nr-me' : ''}${i < 3 ? ` nr-podium nr-p${i + 1}` : ''}">
+                <span class="nr-rank">${i + 1}</span>
+                <span class="nr-who" title="${address}"><span class="nr-addr">${addrShort(address)}</span>${me ? '<em>you</em>' : ''}</span>
+                <span class="nr-full" title="Full breaches">${r.full ? `◆ ${r.full}` : ''}</span>
+                <b class="nr-score">${r.scrap.toLocaleString()} <small>SCRAP</small></b>
+            </li>`;
+        }).join('')
+        : '<li class="nr-empty">No SCRAP paid out yet. Be the first on the board.</li>';
+    const m = T.mine;
+    const mine = !state.player
+        ? '<p class="nr-fine">Connect a wallet to see your own totals.</p>'
+        : m ? `<p class="nr-mine">You: <b>${m.scrap.toLocaleString()} SCRAP</b> earned · ${m.runs} run${m.runs === 1 ? '' : 's'} · ${m.full} full breach${m.full === 1 ? '' : 'es'} · ${m.rank ? `rank <b>#${m.rank}</b>` : `not in the top ${NETRUN_TOP}`}</p>` : '';
+    return panel('SCRAP LEADERBOARD', `
+        <p class="nr-fine">Top runners by SCRAP the NETRUN contract has paid them, kept on-chain by the contract itself. ${T.board.players} runner${T.board.players === 1 ? '' : 's'} so far.</p>
+        <ol class="nr-board">${list}</ol>
+        ${mine}
+        <button type="button" class="nr-btn" data-act="to-top">Refresh</button>`);
+}
+
 /** Reads the player's run from the contract and resumes wherever it is. */
 async function refreshLive() {
     if (!chain.isConfigured()) return render();
@@ -125,7 +177,7 @@ async function refreshLive() {
         state.info = info;
         await refreshInventory();
         if (!run || !run.open) {
-            if (!['result', 'error'].includes(state.live.phase)) state.live = { phase: 'idle' };
+            if (!['result', 'error'].includes(state.live.phase)) state.live = { phase: 'idle', note: state.live.phase === 'idle' ? state.live.note : undefined };
         } else if (run.expired) {
             state.live = { phase: 'expired', height: run.height };
         } else if (!run.ready) {
@@ -237,6 +289,23 @@ async function showBreachResult(run, path, txId) {
     state.live = { ...run, phase: 'result', txId, result: { up, scrap: rewardFor(up), full: up.every(Boolean) } };
     playSound(SOUNDS.OPEN);
     render();
+}
+
+async function runSetup() {
+    state.live = { phase: 'paying', title: 'SWITCHING ON', note: `Approve setup in ${chain.walletName()}…` };
+    render();
+    try {
+        const tx = await chain.setup();
+        state.live.note = 'Switching the contract on…';
+        render();
+        const r = await chain.receipt(tx.txId);
+        if (!r.ok) throw new Error(r.error || 'setup failed');
+        state.live = { phase: 'idle', note: 'NETRUN is live. Jack in.' };
+    } catch (error) {
+        const m = friendly(error);
+        state.live = { phase: 'idle', note: /unreachable|would fail/i.test(m) ? 'Setup is locked to the owner\'s wallet, and this one is not it.' : m };
+    }
+    await refreshLive();
 }
 
 async function abandonRun() {
@@ -375,13 +444,13 @@ function renderLiveScreen() {
             <button type="button" class="nr-btn nr-primary" data-act="connect">Reconnect</button>`);
     }
     if (L.phase === 'paying' || L.phase === 'submitting') {
-        return panel(L.phase === 'paying' ? 'OPENING RUN' : 'UPLOADING', `<p class="nr-wait"><span class="nr-spin"></span><span>${esc(L.note || '')}</span></p>${L.txId ? `<a class="nr-link" href="${chain.explorerTx(L.txId)}" target="_blank" rel="noopener noreferrer">Transaction ${esc(L.txId.slice(0, 12))}…</a>` : ''}`);
+        return panel(L.title || (L.phase === 'paying' ? 'OPENING RUN' : 'UPLOADING'), `<p class="nr-wait"><span class="nr-spin"></span><span>${esc(L.note || '')}</span></p>${L.txId ? `<a class="nr-link" href="${chain.explorerTx(L.txId)}" target="_blank" rel="noopener noreferrer">Transaction ${esc(L.txId.slice(0, 12))}…</a>` : ''}`);
     }
     if (L.phase === 'sealing') {
         return panel('SEALING THE ICE', `
             <p class="nr-wait"><span class="nr-spin"></span><span>Run opened at block <b>${L.height}</b>. Your board is cut from the hash of block <b>${L.height + 1}</b>, which does not exist yet, so nobody (not even us) can know it in advance.</span></p>
             ${L.note ? `<p class="nr-note">${esc(L.note)}</p>` : ''}
-            ${L.canNudge ? `<p>RougeChain makes blocks when there is traffic. Quiet right now?</p><button type="button" class="nr-btn" data-act="nudge">Seal a block (~0.03 XRGE gas)</button>` : ''}`);
+            ${L.canNudge ? `<p>RougeChain makes blocks when there is traffic. Quiet right now?</p><button type="button" class="nr-btn" data-act="nudge">Seal a block (tiny gas fee)</button>` : ''}`);
     }
     if (L.phase === 'expired') {
         return panel('RUN EXPIRED', `
@@ -393,6 +462,12 @@ function renderLiveScreen() {
     }
     // idle
     const info = state.info;
+    if (info && info.setup === false) {
+        return panel('AWAITING THE OWNER', `
+            <p>This NETRUN contract is deployed but not switched on yet. Its owner runs setup once, which also creates the Implant NFT collection. The contract only accepts setup from the owner's wallet.</p>
+            ${L.note ? `<p class="nr-note">${esc(L.note)}</p>` : ''}
+            <button type="button" class="nr-btn nr-primary" data-act="setup">I'm the owner: run setup</button>`);
+    }
     return panel('JACK IN', `
         <p>Pay <b>${NETRUN.entryXrge} XRGE</b> to open a run. The board comes from the next block's hash, you get <b>${NETRUN.traceSeconds}s</b> on the clock, and the contract re-checks every move before it pays.</p>
         <ul class="nr-pays">
@@ -415,10 +490,12 @@ function render() {
     const inv = state.inventory;
     const walletChip = state.player
         ? `<span class="nr-chip" title="${esc(chain.walletName())}: ${esc(state.player)}"><i></i>${short(state.player)}${inv ? `${inv.scrap !== null ? ` · <b>${inv.scrap}</b> SCRAP` : ''}${inv.implants ? ` · ${inv.implants.length} Implant${inv.implants.length === 1 ? '' : 's'}` : ''}` : ''}</span>`
-        : live && chain.isConfigured() ? '<button type="button" class="nr-chip nr-chip-btn" data-act="connect">Connect wallet</button>' : '';
+        : (live || state.mode === 'top') && chain.isConfigured() ? '<button type="button" class="nr-chip nr-chip-btn" data-act="connect">Connect wallet</button>' : '';
 
     let body;
-    if (!live) {
+    if (state.mode === 'top') {
+        body = renderLeaderboard();
+    } else if (!live) {
         if (!state.practice) newPractice();
         body = renderGame(state.practice, { live: false });
     } else if (['board', 'result'].includes(state.live.phase) && state.live.board) {
@@ -431,8 +508,9 @@ function render() {
     root.innerHTML = `
     <div class="nr-top">
         <div class="nr-tabs" role="tablist" aria-label="Mode">
-            <button type="button" role="tab" aria-selected="${!live}" data-act="to-practice">Practice</button>
+            <button type="button" role="tab" aria-selected="${state.mode === 'practice'}" data-act="to-practice">Practice</button>
             <button type="button" role="tab" aria-selected="${live}" data-act="to-live">Live run <small>${esc(NETRUN.network.replace('RougeChain ', ''))}</small></button>
+            <button type="button" role="tab" aria-selected="${state.mode === 'top'}" data-act="to-top">Leaderboard</button>
         </div>
         ${walletChip}
     </div>
@@ -463,6 +541,10 @@ function onClick(event) {
             stopPoll();
             if (state.practice && !state.practice.result) startTimer(state.practice);
             return render();
+        case 'to-top':
+            state.mode = 'top';
+            stopTimer();
+            return refreshTop();
         case 'to-live':
             state.mode = 'live';
             stopTimer();
@@ -473,6 +555,7 @@ function onClick(event) {
         case 'finish': return finishPractice();
         case 'breach': return submitBreach();
         case 'abandon': return abandonRun();
+        case 'setup': return runSetup();
         case 'connect': return connect();
         case 'jack-in': case 'again-live': return jackIn();
         case 'nudge': return nudge();
