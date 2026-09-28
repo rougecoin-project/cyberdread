@@ -31,6 +31,7 @@
     <link rel="preload" href="assets/fonts/chakra-petch-600-latin.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="css/os.css">
+    <link rel="stylesheet" href="css/netrun.css">
     <link rel="preconnect" href="https://api.dexscreener.com" crossorigin>
     <link rel="preconnect" href="https://api.geckoterminal.com" crossorigin>
     <link rel="preconnect" href="https://api.rougechain.io" crossorigin>
@@ -110,6 +111,9 @@
                 <button type="button" class="start-menu-item" onclick="openTerminal()">
                     <img src="assets/img/file-icon.png" alt="" width="20" height="20"> term.exe
                 </button>
+                <button type="button" class="start-menu-item" onclick="openNetrun()">
+                    <img src="assets/img/netrun-icon.svg" alt="" width="20" height="20"> netrun.exe
+                </button>
                 <button type="button" class="start-menu-item" onclick="showAccessModal()">
                     <img src="assets/img/file-icon.png" alt="" width="20" height="20"> access.exe
                 </button>
@@ -164,6 +168,10 @@
                 <img src="assets/img/rougechain-icon.png" alt="" width="48" height="48">
                 <span class="icon-label">RougeChain</span>
             </button>
+            <button type="button" class="icon" onclick="openNetrun()">
+                <img src="assets/img/netrun-icon.svg" alt="" width="48" height="48">
+                <span class="icon-label">netrun.exe</span>
+            </button>
             <button type="button" class="icon" onclick="showAccessModal()">
                 <img src="assets/img/file-icon.png" alt="" width="48" height="48">
                 <span class="icon-label">access.exe</span>
@@ -205,6 +213,18 @@
                            autocapitalize="off" spellcheck="false" aria-label="Terminal input">
                 </div>
             </div>
+        </section>
+
+        <!-- NETRUN: breach-protocol game, live runs on RougeChain (js/modules/games/netrun.js) -->
+        <section id="netrun" class="app-window netrun-window" style="display: none;" aria-label="NETRUN">
+            <header class="window-header">
+                <span>netrun.exe — breach protocol</span>
+                <span class="window-buttons">
+                    <button type="button" onclick="toggleFullScreenWindow('netrun')" aria-label="Maximize">⛶</button>
+                    <button type="button" data-close onclick="closeNetrun()" aria-label="Close">✕</button>
+                </span>
+            </header>
+            <div id="netrunBody" class="netrun-body"></div>
         </section>
 
         <!-- Settings -->

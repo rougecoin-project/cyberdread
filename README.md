@@ -65,6 +65,10 @@ js/
       rouge-coin.js           RougeChain panel: live network, ecosystem, XRGE
       chat.js                 message board client
       tooltips.js             first-run tour
+    games/
+      netrun.js               netrun.exe window: practice + live runs
+      netrun-rules.js         board generation and scoring (mirrors the contract)
+      netrun-chain.js         NETRUN contract calls via the RougeChain Wallet
     web3/
       rougechain.js           RougeChain node API (height, validators, fees)
       market.js               DEXScreener client
@@ -73,6 +77,7 @@ js/
 netlify/functions/            chat backend + Dead Circuit claim/download
 netlify/lib/                  shared code for the functions
 dead-circuit/                 Dead Circuit zine: store, reader, gate, PDF
+netrun/contract/              NETRUN smart contract (Rust → WASM) for RougeChain
 ```
 
 ## Dead Circuit
@@ -187,6 +192,17 @@ Chinese are larger because of their fonts). Plain PDFs land in `dist-pdf/`,
 which is git-ignored; commit only `dead-circuit/sealed/` and
 `content/issue-01/*.enc`.
 
+## NETRUN
+
+`netrun.exe` is a breach-protocol hacking game. Practice boards are free; live runs cost
+0.1 XRGE through the RougeChain Wallet extension and are dealt, checked and paid by a smart
+contract on RougeChain: SCRAP tokens per daemon uploaded, and an Implant NFT for a full breach.
+The board comes from the hash of the block after you pay, so nobody can know it in advance.
+
+The contract, its tests and the mainnet deploy steps are in [netrun/README.md](netrun/README.md).
+The Live tab stays in "coming online" mode until `NETRUN.contract` in
+`js/data/site-config.js` holds the deployed address.
+
 ## term.exe
 
 The terminal is a real shell over the site's own content. `help` lists
@@ -201,6 +217,7 @@ everything; notable commands:
 | `neofetch` | system summary |
 | `theme <name>` | `ice`, `acid`, `magenta`, `amber` |
 | `matrix` | digital rain |
+| `netrun` | opens netrun.exe |
 
 Tab completes, Up/Down walks history, Ctrl+L clears.
 

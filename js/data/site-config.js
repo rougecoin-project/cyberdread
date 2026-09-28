@@ -317,3 +317,22 @@ export const CHAIN = {
     rpcUrls: ['https://mainnet.base.org'],
     nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 }
 };
+
+/**
+ * NETRUN — the breach-protocol game in netrun.exe (contract source: netrun/contract).
+ *
+ * Paste the contract address here after deploying it (see netrun/README.md). Until then the game
+ * runs practice boards only. The page talks to `api` for free queries and to the RougeChain Wallet
+ * extension for signing; set both to the testnet to try a testnet deployment.
+ */
+export const NETRUN = {
+    contract: '',
+    network: 'RougeChain mainnet',
+    api: 'https://api.rougechain.io/api',
+    explorer: 'https://rougechain.io',
+    entryXrge: 0.1,
+    // Gas limits (fee = gas limit × 0.000001 XRGE). Measured: jack_in ~22k, breach ~42k.
+    gas: { jackIn: 40_000, breach: 80_000, small: 30_000 },
+    // How long a board is on screen before the trace completes. The chain does not enforce it.
+    traceSeconds: 90
+};

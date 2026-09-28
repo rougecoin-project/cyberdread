@@ -1,0 +1,16 @@
+[package]
+name = "netrun"
+version = "0.1.0"
+edition = "2021"
+description = "NETRUN: a breach-protocol hacking game on RougeChain. Boards come from a future block hash; every move is verified on-chain."
+license = "MIT"
+
+[lib]
+# cdylib for the chain; rlib so `cargo test` can exercise the pure game logic natively.
+crate-type = ["cdylib", "rlib"]
+
+[profile.release]
+opt-level = "s"
+lto = true
+strip = true
+panic = "abort"

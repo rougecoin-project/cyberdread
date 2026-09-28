@@ -241,6 +241,14 @@ const COMMANDS = {
         }
     },
 
+    netrun: {
+        describe: 'jack in: breach-protocol game, live runs on RougeChain',
+        run() {
+            print('launching netrun.exe…', 'term-ok');
+            window.openNetrun?.();
+        }
+    },
+
     date: {
         describe: 'current system time',
         run() {
