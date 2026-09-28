@@ -65,7 +65,7 @@ function stopPoll() {
 function onTraceComplete(game) {
     if (game === state.practice && !game.result) return finishPractice();
     if (state.mode === 'live' && state.live.phase === 'board') {
-        if (state.live.path.length) submitBreach();
+        if (state.live.path.length && !state.live.retry) submitBreach();
         else {
             state.live.note = 'Trace complete. Upload at least one code, or abandon the run.';
             render();
@@ -208,22 +208,31 @@ async function submitBreach() {
     const path = [...run.path];
     state.live = { ...run, phase: 'submitting', note: 'Approve the upload in RougeChain Wallet…' };
     render();
+    let tx = null;
     try {
-        const tx = await chain.breach(path);
+        tx = await chain.breach(path);
         state.live.note = 'Uploading. The contract is checking your moves…';
         state.live.txId = tx.txId;
         render();
         const r = await chain.receipt(tx.txId);
         if (!r.ok) throw new Error(r.error || 'The contract rejected the path.');
-        const up = score(run.board, path);
-        await refreshInventory();
-        state.live = { ...run, phase: 'result', txId: tx.txId, result: { up, scrap: rewardFor(up), full: up.every(Boolean) } };
-        playSound(SOUNDS.OPEN);
+        await showBreachResult(run, path, tx.txId);
     } catch (error) {
-        // The run is still open on-chain: go back to the board to try again.
-        state.live = { ...run, phase: 'board', note: friendly(error) };
-        startTimer(state.live);
+        // Once submitted, the chain decides: if the run closed, the upload went through.
+        const open = tx ? await chain.board(state.player).then((b) => b?.open).catch(() => true) : true;
+        if (!open) return showBreachResult(run, path, tx.txId);
+        // The run is still open on-chain: back to the board. Never re-submit on its own.
+        state.live = { ...run, phase: 'board', note: friendly(error), retry: true };
+        if (run.deadline > Date.now()) startTimer(state.live);
     }
+    render();
+}
+
+async function showBreachResult(run, path, txId) {
+    const up = score(run.board, path);
+    await refreshInventory();
+    state.live = { ...run, phase: 'result', txId, result: { up, scrap: rewardFor(up), full: up.every(Boolean) } };
+    playSound(SOUNDS.OPEN);
     render();
 }
 
@@ -245,6 +254,7 @@ function friendly(error) {
     if (/insufficient|balance/i.test(m)) return `Not enough XRGE for the entry fee plus gas (about ${(NETRUN.entryXrge + 0.1).toFixed(2)} XRGE).`;
     if (m === 'receipt-timeout') return 'The chain has not confirmed it yet. Reopen netrun.exe in a minute to resume.';
     if (m === 'no-wallet') return 'Install RougeChain Wallet to play live runs.';
+    if (/contract not found/i.test(m)) return `Your wallet is on a different network. Switch RougeChain Wallet to ${NETRUN.network.replace('RougeChain ', '')} and try again.`;
     return m.length > 160 ? `${m.slice(0, 160)}…` : m;
 }
 

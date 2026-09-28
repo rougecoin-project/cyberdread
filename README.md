@@ -200,8 +200,8 @@ contract on RougeChain: SCRAP tokens per daemon uploaded, and an Implant NFT for
 The board comes from the hash of the block after you pay, so nobody can know it in advance.
 
 The contract, its tests and the mainnet deploy steps are in [netrun/README.md](netrun/README.md).
-The Live tab stays in "coming online" mode until `NETRUN.contract` in
-`js/data/site-config.js` holds the deployed address.
+Live runs currently use the testnet deployment (switch RougeChain Wallet to Testnet);
+`NETRUN` in `js/data/site-config.js` says which contract and network the Live tab uses.
 
 ## term.exe
 

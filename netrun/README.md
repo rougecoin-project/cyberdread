@@ -80,5 +80,14 @@ You need a wallet with roughly 115 XRGE plus whatever SCRAP float you want to fu
    works.
 5. Collect entry fees with `withdraw` (`{"amount": <quanta>}`, 1 XRGE = 1e9 quanta).
 
-Testnet note: testnet.rougechain.io still runs a node without contract execution, so a
-testnet dry run needs that node upgraded first.
+## Testnet deployment
+
+NETRUN is live on RougeChain testnet (`rougechain-devnet-1`) at
+`ec10bc50a955d1165a5903a6ab4d0601cf93233c`, and the site's Live tab points there. Switch
+RougeChain Wallet to **Testnet** and use the faucet to play. It was deployed from a throwaway
+test key with the owner lock set, SCRAP is a testnet token funded with 500,000, and full breaches
+through the site have settled on-chain (85 SCRAP + an Implant each).
+
+For mainnet, deploy a fresh build locked to your own key and update `NETRUN` in
+`js/data/site-config.js` (contract, `network: 'RougeChain mainnet'`,
+`api: 'https://api.rougechain.io/api'`, `explorer: 'https://rougechain.io'`).

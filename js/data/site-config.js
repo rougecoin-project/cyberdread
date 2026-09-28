@@ -326,10 +326,14 @@ export const CHAIN = {
  * extension for signing; set both to the testnet to try a testnet deployment.
  */
 export const NETRUN = {
-    contract: '',
-    network: 'RougeChain mainnet',
-    api: 'https://api.rougechain.io/api',
-    explorer: 'https://rougechain.io',
+    // Testnet deployment (switch RougeChain Wallet to Testnet to play). For mainnet, set the
+    // mainnet contract, network 'RougeChain mainnet', api https://api.rougechain.io/api and
+    // explorer https://rougechain.io.
+    contract: 'ec10bc50a955d1165a5903a6ab4d0601cf93233c',
+    network: 'RougeChain testnet',
+    api: 'https://testnet.rougechain.io/api',
+    // Block explorer for tx/contract links; empty links to the node's raw JSON instead.
+    explorer: '',
     entryXrge: 0.1,
     // Gas limits (fee = gas limit × 0.000001 XRGE). Measured: jack_in ~22k, breach ~42k.
     gas: { jackIn: 40_000, breach: 80_000, small: 30_000 },

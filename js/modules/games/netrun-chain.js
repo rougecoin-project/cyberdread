@@ -102,7 +102,8 @@ export async function receipt(txId, { timeoutMs = 90_000 } = {}) {
                 return { ok: false, error: status.Failed || JSON.stringify(status), height: r.receipt.block_height };
             }
         } catch (error) {
-            if (error.status !== 404) throw error;
+            // 404 = not mined yet. Network hiccups are retried too: the tx is already submitted.
+            if (error.status && error.status !== 404) throw error;
         }
         await new Promise((resolve) => setTimeout(resolve, 1200));
     }
@@ -123,5 +124,5 @@ export async function inventory(player) {
     };
 }
 
-export const explorerTx = (txId) => `${NETRUN.explorer}/tx/${txId}`;
-export const explorerContract = () => `${NETRUN.explorer}/contract/${NETRUN.contract}`;
+export const explorerTx = (txId) => (NETRUN.explorer ? `${NETRUN.explorer}/tx/${txId}` : `${NETRUN.api}/tx/${txId}/receipt`);
+export const explorerContract = () => (NETRUN.explorer ? `${NETRUN.explorer}/contract/${NETRUN.contract}` : `${NETRUN.api}/contract/${NETRUN.contract}`);
