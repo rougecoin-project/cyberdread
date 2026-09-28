@@ -254,7 +254,13 @@ async function abandonRun() {
 function friendly(error) {
     const m = String(error?.message || error);
     if (/reject|denied|cancel/i.test(m)) return 'Cancelled in the wallet.';
-    if (/insufficient|balance/i.test(m)) return `Not enough XRGE for the entry fee plus gas (about ${(NETRUN.entryXrge + 0.1).toFixed(2)} XRGE).`;
+    if (/insufficient|balance/i.test(m)) {
+        // The node says what it saw ("have 0.000000, need 0.140000"). If the wallet shows more than
+        // that, it signed for a different network than NETRUN runs on.
+        const seen = m.match(/have ([\d.]+)/);
+        return `Not enough XRGE on ${NETRUN.networkId} for the entry fee plus gas (about ${(NETRUN.entryXrge + 0.12).toFixed(2)} XRGE)`
+            + (seen ? `: the node sees ${Number(seen[1])} XRGE. If your wallet shows more, it is sending to another network: set its node to ${NETRUN.api}.` : '.');
+    }
     if (m === 'receipt-timeout') return 'The chain has not confirmed it yet. Reopen netrun.exe in a minute to resume.';
     if (m === 'no-wallet') return 'Open this page in Qwalla, or install the RougeChain Wallet extension, to play live runs.';
     if (/contract not found/i.test(m)) return `Your wallet is on a different network. Switch ${chain.walletName()} to ${NETRUN.networkId} and try again.`;
@@ -396,7 +402,7 @@ function renderLiveScreen() {
         ${L.note ? `<p class="nr-note">${esc(L.note)}</p>` : ''}
         ${jackInButton()}
         ${info ? `<p class="nr-fine">${info.runs} runs · ${info.full_breaches} full breaches · <a href="${chain.explorerContract()}" target="_blank" rel="noopener noreferrer">contract</a></p>` : ''}
-        <p class="nr-fine">Skill game: rewards depend only on the moves you make. Not every board can be fully breached. Gas is extra (about 0.06 XRGE per run).</p>`);
+        <p class="nr-fine">Skill game: rewards depend only on the moves you make. Not every board can be fully breached. Network fees are extra (up to ${((NETRUN.gas.jackIn + NETRUN.gas.breach) / 1e6).toFixed(2)} XRGE per run).</p>`);
 }
 
 const jackInButton = () => `<button type="button" class="nr-btn nr-primary nr-big" data-act="jack-in">Jack in · ${NETRUN.entryXrge} XRGE</button>`;
