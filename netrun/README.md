@@ -48,11 +48,15 @@ With neither, the Live tab offers both; on phones it leads with "Open in Qwalla"
 | `breach` | tx | `{"path":[cells]}` → daemons uploaded, SCRAP paid, Implant id |
 | `abandon` | tx | Closes your open run |
 | `withdraw` | tx, owner | `{"amount": quanta}` sends collected fees to the owner |
-| `info` | query | Fee, expiry, runs played, full breaches, whether setup ran |
+| `withdraw_scrap` | tx, owner | `{"amount": n}` moves SCRAP out (e.g. to fund a new version) |
+| `info` | query | Fee, expiry, runs, full breaches, players, whether setup ran |
+| `leaderboard` | query | `{players, top:[{addr, scrap, full}]}`, the top 10 by SCRAP paid |
+| `stats` | query | The caller's `{scrap, runs, full, rank}` |
 
 Gas measured in the RougeChain VM: `jack_in` ≈ 22k, `board` ≈ 39k (free query), `breach`
-≈ 40k. The fee is gas limit × 0.000001 XRGE and the site sets limits of 40k / 80k, so a run
-costs the 0.1 XRGE entry plus at most 0.12 XRGE in fees.
+≈ 43k (≈ 65k the first time a player earns, see Leaderboard). The fee is gas limit × 0.000001
+XRGE; the page previews each call and signs for what it needs plus 25%, so a run costs the 0.1
+XRGE entry plus about 0.09 XRGE in fees.
 
 `src/logic.rs` holds the pure rules; `js/modules/games/netrun-rules.js` is an exact mirror
 used for practice boards and path previews. `src/tests.rs` prints the vectors the JS is
@@ -96,17 +100,33 @@ You need a wallet with roughly 115 XRGE plus whatever SCRAP float you want to fu
    works.
 5. Collect entry fees with `withdraw` (`{"amount": <quanta>}`, 1 XRGE = 1e9 quanta).
 
+## Leaderboard
+
+The contract keeps the SCRAP leaderboard itself, so it can't be edited or faked:
+
+- Every paying breach adds the SCRAP that actually reached the player (not SCRAP bought or
+  transferred in) to their record, along with runs and full breaches.
+- A sorted top 10 lives in contract storage and is updated in the same transaction.
+- Players are stored by address hash, sha256 of the raw public key, which is exactly what a
+  `rouge1…` address encodes; the page turns it into the address (`toAddress` in
+  `netrun-chain.js`).
+- Recording a player's address hash the first time they earn costs ~22k extra gas once
+  (decoding the 3.9 KB key); later breaches cost the same as before.
+
+The game window has a **Leaderboard** tab with the top 10, your own totals and rank.
+
 ## Testnet deployment
 
 NETRUN runs on RougeChain testnet (`rougechain-devnet-1`) at
-`c1ec13bb7e4859fcd5f187fb232898c77c4f5863`, and the site's Live tab points there. It is
-owner-locked to `rouge1aw424sfk3w9h2grllyhwpgjsngcu8cegyuksdfdgtye05lmwrpjqg8dk4n` and
-funded with 400,000 testnet SCRAP. Until the owner runs setup, the Live tab shows
-"Awaiting the owner" with a setup button (the contract refuses setup from any other wallet).
-Switch Qwalla or RougeChain Wallet to **Testnet** and use the faucet to play.
+`7c760c6c3ad9d344a6b49dc63ca6d0ea92f28a3a`, and the site's Live tab points there. It is
+owner-locked to `rouge1aw424sfk3w9h2grllyhwpgjsngcu8cegyuksdfdgtye05lmwrpjqg8dk4n` and funded
+with 99,650 testnet SCRAP. Until the owner runs setup, the Live tab shows "Awaiting the owner"
+with a setup button (the contract refuses setup from any other wallet). Switch Qwalla or
+RougeChain Wallet to **Testnet** and use the faucet to play.
 
-An earlier test deployment (`ec10bc50a955d1165a5903a6ab4d0601cf93233c`, locked to a throwaway
-key) played the first runs, including full breaches through the site.
+Earlier test deployments: `ec10bc50…233c` and `c1ec13bb…4f5863` (before the leaderboard; the
+latter holds 400,000 SCRAP that version can't release), plus leaderboard test copies whose SCRAP
+was recovered with `withdraw_scrap`.
 
 For mainnet, deploy a fresh build locked to your own key and update `NETRUN` in
 `js/data/site-config.js` (contract, `network: 'RougeChain mainnet'`,

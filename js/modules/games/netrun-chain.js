@@ -61,10 +61,11 @@ export async function height() {
     return Number(stats.network_height);
 }
 
-/** Free, read-only contract call. */
-export async function query(method, caller, args = {}) {
+/** Free, read-only contract call. With `attach` (and a caller) it previews a paid call. */
+export async function query(method, caller, args = {}, attach) {
     const body = { method, args };
     if (caller) body.caller = caller;
+    if (attach) body.attach = attach;
     const r = await api(`/contract/${NETRUN.contract}/query`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
@@ -76,6 +77,46 @@ export async function query(method, caller, args = {}) {
 
 export const info = () => query('info');
 export const board = (player) => query('board', player);
+/** `{players, top:[{addr, scrap, full}]}`: top players by SCRAP the contract has paid them. */
+export const leaderboard = () => query('leaderboard');
+/** `{scrap, runs, full, rank}` for one player (rank is null outside the top list). */
+export const stats = (player) => query('stats', player);
+
+/* rouge1 addresses are bech32m("rouge", sha256(raw public key)); the leaderboard stores that hash. */
+const B32 = 'qpzry9x8gf2tvdw0s3jn54khce6mua7l';
+function polymod(values) {
+    const GEN = [0x3b6a57b2, 0x26508e6d, 0x1ea119fa, 0x3d4233dd, 0x2a1462b3];
+    let chk = 1;
+    for (const v of values) {
+        const top = chk >>> 25;
+        chk = ((chk & 0x1ffffff) << 5) ^ v;
+        for (let i = 0; i < 5; i++) if ((top >>> i) & 1) chk ^= GEN[i];
+    }
+    return chk >>> 0;
+}
+/** The `rouge1…` address for a 32-byte address hash (hex). */
+export function toAddress(hashHex) {
+    const hrp = 'rouge';
+    const data = [];
+    let acc = 0, bits = 0;
+    for (const byte of hashHex.match(/../g).map((h) => parseInt(h, 16))) {
+        acc = (acc << 8) | byte; bits += 8;
+        while (bits >= 5) { bits -= 5; data.push((acc >>> bits) & 31); }
+        acc &= (1 << bits) - 1;
+    }
+    if (bits > 0) data.push((acc << (5 - bits)) & 31);
+    const expand = [...hrp].map((c) => c.charCodeAt(0) >> 5).concat(0, [...hrp].map((c) => c.charCodeAt(0) & 31));
+    const pm = (polymod(expand.concat(data, [0, 0, 0, 0, 0, 0])) ^ 0x2bc830a3) >>> 0;
+    const check = Array.from({ length: 6 }, (_, i) => (pm >>> (5 * (5 - i))) & 31);
+    return `${hrp}1${data.concat(check).map((d) => B32[d]).join('')}`;
+}
+
+/** sha256 of a public key's raw bytes, hex: the hash `toAddress` encodes. */
+export async function addressHash(publicKeyHex) {
+    const bytes = Uint8Array.from(publicKeyHex.match(/../g), (h) => parseInt(h, 16));
+    const digest = await crypto.subtle.digest('SHA-256', bytes);
+    return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, '0')).join('');
+}
 
 /** Network the wallet reports (Qwalla does; the extension doesn't say), e.g. 'testnet'. */
 let walletNetwork = null;
@@ -134,10 +175,31 @@ async function qwallaCall(w, payload) {
 async function call(method, args, gasLimit, attach) {
     const w = wallet();
     if (!w) throw new Error('no-wallet');
+    gasLimit = await fitGas(method, args, gasLimit, attach);
     const payload = { type: 'contract_call', contractAddr: NETRUN.contract, method, args, gasLimit };
     if (attach) payload.attach = attach;
     if (walletKind() === 'qwalla') return qwallaCall(w, payload);
     return w.sendTransaction(payload);
+}
+
+/**
+ * Fees are charged on the gas limit, so sign for what a free preview says the call needs, plus
+ * 25% headroom, capped at 10x the configured limit. Falls back to the configured limit.
+ */
+async function fitGas(method, args, fallback, attach) {
+    if (!walletKey) return fallback;
+    try {
+        const body = { method, args, caller: walletKey };
+        if (attach) body.attach = attach;
+        const r = await api(`/contract/${NETRUN.contract}/query`, {
+            method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body)
+        });
+        const used = Number(r.gasUsed);
+        if (!r.success || !(used > 0)) return fallback;
+        return Math.min(Math.ceil(used * 1.25) + 1000, fallback * 10);
+    } catch {
+        return fallback;
+    }
 }
 
 export const jackIn = () => call('jack_in', {}, NETRUN.gas.jackIn, {

@@ -329,14 +329,16 @@ export const NETRUN = {
     // Testnet deployment (switch Qwalla or RougeChain Wallet to Testnet to play). For mainnet, set the
     // mainnet contract, network 'RougeChain mainnet', networkId 'mainnet', api https://api.rougechain.io/api and
     // explorer https://rougechain.io.
-    contract: 'c1ec13bb7e4859fcd5f187fb232898c77c4f5863',
+    contract: '7c760c6c3ad9d344a6b49dc63ca6d0ea92f28a3a',
     network: 'RougeChain testnet',
     networkId: 'testnet', // as wallets name it: 'mainnet' | 'testnet'
     api: 'https://testnet.rougechain.io/api',
     // Block explorer for tx/contract links; empty links to the node's raw JSON instead.
     explorer: '',
     entryXrge: 0.1,
-    // Gas limits (fee = gas limit × 0.000001 XRGE). Measured: jack_in ~22k, breach ~42k.
+    // Fallback gas limits (fee = gas limit × 0.000001 XRGE). The page previews each call and signs
+    // for what it needs + 25% (jack_in ~29k, breach ~56k; a player's first paying breach ~65-70k
+    // because it records their address for the leaderboard).
     gas: { jackIn: 40_000, breach: 80_000, small: 30_000 },
     // How long a board is on screen before the trace completes. The chain does not enforce it.
     traceSeconds: 90
