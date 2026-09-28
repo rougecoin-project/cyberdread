@@ -146,6 +146,8 @@ export const jackIn = () => call('jack_in', {}, NETRUN.gas.jackIn, {
 });
 export const breach = (path) => call('breach', { path }, NETRUN.gas.breach);
 export const abandon = () => call('abandon', {}, NETRUN.gas.small);
+/** Owner-only, once: switches the contract on and creates the Implant collection. */
+export const setup = () => call('setup', {}, 60_000);
 /** A harmless contract call. Blocks are made only when there is a transaction, so this seals one. */
 export const nudge = () => call('info', {}, NETRUN.gas.small);
 

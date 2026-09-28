@@ -329,7 +329,7 @@ export const NETRUN = {
     // Testnet deployment (switch Qwalla or RougeChain Wallet to Testnet to play). For mainnet, set the
     // mainnet contract, network 'RougeChain mainnet', networkId 'mainnet', api https://api.rougechain.io/api and
     // explorer https://rougechain.io.
-    contract: 'ec10bc50a955d1165a5903a6ab4d0601cf93233c',
+    contract: 'c1ec13bb7e4859fcd5f187fb232898c77c4f5863',
     network: 'RougeChain testnet',
     networkId: 'testnet', // as wallets name it: 'mainnet' | 'testnet'
     api: 'https://testnet.rougechain.io/api',

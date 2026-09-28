@@ -125,7 +125,7 @@ async function refreshLive() {
         state.info = info;
         await refreshInventory();
         if (!run || !run.open) {
-            if (!['result', 'error'].includes(state.live.phase)) state.live = { phase: 'idle' };
+            if (!['result', 'error'].includes(state.live.phase)) state.live = { phase: 'idle', note: state.live.phase === 'idle' ? state.live.note : undefined };
         } else if (run.expired) {
             state.live = { phase: 'expired', height: run.height };
         } else if (!run.ready) {
@@ -237,6 +237,23 @@ async function showBreachResult(run, path, txId) {
     state.live = { ...run, phase: 'result', txId, result: { up, scrap: rewardFor(up), full: up.every(Boolean) } };
     playSound(SOUNDS.OPEN);
     render();
+}
+
+async function runSetup() {
+    state.live = { phase: 'paying', title: 'SWITCHING ON', note: `Approve setup in ${chain.walletName()}…` };
+    render();
+    try {
+        const tx = await chain.setup();
+        state.live.note = 'Switching the contract on…';
+        render();
+        const r = await chain.receipt(tx.txId);
+        if (!r.ok) throw new Error(r.error || 'setup failed');
+        state.live = { phase: 'idle', note: 'NETRUN is live. Jack in.' };
+    } catch (error) {
+        const m = friendly(error);
+        state.live = { phase: 'idle', note: /unreachable|would fail/i.test(m) ? 'Setup is locked to the owner\'s wallet, and this one is not it.' : m };
+    }
+    await refreshLive();
 }
 
 async function abandonRun() {
@@ -375,7 +392,7 @@ function renderLiveScreen() {
             <button type="button" class="nr-btn nr-primary" data-act="connect">Reconnect</button>`);
     }
     if (L.phase === 'paying' || L.phase === 'submitting') {
-        return panel(L.phase === 'paying' ? 'OPENING RUN' : 'UPLOADING', `<p class="nr-wait"><span class="nr-spin"></span><span>${esc(L.note || '')}</span></p>${L.txId ? `<a class="nr-link" href="${chain.explorerTx(L.txId)}" target="_blank" rel="noopener noreferrer">Transaction ${esc(L.txId.slice(0, 12))}…</a>` : ''}`);
+        return panel(L.title || (L.phase === 'paying' ? 'OPENING RUN' : 'UPLOADING'), `<p class="nr-wait"><span class="nr-spin"></span><span>${esc(L.note || '')}</span></p>${L.txId ? `<a class="nr-link" href="${chain.explorerTx(L.txId)}" target="_blank" rel="noopener noreferrer">Transaction ${esc(L.txId.slice(0, 12))}…</a>` : ''}`);
     }
     if (L.phase === 'sealing') {
         return panel('SEALING THE ICE', `
@@ -393,6 +410,12 @@ function renderLiveScreen() {
     }
     // idle
     const info = state.info;
+    if (info && info.setup === false) {
+        return panel('AWAITING THE OWNER', `
+            <p>This NETRUN contract is deployed but not switched on yet. Its owner runs setup once, which also creates the Implant NFT collection. The contract only accepts setup from the owner's wallet.</p>
+            ${L.note ? `<p class="nr-note">${esc(L.note)}</p>` : ''}
+            <button type="button" class="nr-btn nr-primary" data-act="setup">I'm the owner: run setup</button>`);
+    }
     return panel('JACK IN', `
         <p>Pay <b>${NETRUN.entryXrge} XRGE</b> to open a run. The board comes from the next block's hash, you get <b>${NETRUN.traceSeconds}s</b> on the clock, and the contract re-checks every move before it pays.</p>
         <ul class="nr-pays">
@@ -473,6 +496,7 @@ function onClick(event) {
         case 'finish': return finishPractice();
         case 'breach': return submitBreach();
         case 'abandon': return abandonRun();
+        case 'setup': return runSetup();
         case 'connect': return connect();
         case 'jack-in': case 'again-live': return jackIn();
         case 'nudge': return nudge();

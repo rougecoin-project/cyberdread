@@ -98,11 +98,15 @@ You need a wallet with roughly 115 XRGE plus whatever SCRAP float you want to fu
 
 ## Testnet deployment
 
-NETRUN is live on RougeChain testnet (`rougechain-devnet-1`) at
-`ec10bc50a955d1165a5903a6ab4d0601cf93233c`, and the site's Live tab points there. Switch
-Qwalla or RougeChain Wallet to **Testnet** and use the faucet to play. It was deployed from a throwaway
-test key with the owner lock set, SCRAP is a testnet token funded with 500,000, and full breaches
-through the site have settled on-chain (85 SCRAP + an Implant each).
+NETRUN runs on RougeChain testnet (`rougechain-devnet-1`) at
+`c1ec13bb7e4859fcd5f187fb232898c77c4f5863`, and the site's Live tab points there. It is
+owner-locked to `rouge1aw424sfk3w9h2grllyhwpgjsngcu8cegyuksdfdgtye05lmwrpjqg8dk4n` and
+funded with 400,000 testnet SCRAP. Until the owner runs setup, the Live tab shows
+"Awaiting the owner" with a setup button (the contract refuses setup from any other wallet).
+Switch Qwalla or RougeChain Wallet to **Testnet** and use the faucet to play.
+
+An earlier test deployment (`ec10bc50a955d1165a5903a6ab4d0601cf93233c`, locked to a throwaway
+key) played the first runs, including full breaches through the site.
 
 For mainnet, deploy a fresh build locked to your own key and update `NETRUN` in
 `js/data/site-config.js` (contract, `network: 'RougeChain mainnet'`,
