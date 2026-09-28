@@ -22,6 +22,7 @@ import { initWindowManager, toggleFullScreenWindow } from './modules/ui/window-m
 import { initTerminal, openTerminal, closeTerminal } from './modules/ui/terminal.js';
 import { initSettings, openSettings, closeSettings } from './modules/ui/settings.js';
 import { initTaskbar } from './modules/ui/taskbar.js';
+import { initNetrun, openNetrun, closeNetrun } from './modules/games/netrun.js';
 
 /**
  * Opens the encrypted-access modal.
@@ -81,7 +82,9 @@ Object.assign(window, {
     openSettings,
     closeSettings,
     showAccessModal,
-    handleAccess
+    handleAccess,
+    openNetrun,
+    closeNetrun
 });
 
 // Lets modules request a sound without importing the sound module.
@@ -104,6 +107,7 @@ function initializeApp() {
     initExplorerResize();
     initMusicPlayerEventListeners();
     initTerminal();
+    initNetrun();
     initChat();
 
     initWalletEventListeners();

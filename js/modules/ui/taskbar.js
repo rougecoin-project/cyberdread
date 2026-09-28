@@ -12,7 +12,8 @@ const WINDOW_TITLES = {
     musicPlayer: 'Music',
     rougeCoinInterface: 'RougeChain',
     terminal: 'term.exe',
-    settingsPanel: 'Settings'
+    settingsPanel: 'Settings',
+    netrun: 'netrun.exe'
 };
 
 const openWindows = new Set();
