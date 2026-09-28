@@ -16,6 +16,8 @@ import * as chain from './netrun-chain.js';
 
 const EXTENSION_URL = ROUGECHAIN.ecosystem.flatMap((g) => g.items).find((i) => /extension/i.test(i.name))?.url
     || 'https://chromewebstore.google.com/detail/rougechain-wallet/ilkbgjgphhaolfdjkfefdfiifipmhakj';
+const QWALLA_URL = 'https://qwalla.io';
+const isPhone = () => matchMedia('(pointer: coarse)').matches;
 const NUDGE_AFTER_MS = 8000;
 
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -101,6 +103,7 @@ async function connect() {
     try {
         state.player = await chain.connect();
         playSound(SOUNDS.OPEN);
+        render();
         await refreshLive();
     } catch (error) {
         state.live = { phase: error.message === 'no-wallet' ? 'no-wallet' : 'idle', note: error.message === 'no-wallet' ? '' : `Wallet: ${error.message}` };
@@ -170,7 +173,7 @@ function beginSealing(height) {
 }
 
 async function jackIn() {
-    state.live = { phase: 'paying', note: 'Approve the entry fee in RougeChain Wallet…' };
+    state.live = { phase: 'paying', note: `Approve the entry fee in ${chain.walletName()}…` };
     render();
     try {
         const tx = await chain.jackIn();
@@ -206,7 +209,7 @@ async function submitBreach() {
     if (!run.path.length) return;
     stopTimer();
     const path = [...run.path];
-    state.live = { ...run, phase: 'submitting', note: 'Approve the upload in RougeChain Wallet…' };
+    state.live = { ...run, phase: 'submitting', note: `Approve the upload in ${chain.walletName()}…` };
     render();
     let tx = null;
     try {
@@ -253,8 +256,8 @@ function friendly(error) {
     if (/reject|denied|cancel/i.test(m)) return 'Cancelled in the wallet.';
     if (/insufficient|balance/i.test(m)) return `Not enough XRGE for the entry fee plus gas (about ${(NETRUN.entryXrge + 0.1).toFixed(2)} XRGE).`;
     if (m === 'receipt-timeout') return 'The chain has not confirmed it yet. Reopen netrun.exe in a minute to resume.';
-    if (m === 'no-wallet') return 'Install RougeChain Wallet to play live runs.';
-    if (/contract not found/i.test(m)) return `Your wallet is on a different network. Switch RougeChain Wallet to ${NETRUN.network.replace('RougeChain ', '')} and try again.`;
+    if (m === 'no-wallet') return 'Open this page in Qwalla, or install the RougeChain Wallet extension, to play live runs.';
+    if (/contract not found/i.test(m)) return `Your wallet is on a different network. Switch ${chain.walletName()} to ${NETRUN.networkId} and try again.`;
     return m.length > 160 ? `${m.slice(0, 160)}…` : m;
 }
 
@@ -343,15 +346,27 @@ function renderLiveScreen() {
             <button type="button" class="nr-btn nr-primary" data-act="to-practice">Practice</button>`);
     }
     if (L.phase === 'no-wallet' || (!state.player && !chain.wallet())) {
+        const phone = isPhone();
+        const qwalla = phone
+            ? `<a class="nr-btn nr-primary" href="${chain.qwallaLink()}">Open in Qwalla</a><a class="nr-btn" href="${QWALLA_URL}" target="_blank" rel="noopener noreferrer">Get Qwalla</a>`
+            : `<a class="nr-btn" href="${QWALLA_URL}" target="_blank" rel="noopener noreferrer">Qwalla app</a>`;
+        const extension = `<a class="nr-btn${phone ? '' : ' nr-primary'}" href="${EXTENSION_URL}" target="_blank" rel="noopener noreferrer">RougeChain Wallet extension</a>`;
         return panel('WALLET REQUIRED', `
-            <p>Live runs are signed with post-quantum keys in <b>RougeChain Wallet</b>.</p>
-            <div class="nr-row"><a class="nr-btn nr-primary" href="${EXTENSION_URL}" target="_blank" rel="noopener noreferrer">Get RougeChain Wallet</a>
-            <button type="button" class="nr-btn" data-act="connect">I have it, connect</button></div>`);
+            <p>Live runs are signed with post-quantum keys. Play in the <b>Qwalla</b> app's browser, or on desktop with the <b>RougeChain Wallet</b> extension.</p>
+            <div class="nr-row">${phone ? qwalla + extension : extension + qwalla}</div>
+            <div class="nr-row"><button type="button" class="nr-btn" data-act="connect">I have one, connect</button></div>`);
     }
     if (!state.player) {
         return panel('JACK IN', `
-            <p>Connect RougeChain Wallet to run live boards.</p>
-            <button type="button" class="nr-btn nr-primary" data-act="connect">Connect wallet</button>`);
+            <p>Connect ${chain.walletName()} to run live boards.</p>
+            <button type="button" class="nr-btn nr-primary" data-act="connect">Connect ${chain.walletKind() === 'qwalla' ? 'Qwalla' : 'wallet'}</button>`);
+    }
+    if (chain.wrongNetwork() && !['board', 'submitting', 'result'].includes(L.phase)) {
+        const want = NETRUN.networkId;
+        return panel('WRONG NETWORK', `
+            <p>${chain.walletName()} is on <b>${esc(chain.connectedNetwork())}</b>, but NETRUN runs on <b>${esc(want)}</b>.</p>
+            <p>Switch the network in ${chain.walletName()}${want === 'testnet' ? ' (the testnet faucet gives free XRGE)' : ''}, then reconnect.</p>
+            <button type="button" class="nr-btn nr-primary" data-act="connect">Reconnect</button>`);
     }
     if (L.phase === 'paying' || L.phase === 'submitting') {
         return panel(L.phase === 'paying' ? 'OPENING RUN' : 'UPLOADING', `<p class="nr-wait"><span class="nr-spin"></span><span>${esc(L.note || '')}</span></p>${L.txId ? `<a class="nr-link" href="${chain.explorerTx(L.txId)}" target="_blank" rel="noopener noreferrer">Transaction ${esc(L.txId.slice(0, 12))}…</a>` : ''}`);
@@ -393,7 +408,7 @@ function render() {
     const live = state.mode === 'live';
     const inv = state.inventory;
     const walletChip = state.player
-        ? `<span class="nr-chip" title="${esc(state.player)}"><i></i>${short(state.player)}${inv ? ` · <b>${inv.scrap}</b> SCRAP · ${inv.implants.length} Implant${inv.implants.length === 1 ? '' : 's'}` : ''}</span>`
+        ? `<span class="nr-chip" title="${esc(chain.walletName())}: ${esc(state.player)}"><i></i>${short(state.player)}${inv ? `${inv.scrap !== null ? ` · <b>${inv.scrap}</b> SCRAP` : ''}${inv.implants ? ` · ${inv.implants.length} Implant${inv.implants.length === 1 ? '' : 's'}` : ''}` : ''}</span>`
         : live && chain.isConfigured() ? '<button type="button" class="nr-chip nr-chip-btn" data-act="connect">Connect wallet</button>' : '';
 
     let body;

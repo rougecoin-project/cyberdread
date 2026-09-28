@@ -326,11 +326,12 @@ export const CHAIN = {
  * extension for signing; set both to the testnet to try a testnet deployment.
  */
 export const NETRUN = {
-    // Testnet deployment (switch RougeChain Wallet to Testnet to play). For mainnet, set the
-    // mainnet contract, network 'RougeChain mainnet', api https://api.rougechain.io/api and
+    // Testnet deployment (switch Qwalla or RougeChain Wallet to Testnet to play). For mainnet, set the
+    // mainnet contract, network 'RougeChain mainnet', networkId 'mainnet', api https://api.rougechain.io/api and
     // explorer https://rougechain.io.
     contract: 'ec10bc50a955d1165a5903a6ab4d0601cf93233c',
     network: 'RougeChain testnet',
+    networkId: 'testnet', // as wallets name it: 'mainnet' | 'testnet'
     api: 'https://testnet.rougechain.io/api',
     // Block explorer for tx/contract links; empty links to the node's raw JSON instead.
     explorer: '',

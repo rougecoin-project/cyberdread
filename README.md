@@ -195,12 +195,12 @@ which is git-ignored; commit only `dead-circuit/sealed/` and
 ## NETRUN
 
 `netrun.exe` is a breach-protocol hacking game. Practice boards are free; live runs cost
-0.1 XRGE through the RougeChain Wallet extension and are dealt, checked and paid by a smart
+0.1 XRGE, signed in the Qwalla app or the RougeChain Wallet extension, and are dealt, checked and paid by a smart
 contract on RougeChain: SCRAP tokens per daemon uploaded, and an Implant NFT for a full breach.
 The board comes from the hash of the block after you pay, so nobody can know it in advance.
 
 The contract, its tests and the mainnet deploy steps are in [netrun/README.md](netrun/README.md).
-Live runs currently use the testnet deployment (switch RougeChain Wallet to Testnet);
+Live runs currently use the testnet deployment (switch the wallet to Testnet);
 `NETRUN` in `js/data/site-config.js` says which contract and network the Live tab uses.
 
 ## term.exe
