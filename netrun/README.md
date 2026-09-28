@@ -5,6 +5,22 @@ term.exe). Practice boards are free and run in the browser. Live runs are played
 NETRUN smart contract on RougeChain mainnet: you pay 0.1 XRGE to jack in, the contract deals you
 a board nobody could know in advance, checks your moves on-chain and pays out.
 
+## Wallets
+
+The page detects which wallet injected `window.rougechain`:
+
+- **Qwalla** (the app's dApp browser on iOS, Android and desktop, recognised by its
+  `ReactNativeWebView` bridge). Qwalla's `sendTransaction` only makes transfers, so NETRUN
+  builds each contract call itself, has Qwalla sign it with `signTransaction` (ML-DSA-65 over
+  the key-sorted JSON, the same bytes the SDK signs) and submits it to
+  `/api/v2/contract/execute`. Qwalla reports its network, so a wallet on the wrong network gets
+  a "switch network" screen instead of a failed payment.
+- **RougeChain Wallet extension** on desktop: `sendTransaction` with a `contract_call`
+  payload, which the extension signs and submits.
+
+With neither, the Live tab offers both; on phones it leads with "Open in Qwalla"
+(`qwalla://browser?url=<this page>`).
+
 ## How a live run works
 
 1. **Jack in.** `jack_in` is a payable call carrying exactly 0.1 XRGE. The contract records the
@@ -84,7 +100,7 @@ You need a wallet with roughly 115 XRGE plus whatever SCRAP float you want to fu
 
 NETRUN is live on RougeChain testnet (`rougechain-devnet-1`) at
 `ec10bc50a955d1165a5903a6ab4d0601cf93233c`, and the site's Live tab points there. Switch
-RougeChain Wallet to **Testnet** and use the faucet to play. It was deployed from a throwaway
+Qwalla or RougeChain Wallet to **Testnet** and use the faucet to play. It was deployed from a throwaway
 test key with the owner lock set, SCRAP is a testnet token funded with 500,000, and full breaches
 through the site have settled on-chain (85 SCRAP + an Implant each).
 
