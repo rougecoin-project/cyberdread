@@ -86,6 +86,9 @@ export default {
         "tx": "トランザクション ID",
         "txPlaceholder": "0x…、txid、または署名",
         "check": "支払いを確認",
+        "giftLabel": "ギフトコードをお持ちですか？",
+        "giftRedeem": "引き換える",
+        "giftChecking": "コードを確認しています…",
         "checking": "チェーンを確認している…",
         "checkingStripe": "Stripe でカード決済を確認している…",
         "verified": "確認済み。リンクの有効期限は15分。ファイルは安全な場所に保存しておくこと。",
@@ -116,6 +119,8 @@ export default {
         "too-little": "その支払いは現在およそ ${usd} 相当。本誌は ${need} だ。",
         "bad-chain": "支払いに使ったチェーンを選ぶこと。",
         "used-up": "その支払いはすでにダウンロードに使われている。自分の支払いなら、問い合わせること。",
+        "gift-rejected": "このギフトコードは無効です。確認してもう一度お試しください。",
+        "gift-used-up": "このギフトコードはすでに使用されています。",
         "throttled": "試行回数が多すぎる。1分待つこと。",
         "unavailable": "いまはその支払いを確認できない。1分後にもう一度。",
         "unknown": "問題が起きた。もう一度試すこと。"

@@ -1,7 +1,8 @@
 /**
  * /dead-circuit/thanks/ -- trades proof of payment for the PDF.
  * Stripe's Payment Link redirects here with ?session_id=..., which is claimed
- * automatically. Crypto buyers paste their transaction id.
+ * automatically. Crypto buyers paste their transaction id. Gift codes redeem
+ * here too, typed in or straight from a ?code=DC-… link.
  */
 import { html } from './dom.js';
 import { bindPicker, loadLanguage, picker, t } from './i18n.js';
@@ -37,6 +38,13 @@ root.innerHTML = String(html`
       <button type="submit" class="buy buy-volt">${T.check}</button>
     </form>
 
+    <form class="claim-form gift-form" data-ref="gift">
+      <label for="claim-gift">${T.giftLabel}</label>
+      <input id="claim-gift" name="code" dir="ltr" autocomplete="off" autocapitalize="characters" spellcheck="false"
+        placeholder="DC-XXXX-XXXX-XXXX-XXXX" required>
+      <button type="submit" class="buy">${T.giftRedeem}</button>
+    </form>
+
     <p class="claim-help">${stuckBefore}<a href="${SUPPORT_URL}" target="_blank" rel="noopener noreferrer">${T.stuckLink}</a>${stuckAfter ?? ''}</p>
     <a href="/dead-circuit/" class="store-sample">${T.back}</a>
   </div>`);
@@ -47,6 +55,8 @@ const status = ref('status');
 const take = ref('take');
 const form = ref('form');
 const submit = form.querySelector('button');
+const gift = ref('gift');
+const giftSubmit = gift.querySelector('button');
 
 function say(text, tone) {
     status.textContent = text;
@@ -63,6 +73,7 @@ function grant(url) {
     take.href = url;
     take.hidden = false;
     form.hidden = true;
+    gift.hidden = true;
     say(T.verified, 'ok');
     // Start the download straight away; the button stays as a fallback.
     window.location.assign(url);
@@ -97,7 +108,31 @@ form.addEventListener('submit', async (event) => {
     else explain(result);
 });
 
-const sessionId = new URLSearchParams(window.location.search).get('session_id');
+async function redeem(code) {
+    giftSubmit.disabled = true;
+    say(T.giftChecking);
+    const result = await claim({ method: 'gift', code });
+    giftSubmit.disabled = false;
+    if (result.ok) grant(result.url);
+    else explain(result);
+}
+
+gift.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const code = gift.code.value.trim();
+    if (code) redeem(code);
+});
+
+const params = new URLSearchParams(window.location.search);
+const giftCode = params.get('code');
+if (giftCode) {
+    // A gift link: fill the box and claim straight away.
+    gift.code.value = giftCode;
+    form.hidden = true;
+    redeem(giftCode);
+}
+
+const sessionId = params.get('session_id');
 if (sessionId) {
     form.hidden = true;
     say(T.checkingStripe);
