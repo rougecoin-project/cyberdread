@@ -86,6 +86,9 @@ export default {
         "tx": "交易 ID",
         "txPlaceholder": "0x…、txid 或签名",
         "check": "核对付款",
+        "giftLabel": "有礼品码吗？",
+        "giftRedeem": "兑换",
+        "giftChecking": "正在核对礼品码…",
         "checking": "正在查链…",
         "checkingStripe": "正在向 Stripe 核对你的刷卡付款…",
         "verified": "已验证。链接十五分钟内有效。把文件存到安全的地方。",
@@ -116,6 +119,8 @@ export default {
         "too-little": "这笔付款今天约值 ${usd}。本期售价 ${need}。",
         "bad-chain": "选择你付款用的链。",
         "used-up": "这笔付款的下载次数已经用完。如果这是你的付款，请求助。",
+        "gift-rejected": "这个礼品码无效。请检查后重试。",
+        "gift-used-up": "这个礼品码已经被使用过了。",
         "throttled": "尝试次数太多。等一分钟。",
         "unavailable": "现在无法核对这笔付款。一分钟后再试。",
         "unknown": "出错了。再试一次。"

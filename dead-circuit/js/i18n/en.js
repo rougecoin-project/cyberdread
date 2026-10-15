@@ -86,6 +86,9 @@ export default {
         "tx": "Transaction id",
         "txPlaceholder": "0x…, txid or signature",
         "check": "Check payment",
+        "giftLabel": "Have a gift code?",
+        "giftRedeem": "Redeem",
+        "giftChecking": "Checking the code…",
         "checking": "Checking the chain…",
         "checkingStripe": "Checking your card payment with Stripe…",
         "verified": "Verified. The link works for fifteen minutes. Save the file somewhere safe.",
@@ -116,6 +119,8 @@ export default {
         "too-little": "That payment is worth about ${usd} today. The issue is ${need}.",
         "bad-chain": "Pick the chain you paid on.",
         "used-up": "That payment has already been used for its downloads. Ask for help if this is yours.",
+        "gift-rejected": "That gift code is not valid. Check it and try again.",
+        "gift-used-up": "That gift code has already been used.",
         "throttled": "Too many tries. Wait a minute.",
         "unavailable": "Could not check that payment right now. Try again in a minute.",
         "unknown": "Something went wrong. Try again."

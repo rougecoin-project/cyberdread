@@ -138,9 +138,26 @@ arguments it skips English, so it never overwrites the portrait edition; name
 | BTC | mempool.space: an output to the wallet, one confirmation. |
 | SOL | Solana RPC: the wallet's balance went up by ~$24. |
 | dc@gate | The puzzle answer, checked by hash on the server. |
+| Gift code | Its signature, checked against a key derived from `DC_PDF_KEY` (see Gift codes). |
 
 Crypto is valued at today's price with 10% tolerance, must be newer than
 `SALE_START`, and every payment is good for 5 downloads.
+
+### Gift codes
+
+Free copies go out as gift codes, `DC-XXXX-XXXX-XXXX-XXXX`. Each one is a single copy: a
+download plus a couple of retries, in the language the reader picks.
+
+```bash
+DC_PDF_KEY=<64 hex> node tools/gift-codes.mjs 10          # ten codes, each with its link
+DC_PDF_KEY=<64 hex> node tools/gift-codes.mjs 100 --csv   # a CSV for a giveaway
+```
+
+Send either the code (redeemed under **Have a gift code?** on Take the file) or the link
+(`https://cyberdreadx.dev/dead-circuit/thanks/?code=DC-…`), which claims and starts the
+download on its own. Codes are signed with a key derived from `DC_PDF_KEY`, so no list of
+codes lives anywhere and nobody without the key can make one; keep generated lists private
+and out of the repo. Each code's use is counted in the claims store like a payment's.
 
 ### One-time setup
 

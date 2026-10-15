@@ -86,6 +86,9 @@ export default {
         "tx": "Id da transação",
         "txPlaceholder": "0x…, txid ou assinatura",
         "check": "Verificar pagamento",
+        "giftLabel": "Tem um código de presente?",
+        "giftRedeem": "Resgatar",
+        "giftChecking": "Verificando o código…",
         "checking": "Consultando a rede…",
         "checkingStripe": "Conferindo seu pagamento no cartão com o Stripe…",
         "verified": "Confirmado. O link vale por quinze minutos. Guarde o arquivo em um lugar seguro.",
@@ -116,6 +119,8 @@ export default {
         "too-little": "Hoje esse pagamento vale cerca de US${usd}. A edição custa US${need}.",
         "bad-chain": "Escolha a rede em que você pagou.",
         "used-up": "Esse pagamento já foi usado para os downloads dele. Peça ajuda se ele for seu.",
+        "gift-rejected": "Esse código de presente não é válido. Confira e tente de novo.",
+        "gift-used-up": "Esse código de presente já foi usado.",
         "throttled": "Tentativas demais. Espere um minuto.",
         "unavailable": "Não deu para verificar esse pagamento agora. Tente de novo em um minuto.",
         "unknown": "Algo deu errado. Tente de novo."
