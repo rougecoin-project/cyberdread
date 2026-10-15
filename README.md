@@ -118,9 +118,18 @@ noise. `dc-download` fetches the buyer's edition, decrypts it with the
 `DC_PDF_KEY` environment variable, and streams it, only for a 15-minute
 signed link that `dc-claim` issues after it verifies a payment.
 
-All eight editions are rendered from the same spreads by
+English is a hand-laid **A4 portrait** edition (39 pages), sealed as is with
+[`tools/seal-dead-circuit-pdf.mjs`](tools/seal-dead-circuit-pdf.mjs):
+
+```bash
+DC_PDF_KEY=<64 hex> node tools/seal-dead-circuit-pdf.mjs en Dead-Circuit-Issue-01-EN-Vertical.pdf
+```
+
+The other seven editions are rendered from the site's landscape spreads by
 [`tools/build-dead-circuit-pdfs.mjs`](tools/build-dead-circuit-pdfs.mjs)
-through `/dead-circuit/print/?lang=xx`, with their fonts embedded.
+through `/dead-circuit/print/?lang=xx`, with their fonts embedded. Run without
+arguments it skips English, so it never overwrites the portrait edition; name
+`en` explicitly to replace it with the landscape print.
 
 | Paid with | Verified by |
 | --- | --- |
@@ -159,6 +168,17 @@ public, and not official, medical, legal or safety advice. The text is the
 it as a box on the store, the letter page (so it is in every PDF) and the
 mobile zine, and as one line on the cover, the locked page and the store's
 last section.
+
+### The flipbook preview
+
+In English, `/dead-circuit/read/` is a magazine with turning pages
+([`dead-circuit/js/flipbook.js`](dead-circuit/js/flipbook.js),
+[`dead-circuit/flipbook.css`](dead-circuit/flipbook.css)): the six free pages of the A4
+portrait edition (`dead-circuit/art/flip/`, rendered from the PDF's own pages), two up on a
+desk and one at a time on a phone, then an end-of-preview page and back cover that send readers
+to the store. Other languages keep the spread reader. The Dread_OS desktop icon and Start menu
+open the flipbook first. Only pages listed in `PREVIEW` (`dead-circuit/js/issue.js`) may be
+rendered into `art/flip/`: the repo is public.
 
 ### Free preview vs the paid issue
 
