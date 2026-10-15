@@ -118,9 +118,18 @@ noise. `dc-download` fetches the buyer's edition, decrypts it with the
 `DC_PDF_KEY` environment variable, and streams it, only for a 15-minute
 signed link that `dc-claim` issues after it verifies a payment.
 
-All eight editions are rendered from the same spreads by
+English is a hand-laid **A4 portrait** edition (39 pages), sealed as is with
+[`tools/seal-dead-circuit-pdf.mjs`](tools/seal-dead-circuit-pdf.mjs):
+
+```bash
+DC_PDF_KEY=<64 hex> node tools/seal-dead-circuit-pdf.mjs en Dead-Circuit-Issue-01-EN-Vertical.pdf
+```
+
+The other seven editions are rendered from the site's landscape spreads by
 [`tools/build-dead-circuit-pdfs.mjs`](tools/build-dead-circuit-pdfs.mjs)
-through `/dead-circuit/print/?lang=xx`, with their fonts embedded.
+through `/dead-circuit/print/?lang=xx`, with their fonts embedded. Run without
+arguments it skips English, so it never overwrites the portrait edition; name
+`en` explicitly to replace it with the landscape print.
 
 | Paid with | Verified by |
 | --- | --- |
