@@ -169,6 +169,17 @@ it as a box on the store, the letter page (so it is in every PDF) and the
 mobile zine, and as one line on the cover, the locked page and the store's
 last section.
 
+### The flipbook preview
+
+In English, `/dead-circuit/read/` is a magazine with turning pages
+([`dead-circuit/js/flipbook.js`](dead-circuit/js/flipbook.js),
+[`dead-circuit/flipbook.css`](dead-circuit/flipbook.css)): the six free pages of the A4
+portrait edition (`dead-circuit/art/flip/`, rendered from the PDF's own pages), two up on a
+desk and one at a time on a phone, then an end-of-preview page and back cover that send readers
+to the store. Other languages keep the spread reader. The Dread_OS desktop icon and Start menu
+open the flipbook first. Only pages listed in `PREVIEW` (`dead-circuit/js/issue.js`) may be
+rendered into `art/flip/`: the repo is public.
+
 ### Free preview vs the paid issue
 
 The issue is 39 pages. Only the first six (cover, letter, contents, the
