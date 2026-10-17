@@ -180,7 +180,24 @@ select {
     text-shadow: 0 0 24px rgba(var(--accent-rgb), 0.35);
     font-variant-numeric: tabular-nums;
 }
-.hw-time small { margin-left: 0.18em; font-size: 0.38em; font-weight: 600; letter-spacing: 0.08em; color: var(--text-muted); }
+/* Big hours:minutes, with seconds over AM/PM in a narrow column beside them. */
+.hw-time { display: flex; align-items: stretch; font-variant-numeric: tabular-nums; }
+.hw-tail {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    margin-left: 0.14em;
+    padding: 0.1em 0 0.08em;
+}
+.hw-sec {
+    min-width: 2ch;
+    font-size: 0.42em;
+    font-weight: 600;
+    line-height: 1;
+    color: rgb(var(--accent-rgb));
+    text-shadow: 0 0 14px rgba(var(--accent-rgb), 0.55);
+}
+.hw-time small { font-size: 0.3em; font-weight: 600; line-height: 1; letter-spacing: 0.08em; color: var(--text-muted); }
 
 .hw-date {
     margin: 6px 0 14px;
@@ -741,7 +758,7 @@ select {
         -webkit-backdrop-filter: none;
         backdrop-filter: none;
     }
-    .hw-time { font-size: clamp(64px, 20vw, 84px); font-weight: 500; text-shadow: 0 2px 20px rgba(0, 0, 0, 0.6), 0 0 30px rgba(var(--accent-rgb), 0.3); }
+    .hw-time { justify-content: center; font-size: clamp(64px, 20vw, 84px); font-weight: 500; text-shadow: 0 2px 20px rgba(0, 0, 0, 0.6), 0 0 30px rgba(var(--accent-rgb), 0.3); }
     .hw-date { margin: 8px 0 16px; font-size: 13px; color: rgba(255, 255, 255, 0.8); text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8); }
     .hw-chips { justify-content: center; }
     .hw-chip {

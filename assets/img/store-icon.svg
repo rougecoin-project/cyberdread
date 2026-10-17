@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="RougeChain Store">
+  <defs>
+    <linearGradient id="bag" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e3304b"/>
+      <stop offset="1" stop-color="#692f96"/>
+    </linearGradient>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="1.6" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <!-- Handle -->
+  <path d="M23 24V18a9 9 0 0 1 18 0v6" fill="none" stroke="#38e1ff" stroke-width="3.6" stroke-linecap="round" filter="url(#glow)"/>
+  <!-- Bag, with the RougeChain-store cut corner -->
+  <path d="M12 22H52L55 56H17L9 48Z" fill="url(#bag)"/>
+  <path d="M12 22H52" stroke="#ffffff" stroke-opacity=".35" stroke-width="1.5"/>
+  <!-- Eyelets -->
+  <circle cx="23" cy="29" r="2.2" fill="#07080d"/>
+  <circle cx="41" cy="29" r="2.2" fill="#07080d"/>
+  <!-- Price tag -->
+  <path d="M30 38H44L48 43L44 48H30Z" fill="#38e1ff"/>
+  <circle cx="33.5" cy="43" r="1.6" fill="#07080d"/>
+</svg>
