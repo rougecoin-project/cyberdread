@@ -67,6 +67,7 @@ js/
       chat.js                 message board client
       tooltips.js             first-run tour
       touch.js                phone feel: drag to rearrange, swipe sheets, home gesture
+      tilt.js                 tilt / mouse parallax: wallpaper and icons at different depths
     games/
       netrun.js               netrun.exe window: practice + live runs
       netrun-rules.js         board generation and scoring (mirrors the contract)

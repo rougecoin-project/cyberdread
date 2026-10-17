@@ -72,6 +72,61 @@ select {
     background-color: #05030a;
 }
 
+/* With tilt (js/modules/ui/tilt.js) the wallpaper moves on its own layer,
+   a little larger than the screen so its edges never show. */
+.has-wall .desktop { background: #05030a; }
+.wall {
+    position: fixed;
+    z-index: 0;
+    inset: -32px;
+    pointer-events: none;
+    background:
+        radial-gradient(120% 90% at 50% 40%, transparent 45%, rgba(2, 3, 8, 0.7) 100%),
+        linear-gradient(180deg, rgba(2, 3, 8, 0.1) 0%, rgba(2, 3, 8, 0.2) 55%, rgba(2, 3, 8, 0.8) 100%),
+        url('../assets/img/wallpaper-neon.jpg') center 32% / cover no-repeat;
+    will-change: translate;
+}
+.desktop-icons,
+.home-widget { will-change: translate; }
+
+/* One-time ask on iOS, which only shares tilt after a tap. */
+.tilt-offer {
+    position: fixed;
+    z-index: 1400;
+    left: 50%;
+    /* In the open space under the clock, clear of the icons. */
+    top: calc(env(safe-area-inset-top, 0px) + 206px);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+    max-width: calc(100vw - 24px);
+    padding: 4px;
+    translate: -50% 0;
+    background: rgba(8, 12, 19, 0.82);
+    border: 1px solid rgba(var(--accent-rgb), 0.4);
+    border-radius: 999px;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.55), 0 0 24px rgba(var(--accent-rgb), 0.18);
+    -webkit-backdrop-filter: var(--blur);
+    backdrop-filter: var(--blur);
+    animation: tilt-in 0.35s cubic-bezier(.2, .9, .25, 1.1);
+}
+.tilt-offer.leaving { opacity: 0; translate: -50% 12px; transition: opacity 0.22s ease, translate 0.22s ease; }
+.tilt-offer button {
+    min-height: 40px;
+    padding: 0 14px;
+    font: 600 13px/1.2 var(--font-display);
+    color: var(--text);
+    background: none;
+    border: 0;
+    border-radius: 999px;
+    cursor: pointer;
+}
+.tilt-offer .tilt-yes span { color: rgb(var(--accent-rgb)); }
+.tilt-offer .tilt-yes b { color: rgb(var(--accent-rgb)); }
+.tilt-offer .tilt-no { width: 40px; padding: 0; color: var(--text-muted); }
+@keyframes tilt-in { from { opacity: 0; translate: -50% 16px; } }
+
 /* ---------------------------------------------------------- icon grid */
 
 .desktop-icons {

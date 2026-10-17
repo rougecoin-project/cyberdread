@@ -24,6 +24,7 @@ import { initSettings, openSettings, closeSettings } from './modules/ui/settings
 import { initTaskbar } from './modules/ui/taskbar.js';
 import { initNetrun, openNetrun, closeNetrun } from './modules/games/netrun.js';
 import { initTouch } from './modules/ui/touch.js';
+import { initTilt } from './modules/ui/tilt.js';
 
 /**
  * Opens the encrypted-access modal.
@@ -104,6 +105,7 @@ function initializeApp() {
     initUIEventListeners();
     initTaskbar();
     initTouch();
+    initTilt();
 
     renderExplorerContent();
     initExplorerResize();
