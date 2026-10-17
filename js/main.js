@@ -23,6 +23,7 @@ import { initTerminal, openTerminal, closeTerminal } from './modules/ui/terminal
 import { initSettings, openSettings, closeSettings } from './modules/ui/settings.js';
 import { initTaskbar } from './modules/ui/taskbar.js';
 import { initNetrun, openNetrun, closeNetrun } from './modules/games/netrun.js';
+import { initTouch } from './modules/ui/touch.js';
 
 /**
  * Opens the encrypted-access modal.
@@ -102,6 +103,7 @@ function initializeApp() {
     initWindowManager();
     initUIEventListeners();
     initTaskbar();
+    initTouch();
 
     renderExplorerContent();
     initExplorerResize();

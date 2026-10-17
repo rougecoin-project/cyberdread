@@ -47,6 +47,7 @@ and in the terminal's `projects` command automatically.
 index.html                    markup + inline SVG icon sprite
 styles.css                    design tokens (:root) + components
 css/os.css                    the skin: glass windows, icon grid, dock, phone layout
+css/touch.css                 touch feedback, home-screen edit mode, sheet gestures
 assets/fonts/                 Chakra Petch + IBM Plex Mono (SIL OFL), self-hosted
 js/
   main.js                     entry point, wires modules to the DOM
@@ -65,6 +66,7 @@ js/
       rouge-coin.js           RougeChain panel: live network, ecosystem, XRGE
       chat.js                 message board client
       tooltips.js             first-run tour
+      touch.js                phone feel: drag to rearrange, swipe sheets, home gesture
     games/
       netrun.js               netrun.exe window: practice + live runs
       netrun-rules.js         board generation and scoring (mirrors the contract)
