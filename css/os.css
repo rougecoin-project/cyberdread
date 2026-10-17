@@ -89,43 +89,158 @@ select {
 .desktop-icons,
 .home-widget { will-change: translate; }
 
-/* One-time ask on iOS, which only shares tilt after a tap. */
-.tilt-offer {
+/* GYRO.SYS: the one-time tilt ask on iOS (js/modules/ui/tilt.js). */
+.gyro-card {
     position: fixed;
     z-index: 1400;
     left: 50%;
-    /* In the open space under the clock, clear of the icons. */
+    top: calc(env(safe-area-inset-top, 0px) + 196px);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: min(340px, calc(100vw - 28px));
+    box-sizing: border-box;
+    padding: 14px 16px 14px 12px;
+    translate: -50% 0;
+    color: var(--text);
+    background:
+        repeating-linear-gradient(0deg, rgba(var(--accent-rgb), 0.05) 0 1px, transparent 1px 3px),
+        linear-gradient(135deg, rgba(10, 16, 26, 0.92), rgba(4, 6, 12, 0.94));
+    border: 1px solid rgba(var(--accent-rgb), 0.45);
+    clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px));
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 0 38px rgba(var(--accent-rgb), 0.22);
+    -webkit-backdrop-filter: var(--blur);
+    backdrop-filter: var(--blur);
+    animation: gyro-in 0.6s steps(1, end) both, gyro-scan 0.6s cubic-bezier(.2, .9, .25, 1) both;
+}
+/* Glitch in: a couple of hard jumps, then a scan from top to bottom. */
+@keyframes gyro-in {
+    0% { opacity: 0; translate: -50% 0; }
+    12% { opacity: 1; translate: calc(-50% - 6px) 0; filter: hue-rotate(80deg); }
+    22% { translate: calc(-50% + 4px) 0; filter: none; }
+    30% { translate: -50% 0; }
+    100% { opacity: 1; translate: -50% 0; }
+}
+@keyframes gyro-scan {
+    from { clip-path: polygon(0 0, 100% 0, 100% 0, 0 0); }
+    to { clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px)); }
+}
+.gyro-card.leaving,
+.gyro-chip.leaving {
+    animation: gyro-out 0.4s cubic-bezier(.6, 0, .8, .4) forwards;
+}
+@keyframes gyro-out {
+    to { opacity: 0; clip-path: polygon(0 100%, 100% 100%, 100% 100%, 0 100%); }
+}
+
+.gyro-visual { flex: 0 0 76px; width: 76px; height: 76px; display: grid; place-items: center; }
+.gyro-glyph { width: 76px; height: 76px; overflow: visible; }
+.gyro-ring { fill: none; stroke: rgba(var(--accent-rgb), 0.55); stroke-width: 1.4; stroke-dasharray: 4 5; transform-origin: 40px 40px; animation: gyro-spin 9s linear infinite; }
+.gyro-ring-inner { stroke: rgba(var(--accent-rgb), 0.25); stroke-dasharray: 2 6; animation-direction: reverse; animation-duration: 6s; }
+.gyro-orbit { transform-origin: 40px 40px; animation: gyro-spin 2.8s linear infinite; }
+.gyro-orbit circle { fill: rgb(var(--accent-rgb)); filter: drop-shadow(0 0 4px rgb(var(--accent-rgb))); }
+.gyro-phone { transform-origin: 40px 40px; animation: gyro-rock 2.2s ease-in-out infinite; }
+.gyro-phone rect { fill: rgba(var(--accent-rgb), 0.12); stroke: #fff; stroke-width: 2; }
+.gyro-phone path { stroke: rgba(var(--accent-rgb), 0.9); stroke-width: 2; stroke-linecap: round; }
+@keyframes gyro-spin { to { rotate: 360deg; } }
+@keyframes gyro-rock {
+    0%, 100% { rotate: -18deg; }
+    50% { rotate: 18deg; }
+}
+
+.gyro-copy { min-width: 0; }
+.gyro-kicker { margin: 0 0 3px; font: 700 10.5px/1.2 var(--font-mono); letter-spacing: 0.14em; color: rgb(var(--accent-rgb)); }
+.gyro-kicker span { color: var(--text-muted); font-weight: 500; }
+.gyro-title { margin: 0; font: 700 20px/1.15 var(--font-display); letter-spacing: 0.02em; color: #fff; text-shadow: 0 0 16px rgba(var(--accent-rgb), 0.35); }
+.gyro-text { margin: 4px 0 0; font: 400 12.5px/1.4 var(--font-mono); color: var(--text-muted); }
+.gyro-actions { display: flex; gap: 8px; margin-top: 10px; }
+.gyro-actions button {
+    min-height: 38px;
+    padding: 0 14px;
+    font: 700 13px/1 var(--font-display);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border-radius: 0;
+    cursor: pointer;
+}
+.gyro-sync {
+    color: #001519;
+    background: rgb(var(--accent-rgb));
+    border: 0;
+    clip-path: polygon(0 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 9px 100%, 0 calc(100% - 9px));
+    animation: gyro-pulse 1.8s ease-in-out infinite;
+}
+.gyro-later { color: var(--text-muted); background: none; border: 1px solid rgba(255, 255, 255, 0.14); }
+@keyframes gyro-pulse {
+    50% { filter: drop-shadow(0 0 10px rgb(var(--accent-rgb))) brightness(1.15); }
+}
+
+/* Calibrating: a live spirit level; the ring fills as you tilt around. */
+.gyro-level { position: relative; width: 76px; height: 76px; }
+.gyro-level svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.gyro-track { fill: rgba(var(--accent-rgb), 0.05); stroke: rgba(var(--accent-rgb), 0.2); stroke-width: 3; }
+.gyro-progress {
+    fill: none;
+    stroke: rgb(var(--accent-rgb));
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-dasharray: 100;
+    stroke-dashoffset: 100;
+    transform: rotate(-90deg);
+    transform-origin: 40px 40px;
+    filter: drop-shadow(0 0 4px rgb(var(--accent-rgb)));
+    transition: stroke-dashoffset 0.15s linear;
+}
+.gyro-cross { stroke: rgba(var(--accent-rgb), 0.25); stroke-width: 1; }
+.gyro-center { fill: none; stroke: rgba(255, 255, 255, 0.35); stroke-width: 1; stroke-dasharray: 2 2; }
+.gyro-bubble {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 16px;
+    height: 16px;
+    margin: -8px 0 0 -8px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #fff, rgb(var(--accent-rgb)) 55%, rgba(var(--accent-rgb), 0.4));
+    box-shadow: 0 0 14px rgb(var(--accent-rgb));
+}
+.gyro-card.online { border-color: rgb(var(--accent-rgb)); box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.5), 0 0 60px rgba(var(--accent-rgb), 0.45); }
+.gyro-card.online .gyro-title { color: rgb(var(--accent-rgb)); }
+.gyro-card.blocked { border-color: rgba(var(--hot-rgb, 255, 62, 120), 0.6); }
+
+/* Android: a one-time chip the first time tilt is felt. */
+.gyro-chip {
+    position: fixed;
+    z-index: 1400;
+    left: 50%;
     top: calc(env(safe-area-inset-top, 0px) + 206px);
     display: flex;
     align-items: center;
-    gap: 4px;
-    white-space: nowrap;
-    max-width: calc(100vw - 24px);
-    padding: 4px;
+    gap: 9px;
+    padding: 10px 16px;
     translate: -50% 0;
-    background: rgba(8, 12, 19, 0.82);
-    border: 1px solid rgba(var(--accent-rgb), 0.4);
-    border-radius: 999px;
-    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.55), 0 0 24px rgba(var(--accent-rgb), 0.18);
-    -webkit-backdrop-filter: var(--blur);
-    backdrop-filter: var(--blur);
-    animation: tilt-in 0.35s cubic-bezier(.2, .9, .25, 1.1);
-}
-.tilt-offer.leaving { opacity: 0; translate: -50% 12px; transition: opacity 0.22s ease, translate 0.22s ease; }
-.tilt-offer button {
-    min-height: 40px;
-    padding: 0 14px;
-    font: 600 13px/1.2 var(--font-display);
+    font: 700 12px/1 var(--font-mono);
+    letter-spacing: 0.16em;
     color: var(--text);
-    background: none;
-    border: 0;
-    border-radius: 999px;
-    cursor: pointer;
+    background: rgba(6, 10, 18, 0.85);
+    border: 1px solid rgba(var(--accent-rgb), 0.5);
+    clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+    box-shadow: 0 0 30px rgba(var(--accent-rgb), 0.3);
+    animation: gyro-scan 0.45s cubic-bezier(.2, .9, .25, 1) both;
 }
-.tilt-offer .tilt-yes span { color: rgb(var(--accent-rgb)); }
-.tilt-offer .tilt-yes b { color: rgb(var(--accent-rgb)); }
-.tilt-offer .tilt-no { width: 40px; padding: 0; color: var(--text-muted); }
-@keyframes tilt-in { from { opacity: 0; translate: -50% 16px; } }
+.gyro-chip { white-space: nowrap; }
+.gyro-chip b { color: rgb(var(--accent-rgb)); }
+
+/* Short phones (iPhone SE): the icons start higher, so the card covers the
+   clock instead for the few seconds it is up. */
+@media (max-height: 760px) {
+    .gyro-card { top: calc(env(safe-area-inset-top, 0px) + 16px); }
+}
+.gyro-chip i { width: 8px; height: 8px; border-radius: 50%; background: rgb(var(--accent-rgb)); box-shadow: 0 0 10px rgb(var(--accent-rgb)); animation: gyro-pulse 1s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+    .gyro-card, .gyro-chip, .gyro-ring, .gyro-orbit, .gyro-phone, .gyro-sync, .gyro-chip i { animation: none !important; }
+}
 
 /* ---------------------------------------------------------- icon grid */
 
