@@ -230,6 +230,34 @@ select {
 }
 .gyro-chip { white-space: nowrap; }
 .gyro-chip b { color: rgb(var(--accent-rgb)); }
+/* Later iOS launches: the same chip, as a button to relink. */
+.gyro-relink { cursor: pointer; -webkit-appearance: none; appearance: none; touch-action: manipulation; }
+.gyro-relink:active { scale: 0.96; }
+.gyro-chip.online { border-color: rgb(var(--accent-rgb)); box-shadow: 0 0 40px rgba(var(--accent-rgb), 0.5); }
+
+/* Settings > Tilt depth: link status and Sync. */
+.tilt-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: -2px 0 6px 26px;
+    font: 400 11.5px/1.4 var(--font-mono);
+    color: var(--text-muted);
+}
+.tilt-link span { flex: 1; min-width: 0; }
+.tilt-sync {
+    flex: none;
+    min-height: 32px;
+    padding: 0 14px;
+    font: 700 11px/1 var(--font-mono);
+    letter-spacing: 0.12em;
+    color: #00151a;
+    background: rgb(var(--accent-rgb));
+    border: 0;
+    clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+    cursor: pointer;
+}
+.tilt-sync[hidden] { display: none; }
 
 /* Short phones (iPhone SE): the icons start higher, so the card covers the
    clock instead for the few seconds it is up. */

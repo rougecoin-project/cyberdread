@@ -10,12 +10,16 @@
  * iOS only reports orientation after the visitor allows it, from a tap: a
  * one-time GYRO.SYS card asks (a rocking phone in a gyroscope ring), then
  * turns into a live spirit level while you tilt, and signs off with
- * "Depth online". Settings > Tilt asks again later. On Android the first
- * real tilt flashes a "Gyro link online" chip once.
+ * "Depth online". iOS forgets that answer whenever the app is reopened from
+ * the home screen, so later launches show a small "Relink gyro" chip to
+ * tap. Settings > Tilt depth shows the link status and a Sync button that
+ * replays the calibration; adding ?gyro to the address shows the card again.
+ * On Android the first real tilt flashes a "Gyro link online" chip once.
  * Off when animations are off or the system asks for reduced motion.
  */
 
 const PERMISSION_KEY = 'dreados.tilt.permission'; // granted | denied | dismissed
+const CARD_KEY = 'dreados.gyro.card';              // the GYRO.SYS card was shown
 const WELCOME_KEY = 'dreados.tilt.welcomed';
 const RANGE_DEG = 18;      // tilt that counts as "all the way"
 const RECENTER = 0.004;    // how fast neutral follows the grip, per reading
@@ -30,8 +34,12 @@ const finePointer = () => window.matchMedia('(hover: hover) and (pointer: fine)'
 const needsPermission = () => typeof window.DeviceOrientationEvent?.requestPermission === 'function';
 const clamp = (v) => Math.max(-1, Math.min(1, v));
 
-const stored = () => { try { return localStorage.getItem(PERMISSION_KEY); } catch { return null; } };
-const store = (value) => { try { localStorage.setItem(PERMISSION_KEY, value); } catch { /* private mode */ } };
+const read = (key) => { try { return localStorage.getItem(key); } catch { return null; } };
+const write = (key, value) => { try { localStorage.setItem(key, value); } catch { /* private mode */ } };
+const stored = () => read(PERMISSION_KEY);
+const store = (value) => write(PERMISSION_KEY, value);
+const seenCard = () => read(CARD_KEY) === '1';
+const markCardSeen = () => write(CARD_KEY, '1');
 
 let layers = null;
 const target = { x: 0, y: 0 };
@@ -41,6 +49,8 @@ const watchers = new Set(); // called with each change in tilt (dx, dy)
 let bubble = null;          // the spirit-level bubble while calibrating
 let raf = 0;
 let listening = false;
+let permitted = false;      // iOS said yes during this visit
+let linked = false;         // a reading has arrived since listening began
 
 /** Tilt is wanted: the setting is on and motion is allowed. */
 function wanted() {
@@ -75,6 +85,10 @@ function kick() {
 
 function onOrientation(event) {
     if (event.beta == null || event.gamma == null) return;
+    if (!linked) {
+        linked = true;
+        renderStatus();
+    }
     // Map the sensor to the screen as the visitor sees it.
     const angle = ((screen.orientation?.angle ?? window.orientation ?? 0) + 360) % 360;
     let x;
@@ -115,6 +129,7 @@ function onMouseOut(event) {
 function start() {
     if (listening || !wanted()) return;
     listening = true;
+    linked = false;
     neutral = null;
     window.addEventListener('deviceorientation', onOrientation);
     if (finePointer()) {
@@ -126,6 +141,7 @@ function start() {
 function stop() {
     if (!listening) return;
     listening = false;
+    linked = false;
     window.removeEventListener('deviceorientation', onOrientation);
     window.removeEventListener('pointermove', onPointer);
     document.removeEventListener('mouseout', onMouseOut);
@@ -134,14 +150,33 @@ function stop() {
 
 /** Asks iOS for orientation access. Must run inside a tap. */
 async function askPermission() {
+    if (!needsPermission()) {
+        start();
+        renderStatus();
+        return true;
+    }
     try {
         const answer = await window.DeviceOrientationEvent.requestPermission();
-        store(answer === 'granted' ? 'granted' : 'denied');
-        if (answer === 'granted') start();
-        return answer === 'granted';
+        permitted = answer === 'granted';
+        store(permitted ? 'granted' : 'denied');
+        if (permitted) start();
     } catch {
-        return false;
+        permitted = false;
     }
+    renderStatus();
+    return permitted;
+}
+
+/** Re-uses an earlier yes without a prompt, if iOS still remembers it. */
+async function askSilently() {
+    try {
+        permitted = (await window.DeviceOrientationEvent.requestPermission()) === 'granted';
+    } catch {
+        permitted = false; // iOS forgot (it does on every home-screen launch)
+    }
+    if (permitted) start();
+    renderStatus();
+    return permitted;
 }
 
 /* ------------------------------------------------ the GYRO.SYS card */
@@ -171,9 +206,16 @@ function leave(el) {
     setTimeout(() => el.remove(), 420);
 }
 
-/** One-time card asking iOS visitors to sync their tilt. */
-function showGyroCard() {
-    if (stored() || !isPhone() || !wanted()) return;
+/** Why tilt can't run right now, or '' when it can. */
+function pausedReason() {
+    if (root.classList.contains('no-tilt')) return 'Tilt depth is off in Settings.';
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return 'Reduce Motion is on in your phone\u2019s settings.';
+    if (root.classList.contains('no-motion')) return 'Animations are off in Settings.';
+    return '';
+}
+
+function buildCard() {
+    document.querySelector('.gyro-card')?.remove();
     const card = document.createElement('section');
     card.className = 'gyro-card';
     card.setAttribute('role', 'dialog');
@@ -189,32 +231,67 @@ function showGyroCard() {
           </div>
         </div>`;
     document.body.append(card);
+    return card;
+}
+
+/** The card's "no" ending: iOS refused, or tilt is paused. */
+function refuse(card, title, text) {
+    card.classList.add('blocked');
+    card.querySelector('.gyro-kicker').innerHTML = 'GYRO.SYS <span>// link refused</span>';
+    card.querySelector('.gyro-title').textContent = title;
+    card.querySelector('.gyro-text').textContent = text;
+    card.querySelector('.gyro-actions')?.remove();
+    setTimeout(() => leave(card), 3600);
+}
+
+/** The GYRO.SYS card: once per phone, or whenever ?gyro asks for it. */
+function showGyroCard(force = false) {
+    if (document.querySelector('.gyro-card')) return;
+    if (!force && (seenCard() || !isPhone() || !wanted())) return;
+    markCardSeen();
+    const card = buildCard();
+    if (!wanted()) {
+        refuse(card, 'Tilt paused', pausedReason());
+        return;
+    }
 
     // Don't nag: it goes away on its own, and counts as asked.
     const idle = setTimeout(() => {
         if (!card.isConnected || card.classList.contains('calibrating')) return;
-        store('dismissed');
+        if (!stored()) store('dismissed');
         leave(card);
     }, 20000);
 
     card.querySelector('.gyro-later').addEventListener('click', () => {
         clearTimeout(idle);
-        store('dismissed');
+        if (!stored()) store('dismissed');
         leave(card);
     });
     card.querySelector('.gyro-sync').addEventListener('click', async () => {
         clearTimeout(idle);
-        if (await askPermission()) {
-            calibrate(card);
-        } else {
-            card.classList.add('blocked');
-            card.querySelector('.gyro-kicker').innerHTML = 'GYRO.SYS <span>// link refused</span>';
-            card.querySelector('.gyro-title').textContent = 'Motion blocked';
-            card.querySelector('.gyro-text').textContent = 'Turn on Tilt depth in Settings any time.';
-            card.querySelector('.gyro-actions').remove();
-            setTimeout(() => leave(card), 2600);
-        }
+        if (await askPermission()) calibrate(card);
+        else refuse(card, 'Motion blocked', 'Reopen the app, then tap Sync in Settings \u203a Tilt depth.');
     });
+}
+
+/** Later iOS launches: iOS forgot the yes, so offer a one-tap relink. */
+function showRelinkChip() {
+    if (!isPhone() || !wanted() || permitted || document.querySelector('.gyro-chip')) return;
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'gyro-chip gyro-relink';
+    chip.innerHTML = '<i aria-hidden="true"></i> TAP TO <b>RELINK GYRO</b>';
+    document.body.append(chip);
+    const idle = setTimeout(() => leave(chip), 9000);
+    chip.addEventListener('click', async () => {
+        clearTimeout(idle);
+        const ok = await askPermission();
+        chip.classList.toggle('online', ok);
+        chip.innerHTML = ok
+            ? '<i aria-hidden="true"></i> GYRO LINK <b>ONLINE</b>'
+            : '<i aria-hidden="true"></i> GYRO LINK <b>REFUSED</b>';
+        setTimeout(() => leave(chip), 1800);
+    }, { once: true });
 }
 
 /** After permission: a live spirit level that fills as you tilt around. */
@@ -273,12 +350,45 @@ function welcomeOnce() {
     watchers.add(watch);
 }
 
-/** Waits until the boot screen is gone, then offers tilt on iOS. */
-function offerWhenBooted() {
+/** Runs fn a moment after the boot screen is gone. */
+function whenBooted(fn) {
     const boot = document.getElementById('powerUpScreen');
     const ready = !boot || getComputedStyle(boot).display === 'none';
-    if (ready) setTimeout(showGyroCard, 1800);
-    else setTimeout(offerWhenBooted, 800);
+    if (ready) setTimeout(fn, 1800);
+    else setTimeout(() => whenBooted(fn), 800);
+}
+
+/* ------------------------------------------- Settings > Tilt depth */
+
+/** The status line and Sync button under the Tilt depth toggle. */
+function renderStatus() {
+    const line = document.getElementById('tilt-status');
+    const button = document.getElementById('tilt-sync');
+    if (!line) return;
+    const paused = pausedReason();
+    let text;
+    if (paused) text = `Paused: ${paused}`;
+    else if (!isPhone() && finePointer()) text = 'Desktop: the wallpaper follows your mouse.';
+    else if (needsPermission() && !permitted) text = 'Not linked. Tap Sync to link your tilt.';
+    else if (linked) text = 'Linked \u2726 The grid moves with you.';
+    else text = 'Waiting for the motion sensor\u2026';
+    line.textContent = text;
+    if (button) {
+        button.hidden = Boolean(paused) || (!isPhone() && finePointer());
+        button.textContent = linked ? '\u25c9 Recalibrate' : '\u25c9 Sync';
+    }
+}
+
+/** Sync from Settings: ask (this is a tap), go home, run the spirit level. */
+async function syncFromSettings() {
+    const ok = await askPermission();
+    const panel = document.getElementById('settingsPanel');
+    if (panel && panel.style.display !== 'none') panel.querySelector('[data-close]')?.click();
+    document.querySelector('.gyro-chip')?.remove();
+    markCardSeen();
+    const card = buildCard();
+    if (ok) calibrate(card);
+    else refuse(card, 'Motion blocked', 'iOS said no. Reopen the app and try Sync again.');
 }
 
 /* ---------------------------------------------------------------- init */
@@ -298,31 +408,47 @@ export function initTilt() {
         widget: document.querySelector('.home-widget')
     };
 
+    // ?gyro in the address shows the card again (then tidies the address).
+    const params = new URLSearchParams(location.search);
+    const force = params.has('gyro');
+    if (force) {
+        params.delete('gyro');
+        const query = params.toString();
+        history.replaceState(history.state, '', `${location.pathname}${query ? `?${query}` : ''}${location.hash}`);
+    }
+
     if (!needsPermission()) {
         start();
         welcomeOnce();
-    } else if (stored() === 'granted') {
-        // Already allowed once: this resolves without a prompt if iOS still
-        // remembers; otherwise the next tap asks again.
-        window.DeviceOrientationEvent.requestPermission()
-            .then((answer) => (answer === 'granted' ? start() : null))
-            .catch(() => document.addEventListener('click', () => askPermission(), { once: true }));
+        if (force) whenBooted(() => showGyroCard(true));
     } else {
-        offerWhenBooted();
+        // iOS. A yes from before may still hold (Safari remembers it until
+        // it quits); a home-screen launch always starts over.
+        const before = stored() === 'granted' ? askSilently() : Promise.resolve(false);
+        before.then((ok) => {
+            if (force || !seenCard()) whenBooted(() => showGyroCard(force));
+            else if (!ok && stored() === 'granted') whenBooted(showRelinkChip);
+        });
     }
 
-    // Settings > Tilt: turning it on asks iOS (the change event is a tap).
+    // Settings > Tilt depth: turning it on asks iOS (the change event is a tap).
     document.getElementById('setting-tilt')?.addEventListener('change', (event) => {
-        if (event.target.checked && needsPermission() && stored() !== 'granted') askPermission();
+        if (event.target.checked && needsPermission() && !permitted) askPermission();
+    });
+    document.getElementById('tilt-sync')?.addEventListener('click', syncFromSettings);
+    document.addEventListener('window:opened', (event) => {
+        if (event.detail?.id === 'settingsPanel') renderStatus();
     });
 
     // Follow the Tilt and Animations settings as they change.
     // (Also catches edit mode starting, so the icons settle at once.)
     new MutationObserver(() => {
         if (!wanted()) stop();
-        else if (!needsPermission() || stored() === 'granted') start();
+        else if (!needsPermission() || permitted) start();
         kick();
+        renderStatus();
     }).observe(root, { attributes: true, attributeFilter: ['class'] });
+    renderStatus();
 
     // Rearranging icons: drop them back to rest so slots line up.
     document.addEventListener('home:gesture', recenter);
