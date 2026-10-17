@@ -1,0 +1,265 @@
+/* Touch layer (js/modules/ui/touch.js): press feedback, home-screen editing,
+   sheet gestures and the home bar. */
+
+/* ------------------------------------------------------- touch hygiene */
+
+html.touch-ui {
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* No double-tap zoom delay on anything you can press. */
+.touch-ui button,
+.touch-ui a,
+.touch-ui .icon,
+.touch-ui .start-menu-item,
+.touch-ui .taskbar {
+    touch-action: manipulation;
+}
+
+/* Home-screen icons: no callout, link preview, drag ghost or text selection
+   on a long press, and the finger owns the gesture. */
+.touch-ui .desktop-icons .icon,
+.touch-ui .desktop-icons .icon img {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+.touch-ui .desktop-icons .icon { touch-action: none; }
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+.haptic-switch {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+/* --------------------------------------------------------- press feedback */
+
+.desktop-icons .icon img {
+    transition: transform 0.18s cubic-bezier(.2, .8, .2, 1), box-shadow 0.18s ease, border-color 0.18s ease, filter 0.18s ease;
+}
+.desktop-icons .icon.pressed img {
+    transform: scale(0.88);
+    filter: brightness(0.8);
+}
+
+.touch-ui .start-menu-item,
+.touch-ui .window-buttons button,
+.touch-ui .start-menu,
+.touch-ui .nr-btn,
+.touch-ui .home-edit-bar button {
+    transition: scale 0.14s ease, background 0.12s ease, border-color 0.12s ease;
+}
+.touch-ui .start-menu-item:active,
+.touch-ui .window-buttons button:active,
+.touch-ui .start-menu:active,
+.touch-ui .nr-btn:active,
+.touch-ui .home-edit-bar button:active {
+    scale: 0.95;
+}
+
+/* ------------------------------------------------------ home-screen edit */
+
+@keyframes home-jiggle {
+    0% { rotate: -1.6deg; }
+    50% { rotate: 1.6deg; }
+    100% { rotate: -1.6deg; }
+}
+
+.home-editing .desktop-icons .icon {
+    animation: home-jiggle 0.26s ease-in-out infinite;
+    animation-delay: var(--jiggle-delay, 0s);
+}
+.home-editing .desktop-icons .icon:hover,
+.home-editing .desktop-icons .icon:focus-visible {
+    background: none;
+    border-color: transparent;
+}
+
+.desktop-icons .icon.lifted {
+    position: relative;
+    z-index: 5;
+    animation: none !important;
+    scale: 1.14;
+    cursor: grabbing;
+    transition: scale 0.18s cubic-bezier(.2, .8, .2, 1);
+}
+.desktop-icons .icon.lifted img {
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(var(--accent-rgb), 0.6), 0 0 26px rgba(var(--accent-rgb), 0.35);
+}
+.desktop-icons .icon.lifted .icon-label { opacity: 0; }
+
+.home-edit-bar {
+    position: fixed;
+    z-index: 40;
+    top: calc(env(safe-area-inset-top, 0px) + 12px);
+    left: 50%;
+    display: flex;
+    gap: 8px;
+    translate: -50% 0;
+    animation: home-edit-in 0.22s cubic-bezier(.2, .8, .2, 1);
+}
+.home-edit-bar[hidden] { display: none; }
+.home-edit-bar button {
+    min-height: 36px;
+    padding: 0 18px;
+    font: 700 13px/1 var(--font-display, system-ui, sans-serif);
+    letter-spacing: 0.06em;
+    color: var(--text, #e8f6ff);
+    background: rgba(8, 12, 19, 0.72);
+    border: 1px solid rgba(var(--accent-rgb), 0.35);
+    border-radius: 999px;
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    cursor: pointer;
+}
+.home-edit-bar .home-edit-done {
+    color: #00151a;
+    background: rgb(var(--accent-rgb));
+    border-color: transparent;
+}
+@keyframes home-edit-in {
+    from { opacity: 0; translate: -50% -10px; }
+}
+
+/* -------------------------------------------------------- sheet gestures */
+
+.sheet-grabber { display: none; }
+.home-bar { display: none; }
+
+@media (max-width: 720px) {
+    /* touch.js animates sheets itself (out of the icon, back into it). */
+    html.touch-ui .explorer,
+    html.touch-ui .app-window,
+    html.touch-ui .music-player {
+        animation: none;
+    }
+
+    .app-window .sheet-grabber,
+    .start-menu-dropdown .sheet-grabber {
+        display: block;
+        width: 40px;
+        height: 5px;
+        margin: 7px auto 0;
+        border-radius: 3px;
+        background: rgba(255, 255, 255, 0.28);
+        touch-action: none;
+    }
+    .app-window .sheet-grabber {
+        position: absolute;
+        z-index: 3;
+        top: 0;
+        left: 50%;
+        margin: 6px 0 0 -20px;
+        pointer-events: auto;
+    }
+    .start-menu-dropdown .sheet-grabber {
+        grid-column: 1 / -1;
+        margin: -4px auto 4px;
+        padding: 6px 0;
+        background-clip: content-box;
+        height: 17px;
+        width: 60px;
+        background: none;
+        position: relative;
+    }
+    .start-menu-dropdown .sheet-grabber::after {
+        content: "";
+        position: absolute;
+        left: 10px;
+        right: 10px;
+        top: 6px;
+        height: 5px;
+        border-radius: 3px;
+        background: rgba(255, 255, 255, 0.28);
+    }
+    .start-menu-dropdown .start-menu-user { touch-action: none; }
+
+    /* The header is the handle: drag it down to close. */
+    .window-header,
+    .explorer-header,
+    .player-header {
+        touch-action: none;
+        padding-top: 6px;
+    }
+    .app-window.sheet-dragging { transition: none; }
+    .app-window.closing { pointer-events: none; }
+
+    /* Scrolling inside a sheet never drags the page behind it. */
+    .app-window * { overscroll-behavior: contain; }
+
+    /* The dock owns its touches so a swipe up is ours, not a page pan.
+       The Start menu inside it scrolls on its own. */
+    .touch-ui .taskbar { touch-action: none; }
+    .touch-ui .start-menu-dropdown { touch-action: pan-y; }
+
+    /* Home bar: appears on the dock while an app is open. */
+    .home-bar {
+        position: absolute;
+        top: -2px;
+        left: 50%;
+        display: grid;
+        place-items: center;
+        width: 150px;
+        height: 22px;
+        margin-left: -75px;
+        padding: 0;
+        background: none;
+        border: 0;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease;
+        cursor: pointer;
+    }
+    .home-bar i {
+        width: 120px;
+        height: 5px;
+        border-radius: 3px;
+        background: rgba(255, 255, 255, 0.75);
+        box-shadow: 0 0 10px rgba(var(--accent-rgb), 0.5);
+    }
+    .app-open .home-bar {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .home-edit-bar {
+        left: auto;
+        right: 14px;
+        translate: none;
+        animation-name: home-edit-in-phone;
+    }
+    @keyframes home-edit-in-phone {
+        from { opacity: 0; translate: 0 -10px; }
+    }
+    /* The big clock steps back while icons are being arranged. */
+    .home-editing .home-widget { opacity: 0.35; transition: opacity 0.2s ease; }
+}
+
+/* Short phones in landscape scroll the icon grid, so leave vertical pans to
+   the browser until edit mode. */
+@media (max-width: 720px) and (max-height: 560px) {
+    .touch-ui .desktop-icons .icon { touch-action: pan-y; }
+    .touch-ui.home-editing .desktop-icons .icon { touch-action: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .home-editing .desktop-icons .icon { animation: none; outline: 1px dashed rgba(var(--accent-rgb), 0.5); outline-offset: -2px; border-radius: 14px; }
+}
+html.no-motion .home-editing .desktop-icons .icon,
+html.no-motion.home-editing .desktop-icons .icon { animation: none; outline: 1px dashed rgba(var(--accent-rgb), 0.5); outline-offset: -2px; border-radius: 14px; }
