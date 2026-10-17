@@ -19,7 +19,8 @@ const DEFAULTS = {
     theme: 'ice',
     crt: true,
     sound: true,
-    motion: true
+    motion: true,
+    tilt: true
 };
 
 let settings = { ...DEFAULTS };
@@ -50,6 +51,7 @@ function apply() {
     root.style.setProperty('--accent-rgb', theme.rgb);
     root.classList.toggle('no-crt', !settings.crt);
     root.classList.toggle('no-motion', !settings.motion);
+    root.classList.toggle('no-tilt', !settings.tilt);
 
     setMuted(!settings.sound);
 
@@ -97,7 +99,7 @@ function syncControls() {
         button.setAttribute('aria-pressed', String(button.dataset.themeOption === settings.theme));
     });
 
-    ['crt', 'sound', 'motion'].forEach(key => {
+    ['crt', 'sound', 'motion', 'tilt'].forEach(key => {
         const toggle = document.getElementById(`setting-${key}`);
         if (toggle) toggle.checked = settings[key];
     });
@@ -143,7 +145,7 @@ export function initSettings() {
         });
     });
 
-    ['crt', 'sound', 'motion'].forEach(key => {
+    ['crt', 'sound', 'motion', 'tilt'].forEach(key => {
         const toggle = document.getElementById(`setting-${key}`);
         if (toggle) {
             toggle.addEventListener('change', () => setToggle(key, toggle.checked));
