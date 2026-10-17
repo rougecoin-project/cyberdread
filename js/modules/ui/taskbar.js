@@ -35,18 +35,29 @@ function updateClock() {
     }
 
     // The status widget (desktop card, phone home screen).
-    // Hours and minutes large, AM/PM (where the locale has it) small.
+    // Hours and minutes large; seconds and AM/PM (where the locale has it)
+    // stacked small beside them.
     const homeTime = document.querySelector('[data-home-time]');
     if (homeTime) {
         const parts = new Intl.DateTimeFormat([], { hour: '2-digit', minute: '2-digit' }).formatToParts(now);
         const period = parts.find(part => part.type === 'dayPeriod')?.value;
-        const main = parts.filter(part => part.type !== 'dayPeriod').map(part => part.value).join('').trim();
-        homeTime.replaceChildren(main);
+        const main = document.createElement('span');
+        main.className = 'hw-main';
+        main.textContent = parts.filter(part => part.type !== 'dayPeriod').map(part => part.value).join('').trim();
+
+        const tail = document.createElement('span');
+        tail.className = 'hw-tail';
+        const seconds = document.createElement('span');
+        seconds.className = 'hw-sec';
+        seconds.textContent = String(now.getSeconds()).padStart(2, '0');
+        tail.append(seconds);
         if (period) {
             const small = document.createElement('small');
             small.textContent = period;
-            homeTime.append(small);
+            tail.append(small);
         }
+        homeTime.replaceChildren(main, tail);
+        homeTime.setAttribute('aria-label', now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
     }
     const homeDate = document.querySelector('[data-home-date]');
     if (homeDate) homeDate.textContent = now.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });

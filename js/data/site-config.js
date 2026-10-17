@@ -136,6 +136,13 @@ export const PROJECTS = [
         blurb: 'Field magazine, issue 01: how to survive a robot apocalypse. Read it, or take the PDF.'
     },
     {
+        name: 'RougeChain Store',
+        url: 'https://store.rougechain.io/',
+        icon: 'assets/img/store-icon.svg',
+        status: 'live',
+        blurb: 'Games, merch and apps from RougeChain Technologies. Gltch Runner is in Early Access; merch and apps are on the way.'
+    },
+    {
         name: 'JARVIS',
         url: 'https://cyberdreadx.github.io/jarvis-dreados/',
         icon: 'assets/img/jarvis-icon.svg',
