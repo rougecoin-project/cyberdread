@@ -136,6 +136,13 @@ export const PROJECTS = [
         blurb: 'Field magazine, issue 01: how to survive a robot apocalypse. Read it, or take the PDF.'
     },
     {
+        name: 'JARVIS',
+        url: 'https://cyberdreadx.github.io/jarvis-dreados/',
+        icon: 'assets/img/jarvis-icon.svg',
+        status: 'live',
+        blurb: 'DreadOS AI: a local AI assistant for Windows. Voice, any AI provider or a fully offline model, creator studio and a build workspace. Free download.'
+    },
+    {
         name: 'Dead Harvest',
         url: 'https://cyberdreadx.itch.io/dead-harvest-beta-v01',
         icon: 'assets/img/game-dead-harvest.jpg',
@@ -225,6 +232,12 @@ export const PROJECTS = [
 export const GITHUB_USER = 'cyberdreadx';
 
 export const REPOS = [
+    {
+        name: 'jarvis-dreados',
+        desc: 'JARVIS / DreadOS AI: a local AI assistant for Windows. Your keys, your models, your machine.',
+        lang: 'Python',
+        homepage: 'https://cyberdreadx.github.io/jarvis-dreados/'
+    },
     {
         name: 'rougechain-node',
         desc: 'RougeChain full node.',

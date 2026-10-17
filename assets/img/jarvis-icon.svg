@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="JARVIS">
+  <defs>
+    <linearGradient id="plate" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2a6373"/>
+      <stop offset="1" stop-color="#0d1018"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2.4" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <!-- The JARVIS badge: a plate with two corners cut, as on the download site. -->
+  <path d="M4 4H46L60 18V60H18L4 46Z" fill="url(#plate)" stroke="#4fb3cf" stroke-width="2"/>
+  <path d="M10 10H43L54 21" fill="none" stroke="#8ae7ff" stroke-opacity=".35" stroke-width="1"/>
+  <!-- An italic J, drawn as a path so it looks the same on every device. -->
+  <path d="M39 15H31.5L27.5 37.5C26.8 41.6 24.6 43.5 21.3 43.5C19.6 43.5 18.2 43 17 42.1L15.6 48.6C17.4 49.6 19.6 50.2 22.1 50.2C29 50.2 33.2 46.4 34.6 38.6Z"
+        fill="#ffffff" filter="url(#glow)"/>
+  <circle cx="45.5" cy="45" r="3.2" fill="#b79df5"/>
+</svg>
