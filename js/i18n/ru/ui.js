@@ -98,7 +98,7 @@ export default {
         themes: {
             ice: 'ICE-циан',
             acid: 'Кислотный',
-            magenta: 'Розовый неон',
+            magenta: 'Фуксия',
             amber: 'Янтарь CRT'
         }
     },
@@ -117,7 +117,7 @@ export default {
         pausedReduceMotion: 'В настройках телефона включено «Уменьшение движения».',
         pausedAnimations: 'Анимации выключены в Настройках.',
         blockedTitle: 'Доступ запрещён',
-        blockedReopen: 'Перезапусти приложение и нажми «Связать» в Настройки › Глубина наклона.',
+        blockedReopen: 'Перезапусти приложение и нажми «Связать» в Настройках › Глубина наклона.',
         blockedIos: 'iOS отказал. Перезапусти приложение и снова нажми «Связать».',
         calibratingTitle: 'Подключаемся',
         calibratingText: 'Наклоняй телефон и осмотри сетку.',
@@ -128,11 +128,11 @@ export default {
         chipRefused: 'ГИРОСКОП <b>ОТКАЗ</b>',
         statusPaused: 'Пауза: {reason}',
         statusDesktop: 'Компьютер: обои следуют за мышью.',
-        statusNotLinked: 'Не подключено. Нажми «Связать», чтобы подключить наклон.',
-        statusLinked: 'Подключено ✦ Сетка движется вместе с тобой.',
+        statusNotLinked: 'Нет связи. Нажми «Связать», чтобы подключить наклон.',
+        statusLinked: 'Связь есть ✦ Сетка движется с тобой.',
         statusWaiting: 'Жду датчик движения…',
         buttonSync: '◉ Связать',
-        buttonRecalibrate: '◉ Перекалибровать'
+        buttonRecalibrate: '◉ Калибровка'
     },
 
     explorer: {

@@ -15,7 +15,7 @@ import {
 import * as chain from './netrun-chain.js';
 import { t, list, num } from '../../i18n/i18n.js';
 
-const EXTENSION_URL = ROUGECHAIN.ecosystem.flatMap((g) => g.items).find((i) => /extension/i.test(i.name))?.url
+const EXTENSION_URL = ROUGECHAIN.ecosystem.flatMap((g) => g.items).find((i) => /chromewebstore|addons\.mozilla/i.test(i.url))?.url
     || 'https://chromewebstore.google.com/detail/rougechain-wallet/ilkbgjgphhaolfdjkfefdfiifipmhakj';
 const QWALLA_URL = 'https://qwalla.io';
 const isPhone = () => matchMedia('(pointer: coarse)').matches;
@@ -284,7 +284,12 @@ async function submitBreach() {
         state.live.txId = tx.txId;
         render();
         const r = await chain.receipt(tx.txId);
-        if (!r.ok) throw new Error(r.error || t('netrun.status.rejected'));
+        if (!r.ok) {
+            // The chain refused it: say so, never "cancelled in the wallet".
+            const refused = new Error(r.error || t('netrun.status.rejected'));
+            refused.fromChain = true;
+            throw refused;
+        }
         await showBreachResult(run, path, tx.txId);
     } catch (error) {
         // Once submitted, the chain decides: if the run closed, the upload went through.
@@ -336,7 +341,7 @@ async function abandonRun() {
 
 function friendly(error) {
     const m = String(error?.message || error);
-    if (/reject|denied|cancel/i.test(m)) return t('netrun.errors.cancelled');
+    if (!error?.fromChain && /reject|denied|cancel/i.test(m)) return t('netrun.errors.cancelled');
     if (/insufficient|balance/i.test(m)) {
         // The node says what it saw ("have 0.000000, need 0.140000"). If the wallet shows more than
         // that, it signed for a different network than NETRUN runs on.

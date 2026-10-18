@@ -41,6 +41,27 @@ the music player and the RougeChain panel all read from it.
 Adding a project is one entry in `PROJECTS`; it appears in the Projects folder
 and in the terminal's `projects` command automatically.
 
+## Languages
+
+Dread_OS speaks **English and Russian**. The language comes from `?lang=ru`
+(or the short link [cyberdreadx.dev/ru](https://cyberdreadx.dev/ru)), then the
+visitor's last choice (Settings → Language, or `lang ru` in term.exe), then the
+browser's language. The choice is shared with Dead Circuit.
+
+- Every word people read lives in [`js/i18n/en/`](js/i18n/en/) (the source)
+  and [`js/i18n/ru/`](js/i18n/ru/), one file per area: `ui` (the shell and
+  `index.html`), `content` (the copy in `site-config.js`), `chain`
+  (RougeChain, wallet, swap), `term` and `netrun`.
+- **Changing copy:** edit the key in `en/`, then the same key in `ru/`. Data
+  entries in `site-config.js` resolve their text with `t('content.…')`.
+- **Checking:** `node js/i18n/check.mjs` confirms `ru` mirrors `en` (keys,
+  placeholders, plural forms), that every key the code and `index.html` use
+  exists, and that the English fallback text in `index.html` matches.
+- **Adding a language:** copy `js/i18n/en/` and `en.js` to the new code,
+  translate, and add it to `LANGS` in `js/i18n/i18n.js`.
+- Russian letters use the self-hosted Cyrillic subsets of IBM Plex Mono and
+  Tektur (beside Chakra Petch), downloaded only when Cyrillic is on screen.
+
 ## Layout
 
 ```
@@ -48,10 +69,11 @@ index.html                    markup + inline SVG icon sprite
 styles.css                    design tokens (:root) + components
 css/os.css                    the skin: glass windows, icon grid, dock, phone layout
 css/touch.css                 touch feedback, home-screen edit mode, sheet gestures
-assets/fonts/                 Chakra Petch + IBM Plex Mono (SIL OFL), self-hosted
+assets/fonts/                 Chakra Petch + IBM Plex Mono (+ Tektur for Cyrillic), SIL OFL, self-hosted
 js/
   main.js                     entry point, wires modules to the DOM
   data/site-config.js         ← content lives here
+  i18n/                       languages: i18n.js, en/ and ru/ dictionaries, check.mjs
   modules/
     sound.js                  interface sounds (mutable via Settings)
     system.js                 boot / shutdown sequences
@@ -258,6 +280,7 @@ everything; notable commands:
 | `theme <name>` | `ice`, `acid`, `magenta`, `amber` |
 | `matrix` | digital rain |
 | `netrun` | opens netrun.exe |
+| `lang [en\|ru]` | shows or switches the language |
 
 Tab completes, Up/Down walks history, Ctrl+L clears.
 

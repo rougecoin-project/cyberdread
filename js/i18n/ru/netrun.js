@@ -31,7 +31,7 @@ export default {
         paidByContract: 'платит контракт',
         practice: 'тренировка',
         implant: 'Загрузи все три: NFT-имплант <b>{implant}</b>',
-        undo: 'Отмена',
+        undo: 'Назад',
         upload: 'Загрузить',
         uploadLive: 'Загрузить в сеть',
         abandon: 'Бросить забег',
