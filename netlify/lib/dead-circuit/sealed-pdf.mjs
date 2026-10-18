@@ -10,7 +10,7 @@
  */
 import { createDecipheriv } from 'node:crypto';
 
-export const EDITIONS = ['en', 'es', 'fr', 'it', 'pt', 'ja', 'zh', 'ar'];
+export const EDITIONS = ['en', 'es', 'fr', 'it', 'pt', 'ru', 'ja', 'zh', 'ar'];
 
 const IV_BYTES = 12;
 const TAG_BYTES = 16;

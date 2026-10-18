@@ -9,6 +9,7 @@ import { SITE, LINKS, PROJECTS, TOKENS, ROUGECHAIN, REPOS, GITHUB_USER } from '.
 import { fetchXrgeMarket, MarketStatus, formatUsd, formatCompactUsd, formatChange } from '../web3/market.js';
 import { fetchChainStatus, formatInt, formatXrge } from '../web3/rougechain.js';
 import { setTheme, listThemes, getTheme } from './settings.js';
+import { t, num, LANG, LANGS, LOCALE, switchLanguage } from '../../i18n/i18n.js';
 
 const HISTORY_KEY = 'dreados:term-history';
 const MAX_HISTORY = 50;
@@ -57,40 +58,61 @@ function printLink(label, url) {
     output.scrollTop = output.scrollHeight;
 }
 
+/**
+ * Prints `  label  value` rows with the values lined up in one column,
+ * however long the labels run in the active language.
+ * @param {Array<[string, string, string?]>} rows  label, value, className
+ */
+function printFields(rows) {
+    const width = Math.max(...rows.map(([label]) => label.length)) + 2;
+    rows.forEach(([label, value, className]) => print(`  ${label.padEnd(width, ' ')}${value}`, className));
+}
+
+/**
+ * A project's status badge in the active language; the raw id if the
+ * dictionary has no word for it.
+ * @param {string} status
+ */
+function statusLabel(status) {
+    const key = `term.projects.status.${status}`;
+    const label = t(key);
+    return label === key ? status : label;
+}
+
 const COMMANDS = {
     help: {
-        describe: 'list available commands',
+        describe: t('term.commands.help'),
         run() {
-            print('Available commands:', 'term-heading');
+            print(t('term.help.heading'), 'term-heading');
             Object.entries(COMMANDS)
                 .sort(([a], [b]) => a.localeCompare(b))
                 .forEach(([name, command]) => {
                     print(`  ${name.padEnd(12, ' ')} ${command.describe}`);
                 });
             print();
-            print('Tab completes. Up/Down walks history.', 'term-muted');
+            print(t('term.help.hint'), 'term-muted');
         }
     },
 
     about: {
-        describe: 'who runs this box',
+        describe: t('term.commands.about'),
         run() {
             SITE.bio.forEach(line => print(line));
         }
     },
 
     whoami: {
-        describe: 'print the current user',
+        describe: t('term.commands.whoami'),
         run() {
             print(`${SITE.handle} -- ${SITE.tagline}`);
         }
     },
 
     projects: {
-        describe: 'list current projects',
+        describe: t('term.commands.projects'),
         run() {
             PROJECTS.forEach(project => {
-                print(`[${project.status}] ${project.name}`, 'term-heading');
+                print(`[${statusLabel(project.status)}] ${project.name}`, 'term-heading');
                 print(`  ${project.blurb}`, 'term-muted');
                 printLink('', project.url);
             });
@@ -98,10 +120,10 @@ const COMMANDS = {
     },
 
     repos: {
-        describe: 'selected source repositories',
+        describe: t('term.commands.repos'),
         run() {
             REPOS.forEach(repo => {
-                const tags = [repo.lang, repo.license, repo.stars && `${repo.stars} stars`]
+                const tags = [repo.lang, repo.license, repo.stars && t('term.repos.stars', { n: repo.stars })]
                     .filter(Boolean).join(' - ');
                 print(repo.name, 'term-heading');
                 if (repo.desc) print(`  ${repo.desc}`, 'term-muted');
@@ -109,36 +131,41 @@ const COMMANDS = {
                 printLink('', `https://github.com/${GITHUB_USER}/${repo.name}`);
             });
             print();
-            print('Six languages across 33 public repos.', 'term-muted');
+            print(t('term.repos.footer'), 'term-muted');
             printLink('', `https://github.com/${GITHUB_USER}`);
         }
     },
 
     links: {
-        describe: 'where else to find me',
+        describe: t('term.commands.links'),
         run() {
             LINKS.forEach(link => printLink(link.label, link.url));
         }
     },
 
     chain: {
-        describe: 'RougeChain, the post-quantum L1 -- live',
+        describe: t('term.commands.chain'),
         async run() {
             print(`${ROUGECHAIN.name} -- ${ROUGECHAIN.tagline} (${ROUGECHAIN.status})`, 'term-heading');
             print(ROUGECHAIN.summary);
             print();
 
-            const pending = print('querying the RougeChain node...', 'term-muted');
+            const pending = print(t('term.chain.querying'), 'term-muted');
             const status = await fetchChainStatus();
             pending.remove();
             if (status) {
-                print(`  chain       ${status.chainId}`);
-                print(`  height      ${formatInt(status.height)}  (finalized ${formatInt(status.finalized)})`);
-                print(`  validators  ${status.validators === null ? '--' : formatInt(status.validators)}`);
-                print(`  peers       ${formatInt(status.peers)}`);
-                print(`  burned      ${formatXrge(status.feesBurned)}`, 'term-muted');
+                printFields([
+                    [t('term.chain.chain'), status.chainId],
+                    [t('term.chain.height'), t('term.chain.heightValue', {
+                        height: formatInt(status.height),
+                        finalized: formatInt(status.finalized)
+                    })],
+                    [t('term.chain.validators'), status.validators === null ? '--' : formatInt(status.validators)],
+                    [t('term.chain.peers'), formatInt(status.peers)],
+                    [t('term.chain.burned'), formatXrge(status.feesBurned), 'term-muted']
+                ]);
             } else {
-                print('  node unreachable -- the chain may be fine; try the explorer.', 'term-error');
+                print(`  ${t('term.chain.unreachable')}`, 'term-error');
             }
             print();
 
@@ -146,43 +173,45 @@ const COMMANDS = {
                 print(`  ${group.toLowerCase()}: ${items.map(item => item.name).join(', ')}`, 'term-muted');
             });
             print();
-            printLink('site', ROUGECHAIN.url);
-            printLink('explorer', ROUGECHAIN.explorer);
-            printLink('buy XRGE', ROUGECHAIN.buyUrl);
-            printLink('coinbase', ROUGECHAIN.coinbaseUrl);
+            printLink(t('term.chain.site'), ROUGECHAIN.url);
+            printLink(t('term.chain.explorer'), ROUGECHAIN.explorer);
+            printLink(t('term.chain.buy'), ROUGECHAIN.buyUrl);
+            printLink(t('term.chain.coinbase'), ROUGECHAIN.coinbaseUrl);
         }
     },
 
     xrge: {
-        describe: 'live XRGE market data (Base)',
+        describe: t('term.commands.xrge'),
         async run() {
-            const pending = print('querying DEXScreener...', 'term-muted');
+            const pending = print(t('term.xrge.querying'), 'term-muted');
             const { status, data: market } = await fetchXrgeMarket();
             pending.remove();
 
             if (status === MarketStatus.NO_PAIR) {
-                print('no indexed liquidity pool for XRGE yet.', 'term-error');
-                print(`contract: ${TOKENS.XRGE.address}`, 'term-muted');
+                print(t('term.xrge.noPair'), 'term-error');
+                print(t('term.xrge.contract', { address: TOKENS.XRGE.address }), 'term-muted');
                 return;
             }
             if (status !== MarketStatus.OK) {
-                print('market data source unreachable.', 'term-error');
+                print(t('term.xrge.unreachable'), 'term-error');
                 return;
             }
 
-            print('XRGE on Base -- RougeChain\'s token', 'term-heading');
-            print(`  price       ${formatUsd(market.priceUsd)}`);
-            print(`  24h         ${formatChange(market.change24h)}`,
-                market.change24h >= 0 ? 'term-ok' : 'term-error');
-            print(`  market cap  ${formatCompactUsd(market.marketCap)}`);
-            print(`  liquidity   ${formatCompactUsd(market.liquidityUsd)}`);
-            print(`  24h volume  ${formatCompactUsd(market.volume24h)}`);
-            print(`  venue       ${market.dex}`, 'term-muted');
+            print(t('term.xrge.heading'), 'term-heading');
+            printFields([
+                [t('term.xrge.price'), formatUsd(market.priceUsd)],
+                [t('term.xrge.change'), formatChange(market.change24h),
+                    market.change24h >= 0 ? 'term-ok' : 'term-error'],
+                [t('term.xrge.marketCap'), formatCompactUsd(market.marketCap)],
+                [t('term.xrge.liquidity'), formatCompactUsd(market.liquidityUsd)],
+                [t('term.xrge.volume'), formatCompactUsd(market.volume24h)],
+                [t('term.xrge.venue'), market.dex, 'term-muted']
+            ]);
         }
     },
 
     neofetch: {
-        describe: 'system summary',
+        describe: t('term.commands.neofetch'),
         run() {
             const art = [
                 '   ______            ',
@@ -190,15 +219,20 @@ const COMMANDS = {
                 ' (   _    _ _\\       ',
                 ' =`-(_)--(_)-\'       '
             ];
+            const fields = [
+                [t('term.neofetch.os'), `${SITE.os} ${SITE.version}`],
+                [t('term.neofetch.shell'), 'dsh'],
+                [t('term.neofetch.theme'), getTheme()],
+                [t('term.neofetch.engine'), navigator.userAgent.includes('Firefox') ? 'Gecko' : 'Blink/WebKit'],
+                [t('term.neofetch.screen'), `${window.screen.width}x${window.screen.height}`],
+                [t('term.neofetch.uptime'), t('term.neofetch.uptimeValue', { n: num(Math.floor(performance.now() / 1000)) })]
+            ];
+            // Nine columns, as the English always had, unless a label needs more.
+            const width = Math.max(9, ...fields.map(([label]) => label.length + 1));
             const facts = [
                 `${SITE.handle}@dread`,
                 '-----------------',
-                `OS       ${SITE.os} ${SITE.version}`,
-                `Shell    dsh`,
-                `Theme    ${getTheme()}`,
-                `Engine   ${navigator.userAgent.includes('Firefox') ? 'Gecko' : 'Blink/WebKit'}`,
-                `Screen   ${window.screen.width}x${window.screen.height}`,
-                `Uptime   ${Math.floor(performance.now() / 1000)}s`
+                ...fields.map(([label, value]) => `${label.padEnd(width, ' ')}${value}`)
             ];
             const rows = Math.max(art.length, facts.length);
             for (let i = 0; i < rows; i += 1) {
@@ -208,80 +242,110 @@ const COMMANDS = {
     },
 
     theme: {
-        describe: 'switch accent theme (theme <name>)',
+        describe: t('term.commands.theme'),
         run(args) {
             const themes = listThemes();
             if (args.length === 0) {
-                print(`current: ${getTheme()}`);
-                print(`available: ${themes.join(', ')}`, 'term-muted');
+                print(t('term.theme.current', { theme: getTheme() }));
+                print(t('term.theme.available', { list: themes.join(', ') }), 'term-muted');
                 return;
             }
             const requested = args[0].toLowerCase();
             if (!themes.includes(requested)) {
-                print(`unknown theme "${requested}". try: ${themes.join(', ')}`, 'term-error');
+                print(t('term.theme.unknown', { name: requested, list: themes.join(', ') }), 'term-error');
                 return;
             }
             setTheme(requested);
-            print(`theme set to ${requested}`, 'term-ok');
+            print(t('term.theme.set', { name: requested }), 'term-ok');
         }
     },
 
     matrix: {
-        describe: 'toggle the digital rain',
+        describe: t('term.commands.matrix'),
         run() {
             const canvas = document.getElementById('matrixCanvas');
             if (!canvas) return;
             if (matrixTimer) {
                 stopMatrix();
-                print('rain stopped.');
+                print(t('term.matrix.stopped'));
             } else {
                 startMatrix(canvas);
-                print('follow the white rabbit. run `matrix` again to stop.', 'term-ok');
+                print(t('term.matrix.started'), 'term-ok');
             }
         }
     },
 
     netrun: {
-        describe: 'jack in: breach-protocol game, live runs on RougeChain',
+        describe: t('term.commands.netrun'),
         run() {
-            print('launching netrun.exe…', 'term-ok');
+            print(t('term.netrun.launching'), 'term-ok');
             window.openNetrun?.();
         }
     },
 
     date: {
-        describe: 'current system time',
+        describe: t('term.commands.date'),
         run() {
-            print(new Date().toString());
+            const now = new Date();
+            // English keeps the classic Date string; other languages get their own words.
+            print(LANG === 'en' ? now.toString() : now.toLocaleString(LOCALE, { dateStyle: 'full', timeStyle: 'long' }));
         }
     },
 
     echo: {
-        describe: 'print arguments',
+        describe: t('term.commands.echo'),
         run(args) {
             print(args.join(' '));
         }
     },
 
     sudo: {
-        describe: 'elevate privileges',
+        describe: t('term.commands.sudo'),
         run() {
-            print(`${SITE.handle} is not in the sudoers file. This incident has been reported.`, 'term-error');
+            print(t('term.sudo.denied', { user: SITE.handle }), 'term-error');
             playSound(SOUNDS.ERROR);
         }
     },
 
     clear: {
-        describe: 'clear the screen',
+        describe: t('term.commands.clear'),
         run() {
             output.textContent = '';
         }
     },
 
     exit: {
-        describe: 'close the terminal',
+        describe: t('term.commands.exit'),
         run() {
             closeTerminal();
+        }
+    },
+
+    lang: {
+        describe: t('term.commands.lang'),
+        run(args) {
+            const codes = LANGS.map(lang => lang.code);
+            if (args.length === 0) {
+                const current = LANGS.find(lang => lang.code === LANG) ?? LANGS[0];
+                const other = LANGS.find(lang => lang.code !== LANG) ?? current;
+                print(t('term.lang.current', { code: current.code, name: current.name }));
+                print(t('term.lang.available'), 'term-muted');
+                LANGS.forEach(lang => print(`  ${lang.code.padEnd(4, ' ')}${lang.name}`, 'term-muted'));
+                print(t('term.lang.usage', { example: other.code }), 'term-muted');
+                return;
+            }
+            const requested = args[0].toLowerCase();
+            const target = LANGS.find(lang => lang.code === requested);
+            if (!target) {
+                print(t('term.lang.unknown', { code: requested, list: codes.join(', ') }), 'term-error');
+                return;
+            }
+            if (target.code === LANG) {
+                print(t('term.lang.already', { name: target.name }), 'term-muted');
+                return;
+            }
+            print(t('term.lang.switching', { name: target.name }), 'term-ok');
+            switchLanguage(target.code);
         }
     }
 };
@@ -366,8 +430,8 @@ async function execute(line) {
     const command = COMMANDS[name.toLowerCase()];
 
     if (!command) {
-        print(`dsh: command not found: ${name}`, 'term-error');
-        print("type `help` for the list.", 'term-muted');
+        print(t('term.shell.notFound', { name }), 'term-error');
+        print(t('term.shell.notFoundHint'), 'term-muted');
         return;
     }
 
@@ -375,7 +439,7 @@ async function execute(line) {
         await command.run(args);
     } catch (error) {
         console.error(error);
-        print(`dsh: ${name} failed: ${error.message}`, 'term-error');
+        print(t('term.shell.failed', { name, error: error.message }), 'term-error');
     }
 }
 
@@ -448,8 +512,8 @@ export function closeTerminal() {
 }
 
 function banner() {
-    print(`${SITE.os} ${SITE.version} -- dsh shell`, 'term-heading');
-    print(`Connected as ${SITE.handle}. Type \`help\` to get started.`, 'term-muted');
+    print(t('term.banner.title', { os: SITE.os, version: SITE.version }), 'term-heading');
+    print(t('term.banner.connected', { handle: SITE.handle }), 'term-muted');
     print();
 }
 

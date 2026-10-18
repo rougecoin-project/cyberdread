@@ -3,6 +3,7 @@
  * balances, receipts) and the RougeChain Wallet extension (signing).
  */
 import { NETRUN } from '../../data/site-config.js';
+import { t } from '../../i18n/i18n.js';
 
 const QUANTA_PER_XRGE = 1_000_000_000;
 
@@ -43,7 +44,7 @@ async function api(path, init) {
     const response = await fetch(`${NETRUN.api}${path}`, { ...init, signal: AbortSignal.timeout(12_000) });
     if (!response.ok) {
         const text = await response.text().catch(() => '');
-        const error = new Error(text || `${path} answered ${response.status}`);
+        const error = new Error(text || t('netrun.chain.answered', { path, status: response.status }));
         error.status = response.status;
         throw error;
     }
@@ -71,7 +72,7 @@ export async function query(method, caller, args = {}, attach) {
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify(body)
     });
-    if (!r.success) throw new Error(r.error || `${method} failed`);
+    if (!r.success) throw new Error(r.error || t('netrun.chain.failed', { method }));
     return parseReturn(r.returnData);
 }
 
@@ -155,7 +156,7 @@ async function qwallaCall(w, payload) {
     };
     const json = JSON.stringify(sortKeysDeep(full));
     const { signature } = await w.signTransaction({ payload: full });
-    if (!signature) throw new Error('Qwalla did not return a signature');
+    if (!signature) throw new Error(t('netrun.chain.noSignature'));
     const bytesHex = Array.from(new TextEncoder().encode(json), (b) => b.toString(16).padStart(2, '0')).join('');
     const response = await fetch(`${NETRUN.api}/v2/contract/execute`, {
         method: 'POST',
@@ -164,7 +165,7 @@ async function qwallaCall(w, payload) {
         signal: AbortSignal.timeout(20_000)
     });
     const r = await response.json().catch(() => ({}));
-    if (!response.ok || r.success === false || !r.txId) throw new Error(r.error || `contract call answered ${response.status}`);
+    if (!response.ok || r.success === false || !r.txId) throw new Error(r.error || t('netrun.chain.callAnswered', { status: response.status }));
     return { txId: r.txId, fee: r.fee, preview: r.preview };
 }
 

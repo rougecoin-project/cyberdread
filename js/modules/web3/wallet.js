@@ -9,6 +9,7 @@
 import { playSound, SOUNDS } from '../sound.js';
 import { redirectToAerodrome } from './swap.js';
 import { TOKENS, CHAIN } from '../../data/site-config.js';
+import { t, LOCALE } from '../../i18n/i18n.js';
 
 let provider = null;
 let userAccount = null;
@@ -49,8 +50,13 @@ function ethCall(to, data) {
     return provider.request({ method: 'eth_call', params: [{ to, data }, 'latest'] });
 }
 
+// The visitor's decimal mark, for balances shown to them.
+const DECIMAL = new Intl.NumberFormat(LOCALE).formatToParts(1.5)
+    .find(part => part.type === 'decimal')?.value ?? '.';
+
 /**
- * Converts a base-unit BigInt amount to a human-readable decimal string.
+ * Converts a base-unit BigInt amount to a human-readable decimal string,
+ * grouped for the visitor's locale (display only, not for parsing).
  * @param {bigint} value
  * @param {number} decimals
  * @param {number} precision - digits to keep after the point
@@ -62,8 +68,8 @@ export function formatUnits(value, decimals, precision = 4) {
     const fraction = value % base;
     const fractionDigits = fraction.toString().padStart(decimals, '0').slice(0, precision);
     const trimmed = fractionDigits.replace(/0+$/, '');
-    const wholeText = whole.toLocaleString('en-US');
-    return trimmed ? `${wholeText}.${trimmed}` : wholeText;
+    const wholeText = whole.toLocaleString(LOCALE);
+    return trimmed ? `${wholeText}${DECIMAL}${trimmed}` : wholeText;
 }
 
 /**
@@ -105,7 +111,7 @@ export async function connectWallet() {
     playSound(SOUNDS.CLICK);
 
     if (!window.ethereum) {
-        showWalletError('No wallet detected. Install MetaMask, Rabby or another EIP-1193 wallet.');
+        showWalletError(t('chain.wallet.noWallet'));
         return false;
     }
 
@@ -125,12 +131,12 @@ export async function connectWallet() {
     } catch (error) {
         // 4001 is the standard "user rejected request" code.
         if (error?.code === 4001) {
-            showWalletError('Connection rejected.');
+            showWalletError(t('chain.wallet.rejected'));
         } else if (error?.code === 4902) {
-            showWalletError(`Could not add ${CHAIN.name} to your wallet.`);
+            showWalletError(t('chain.wallet.addChainFailed', { chain: CHAIN.name }));
         } else {
             console.error('Error connecting wallet:', error);
-            showWalletError('Failed to connect wallet. Please try again.');
+            showWalletError(t('chain.wallet.failed'));
         }
         return false;
     }
@@ -179,16 +185,16 @@ function updateWalletUI() {
     if (userAccount) {
         addressElement.textContent = `${userAccount.slice(0, 6)}...${userAccount.slice(-4)}`;
         addressElement.classList.add('wallet-connected');
-        connectButton.textContent = 'Connected';
-        swapButton.textContent = 'Swap on Aerodrome';
+        connectButton.textContent = t('chain.wallet.connected');
+        swapButton.textContent = t('chain.swap.onAerodrome');
         swapButton.disabled = false;
         if (balances) balances.style.display = 'flex';
         getTokenBalance();
     } else {
-        addressElement.textContent = 'Wallet not connected';
+        addressElement.textContent = t('chain.wallet.notConnected');
         addressElement.classList.remove('wallet-connected');
-        connectButton.textContent = 'Connect Wallet';
-        swapButton.textContent = 'Connect Wallet to Swap';
+        connectButton.textContent = t('chain.wallet.connect');
+        swapButton.textContent = t('chain.swap.connectToSwap');
         swapButton.disabled = true;
         if (balances) balances.style.display = 'none';
     }
@@ -202,7 +208,7 @@ export async function getTokenBalance() {
     if (!userAccount || !provider) return;
 
     const container = document.getElementById('walletBalances');
-    if (container) container.textContent = 'Loading balances...';
+    if (container) container.textContent = t('chain.wallet.loadingBalances');
 
     const balances = {};
 
@@ -214,7 +220,7 @@ export async function getTokenBalance() {
         balances.ETH = formatUnits(BigInt(wei), 18, 4);
     } catch (error) {
         console.error('Error fetching ETH balance:', error);
-        balances.ETH = 'unavailable';
+        balances.ETH = t('chain.wallet.unavailable');
     }
 
     try {
@@ -225,7 +231,7 @@ export async function getTokenBalance() {
         balances.XRGE = formatUnits(BigInt(raw), decimals, 0);
     } catch (error) {
         console.error('Error fetching XRGE balance:', error);
-        balances.XRGE = 'unavailable';
+        balances.XRGE = t('chain.wallet.unavailable');
     }
 
     updateBalanceDisplay(balances);

@@ -2,6 +2,8 @@
  * Tooltips module - the first-run interface tour.
  */
 
+import { t } from '../../i18n/i18n.js';
+
 const SEEN_KEY = 'dreados:tour-seen';
 
 /**
@@ -77,11 +79,11 @@ export function showTooltips() {
     } catch { /* private mode: show the tour, it just won't be remembered */ }
 
     const tooltips = [
-        { text: 'Welcome, netrunner! Click "Start" to access the main menu.', target: '.start-menu' },
-        { text: 'Open the "Files" to explore your data.', target: '.icon-label', matchText: 'Files' },
-        { text: 'Check out the "Music" player for some tunes.', target: '.icon-label', matchText: 'Music' },
-        { text: 'Open "term.exe" and type help -- the whole site is reachable from the shell.', target: '.icon-label', matchText: 'term.exe' },
-        { text: 'Use "access.exe" to connect with other chooms.', target: '.icon-label', matchText: 'access.exe' }
+        { text: t('ui.tour.start'), target: '.start-menu' },
+        { text: t('ui.tour.files'), target: '.icon-label', matchText: t('ui.apps.files') },
+        { text: t('ui.tour.music'), target: '.icon-label', matchText: t('ui.apps.music') },
+        { text: t('ui.tour.terminal'), target: '.icon-label', matchText: 'term.exe' },
+        { text: t('ui.tour.access'), target: '.icon-label', matchText: 'access.exe' }
     ];
 
     tooltips.forEach((tooltip, index) => {

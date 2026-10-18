@@ -5,14 +5,15 @@
  * it with real, persisted preferences.
  */
 import { playSound, SOUNDS, setMuted, isMuted } from '../sound.js';
+import { LANGS, LANG, switchLanguage, t } from '../../i18n/i18n.js';
 
 const STORAGE_KEY = 'dreados:settings';
 
 const THEMES = {
-    ice:     { label: 'ICE Cyan',   accent: '#00ffff', rgb: '0, 255, 255' },
-    acid:    { label: 'Acid Green', accent: '#39ff5c', rgb: '57, 255, 92' },
-    magenta: { label: 'Hot Pink',   accent: '#ff3ec8', rgb: '255, 62, 200' },
-    amber:   { label: 'Amber CRT',  accent: '#ffb000', rgb: '255, 176, 0' }
+    ice:     { label: t('ui.settings.themes.ice'),     accent: '#00ffff', rgb: '0, 255, 255' },
+    acid:    { label: t('ui.settings.themes.acid'),    accent: '#39ff5c', rgb: '57, 255, 92' },
+    magenta: { label: t('ui.settings.themes.magenta'), accent: '#ff3ec8', rgb: '255, 62, 200' },
+    amber:   { label: t('ui.settings.themes.amber'),   accent: '#ffb000', rgb: '255, 176, 0' }
 };
 
 const DEFAULTS = {
@@ -151,6 +152,27 @@ export function initSettings() {
             toggle.addEventListener('change', () => setToggle(key, toggle.checked));
         }
     });
+
+    // Language: one button per language, each named in its own language.
+    const langs = document.getElementById('langOptions');
+    if (langs && langs.childElementCount === 0) {
+        LANGS.forEach(({ code, name }) => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'theme-swatch lang-option';
+            button.lang = code;
+            button.dataset.code = code.toUpperCase();
+            button.textContent = name;
+            const active = code === LANG;
+            button.classList.toggle('active', active);
+            button.setAttribute('aria-pressed', String(active));
+            button.addEventListener('click', () => {
+                playSound(SOUNDS.CLICK);
+                switchLanguage(code);
+            });
+            langs.appendChild(button);
+        });
+    }
 
     // Populate the theme swatches if the markup left them to be generated.
     const swatches = document.getElementById('themeSwatches');

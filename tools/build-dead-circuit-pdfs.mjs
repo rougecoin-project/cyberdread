@@ -11,8 +11,9 @@
  * Needs Playwright (`npm i -D playwright` or a global install) and, for the
  * Japanese, Chinese and Arabic editions, fonts with those scripts installed
  * on the machine (the Noto Sans/Serif JP and SC, Noto Kufi Arabic and Noto
- * Naskh Arabic families match the site's font stacks). PDFs embed the fonts,
- * so readers need nothing installed.
+ * Naskh Arabic families match the site's font stacks). Russian needs nothing
+ * extra: its Cyrillic fonts (Inter Tight, PT Serif) are self-hosted with the
+ * site. PDFs embed the fonts, so readers need nothing installed.
  *
  * Writes plain PDFs to ./dist-pdf/ (git-ignored, never commit them: the repo
  * is public) and sealed copies to dead-circuit/sealed/issue-01.<lang>.pdf.enc,
@@ -30,7 +31,7 @@ import { readContent } from './issue-content.mjs';
 const BASE = process.env.DC_BASE_URL || 'http://localhost:8765';
 // English ships as a hand-laid A4 portrait edition, sealed with tools/seal-dead-circuit-pdf.mjs,
 // so a plain run leaves it alone. Name `en` explicitly to replace it with the landscape print.
-const LANGS = process.argv.slice(2).length ? process.argv.slice(2) : ['es', 'fr', 'it', 'pt', 'ja', 'zh', 'ar'];
+const LANGS = process.argv.slice(2).length ? process.argv.slice(2) : ['es', 'fr', 'it', 'pt', 'ru', 'ja', 'zh', 'ar'];
 const OUT = 'dead-circuit/sealed';
 const KEY = process.env.DC_PDF_KEY?.trim();
 

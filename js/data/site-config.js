@@ -4,26 +4,21 @@
  * If information on the site is out of date, edit THIS file. The terminal,
  * explorer, RougeCoin panel and taskbar all read from here, so one edit
  * updates every surface at once.
+ *
+ * Copy people read (taglines, blurbs, descriptions, labels) lives in the
+ * dictionaries -- js/i18n/en/content.js and js/i18n/ru/content.js -- and is
+ * resolved here with t('content.…') when this module loads, so every
+ * consumer gets it in the visitor's language. Names, URLs and ids stay here.
  */
+import { t, list } from '../i18n/i18n.js';
 
 export const SITE = {
     handle: 'cyberdread',
     os: '{Dread_OS}',
     // Bumped by hand on meaningful releases; shown on the boot screen.
     version: '6.0',
-    tagline: 'netrunner // builder // signal in the noise',
-    bio: [
-        "I see you made it -- welcome to the liminal surface of dust that falls",
-        "from the inner workings of my ICE server, {Dread_OS}.",
-        "I'm a netrunner, and other things: a post-quantum L1 (RougeChain,",
-        "mainnet live), its encrypted wallet/messenger (Qwalla, on the App",
-        "Store), a forum that doesn't shadowban",
-        "(AntiReddit), a gen-AI studio (GltchRunner), browser games, and music",
-        "somewhere between synthwave and trap.",
-        "",
-        "Six languages across 33 public repos. This desktop is one of them.",
-        "The stuff that pays the bills lives at brandonmenard.dev."
-    ]
+    tagline: t('content.site.tagline'),
+    bio: list('content.site.bio')
 };
 
 /**
@@ -39,7 +34,7 @@ export const LINKS = [
     { id: 'x',         label: 'X / @rougecoin', url: 'https://x.com/rougecoin',           img: 'assets/img/web-icon.png' },
     { id: 'itch',      label: 'itch.io',      url: 'https://cyberdreadx.itch.io',         img: 'assets/img/web-icon.png' },
     { id: 'github',    label: 'GitHub',       url: 'https://github.com/cyberdreadx',      img: 'assets/img/file-icon.png' },
-    { id: 'lab',       label: 'The Lab',      url: 'https://brandonmenard.dev/lab',       img: 'assets/img/web-icon.png' }
+    { id: 'lab',       label: t('content.links.lab'), url: 'https://brandonmenard.dev/lab', img: 'assets/img/web-icon.png' }
 ];
 
 /**
@@ -56,56 +51,56 @@ const RC = 'https://rougechain.io';
 export const ROUGECHAIN = {
     name: 'RougeChain',
     url: RC,
-    tagline: 'Post-quantum from genesis',
-    status: 'Mainnet live',
+    tagline: t('content.chain.tagline'),
+    status: t('content.chain.status'),
     chainId: 'rougechain-mainnet-1',
     // Public node API; CORS is open, so the browser reads it directly.
     api: 'https://api.rougechain.io/api',
     explorer: `${RC}/blockchain`,
-    summary: 'A Layer 1 blockchain built around post-quantum cryptography. Every block and transaction is signed with ML-DSA-65; messages and mail use ML-KEM-768 key exchange. Quantum-safe from genesis, not patched in later.',
-    crypto: ['ML-DSA-65 signatures', 'ML-KEM-768 key exchange'],
+    summary: t('content.chain.summary'),
+    crypto: [t('content.chain.crypto.signatures'), t('content.chain.crypto.keyExchange')],
     xrge: {
-        native: 'Native XRGE on RougeChain pays fees and gas, is staked to run validators, and powers the on-chain apps.',
-        base: 'XRGE on Base (ERC-20) is where it trades today: on Aerodrome, and in the Coinbase app through its DEX trading. Bridge it to RougeChain to stake or use the apps.'
+        native: t('content.chain.xrge.native'),
+        base: t('content.chain.xrge.base')
     },
     // The chain's apps, grouped the way rougechain.io groups them.
     ecosystem: [
         {
-            group: 'Use',
+            group: t('content.chain.groups.use'),
             items: [
-                { name: 'Web Wallet', desc: 'Post-quantum wallet in the browser', url: `${RC}/wallet` },
-                { name: 'Qwalla', desc: 'Mobile wallet, on the App Store', url: 'https://apps.apple.com/us/app/qwalla/id6794071016' },
-                { name: 'Browser extension', desc: 'Chrome, Edge, Brave, Firefox, Arc, Opera', url: 'https://chromewebstore.google.com/detail/rougechain-wallet/ilkbgjgphhaolfdjkfefdfiifipmhakj' },
-                { name: 'Messenger', desc: 'End-to-end encrypted chat', url: `${RC}/messenger` },
-                { name: 'Mail', desc: 'On-chain encrypted mail', url: `${RC}/mail` }
+                { name: t('content.chain.eco.webWallet.name'), desc: t('content.chain.eco.webWallet.desc'), url: `${RC}/wallet` },
+                { name: 'Qwalla', desc: t('content.chain.eco.qwalla.desc'), url: 'https://apps.apple.com/us/app/qwalla/id6794071016' },
+                { name: t('content.chain.eco.extension.name'), desc: 'Chrome, Edge, Brave, Firefox, Arc, Opera', url: 'https://chromewebstore.google.com/detail/rougechain-wallet/ilkbgjgphhaolfdjkfefdfiifipmhakj' },
+                { name: t('content.chain.eco.messenger.name'), desc: t('content.chain.eco.messenger.desc'), url: `${RC}/messenger` },
+                { name: t('content.chain.eco.mail.name'), desc: t('content.chain.eco.mail.desc'), url: `${RC}/mail` }
             ]
         },
         {
-            group: 'Trade',
+            group: t('content.chain.groups.trade'),
             items: [
-                { name: 'Swap', desc: 'On-chain token swaps', url: `${RC}/swap` },
-                { name: 'Pools', desc: 'Provide liquidity', url: `${RC}/pools` },
-                { name: 'Bridge', desc: 'ETH, USDC, XRGE from Base; BTC in as qBTC', url: `${RC}/bridge` }
+                { name: t('content.chain.eco.swap.name'), desc: t('content.chain.eco.swap.desc'), url: `${RC}/swap` },
+                { name: t('content.chain.eco.pools.name'), desc: t('content.chain.eco.pools.desc'), url: `${RC}/pools` },
+                { name: t('content.chain.eco.bridge.name'), desc: t('content.chain.eco.bridge.desc'), url: `${RC}/bridge` }
             ]
         },
         {
-            group: 'Build',
+            group: t('content.chain.groups.build'),
             items: [
-                { name: 'Smart contracts', desc: 'Deploy WASM contracts', url: `${RC}/contracts` },
-                { name: 'Tokens', desc: 'Launch custom tokens', url: `${RC}/tokens` },
-                { name: 'NFTs', desc: 'RC-721 collections', url: `${RC}/nfts` },
-                { name: 'SDK & docs', desc: '@rougechain/sdk', url: 'https://docs.rougechain.io' },
-                { name: 'MCP agents', desc: 'AI-native integration', url: `${RC}/agents` }
+                { name: t('content.chain.eco.contracts.name'), desc: t('content.chain.eco.contracts.desc'), url: `${RC}/contracts` },
+                { name: t('content.chain.eco.tokens.name'), desc: t('content.chain.eco.tokens.desc'), url: `${RC}/tokens` },
+                { name: t('content.chain.eco.nfts.name'), desc: t('content.chain.eco.nfts.desc'), url: `${RC}/nfts` },
+                { name: t('content.chain.eco.sdk.name'), desc: '@rougechain/sdk', url: 'https://docs.rougechain.io' },
+                { name: t('content.chain.eco.agents.name'), desc: t('content.chain.eco.agents.desc'), url: `${RC}/agents` }
             ]
         },
         {
-            group: 'Participate',
+            group: t('content.chain.groups.participate'),
             items: [
-                { name: 'Explorer', desc: 'Blocks and transactions', url: `${RC}/blockchain` },
-                { name: 'Validators', desc: 'Stake XRGE, secure the chain', url: `${RC}/validators` },
-                { name: 'Genesis validators', desc: 'The founding ten operators', url: `${RC}/genesis-validators` },
-                { name: 'Run a node', desc: 'Node setup guide', url: 'https://docs.rougechain.io/running-a-node/' },
-                { name: 'Source', desc: 'Apache 2.0 on GitHub', url: 'https://github.com/cyberdreadx/rougechain-node' }
+                { name: t('content.chain.eco.explorer.name'), desc: t('content.chain.eco.explorer.desc'), url: `${RC}/blockchain` },
+                { name: t('content.chain.eco.validators.name'), desc: t('content.chain.eco.validators.desc'), url: `${RC}/validators` },
+                { name: t('content.chain.eco.genesis.name'), desc: t('content.chain.eco.genesis.desc'), url: `${RC}/genesis-validators` },
+                { name: t('content.chain.eco.node.name'), desc: t('content.chain.eco.node.desc'), url: 'https://docs.rougechain.io/running-a-node/' },
+                { name: t('content.chain.eco.source.name'), desc: t('content.chain.eco.source.desc'), url: 'https://github.com/cyberdreadx/rougechain-node' }
             ]
         }
     ],
@@ -114,11 +109,11 @@ export const ROUGECHAIN = {
     coinbaseUrl: 'https://www.coinbase.com/price/base-rougecoin-4317',
     buyUrl: 'https://aerodrome.finance/swap?from=0x833589fcd6edb6e08f4c7c32d4f71b54bda02913&to=0x147120faec9277ec02d957584cfcd92b56a24317&chain0=8453&chain1=8453',
     community: [
-        { label: 'rougecoin.io / XRGE home', url: 'https://rougecoin.io', icon: 'i-globe' },
+        { label: t('content.chain.community.home'), url: 'https://rougecoin.io', icon: 'i-globe' },
         { label: 'Telegram', url: 'https://t.me/rougecoinv3', icon: 'i-telegram' },
         { label: 'YouTube / @rougecoin', url: 'https://www.youtube.com/@rougecoin', icon: 'i-youtube' },
         { label: 'X / @rougecoin', url: 'https://x.com/rougecoin', icon: 'i-globe' },
-        { label: 'Docs', url: 'https://docs.rougechain.io', icon: 'i-globe' },
+        { label: t('content.chain.community.docs'), url: 'https://docs.rougechain.io', icon: 'i-globe' },
         { label: 'GitHub', url: 'https://github.com/cyberdreadx/rougechain-node', icon: 'i-globe' }
     ]
 };
@@ -126,113 +121,174 @@ export const ROUGECHAIN = {
 /**
  * Projects listed in the explorer and by the terminal's `projects` command.
  * Add new work here -- `status` renders as a badge: live | wip | archived | game.
+ *
+ * `actions` are the call-to-action buttons on the project's card; the first
+ * is the main one (filled). Each is a link (`url`) or opens a Dread_OS window
+ * (`open`: a window name from main.js, e.g. 'netrun'). `spotlight` puts the
+ * project in the rotating Spotlight on the home screen, in that order, with
+ * its one-line pitch from content.spotlight.<id>.
  */
+const cta = (key, target) => ({ label: t(`content.cta.${key}`), ...target });
+
 export const PROJECTS = [
     {
+        id: 'deadCircuit',
         name: 'Dead Circuit',
         url: '/dead-circuit/',
         icon: 'dead-circuit/og.jpg',
         status: 'live',
-        blurb: 'Field magazine, issue 01: how to survive a robot apocalypse. Read it, or take the PDF.'
+        blurb: t('content.projects.deadCircuit'),
+        actions: [cta('getIssue', { url: '/dead-circuit/' }), cta('preview', { url: '/dead-circuit/read/' })],
+        spotlight: 1
     },
     {
-        name: 'RougeChain Store',
-        url: 'https://store.rougechain.io/',
-        icon: 'assets/img/store-icon.svg',
-        status: 'live',
-        blurb: 'Games, merch and apps from RougeChain Technologies. Gltch Runner is in Early Access; merch and apps are on the way.'
-    },
-    {
+        id: 'jarvis',
         name: 'JARVIS',
         url: 'https://cyberdreadx.github.io/jarvis-dreados/',
         icon: 'assets/img/jarvis-icon.svg',
         status: 'live',
-        blurb: 'DreadOS AI: a local AI assistant for Windows. Voice, any AI provider or a fully offline model, creator studio and a build workspace. Free download.'
+        blurb: t('content.projects.jarvis'),
+        actions: [cta('download', { url: 'https://cyberdreadx.github.io/jarvis-dreados/' })],
+        spotlight: 2
     },
     {
+        id: 'netrun',
+        name: 'NETRUN',
+        url: '/?open=netrun',
+        icon: 'assets/img/netrun-icon.svg',
+        status: 'game',
+        blurb: t('content.projects.netrun'),
+        actions: [cta('jackIn', { open: 'netrun' })],
+        spotlight: 3
+    },
+    {
+        id: 'store',
+        name: 'RougeChain Store',
+        url: 'https://store.rougechain.io/',
+        icon: 'assets/img/store-icon.svg',
+        status: 'live',
+        blurb: t('content.projects.store'),
+        actions: [cta('shop', { url: 'https://store.rougechain.io/' })],
+        spotlight: 6
+    },
+    {
+        id: 'deadHarvest',
         name: 'Dead Harvest',
         url: 'https://cyberdreadx.itch.io/dead-harvest-beta-v01',
         icon: 'assets/img/game-dead-harvest.jpg',
         status: 'game',
-        blurb: 'Post-quantum horror survival. Playable in browser. (beta v0.1)'
+        blurb: t('content.projects.deadHarvest'),
+        actions: [cta('play', { url: 'https://cyberdreadx.itch.io/dead-harvest-beta-v01' })],
+        spotlight: 7
     },
     {
+        id: 'neonDead',
         name: 'Neon Dead',
         url: 'https://cyberdreadx.itch.io/neon-dead',
         icon: 'assets/img/game-neon-dead.jpg',
         status: 'game',
-        blurb: 'Pixel zombie cyber waves. Playable in browser.'
+        blurb: t('content.projects.neonDead'),
+        actions: [cta('play', { url: 'https://cyberdreadx.itch.io/neon-dead' })]
     },
     {
+        id: 'dragonBrawlerZ',
         name: 'Dragon Brawler Z',
         url: 'https://cyberdreadx.itch.io/dragon-brawler-z',
         icon: 'assets/img/game-dragon-brawler-z.png',
         status: 'game',
-        blurb: 'LITE DBZ in ~700 lines of code. Playable in browser.'
+        blurb: t('content.projects.dragonBrawlerZ'),
+        actions: [cta('play', { url: 'https://cyberdreadx.itch.io/dragon-brawler-z' })]
     },
     {
+        id: 'rougechain',
         name: 'RougeChain',
         url: 'https://rougechain.io',
         icon: 'assets/img/rougechain-icon.png',
         status: 'live',
-        blurb: 'Post-quantum Layer 1, mainnet live. ML-DSA-65 signatures, ML-KEM-768 encryption. Wallet, DEX, bridge, contracts, NFTs, encrypted mail.'
+        blurb: t('content.projects.rougechain'),
+        actions: [cta('openChain', { url: 'https://rougechain.io' }), cta('wallet', { url: 'https://rougechain.io/wallet' })]
     },
     {
+        id: 'qwalla',
         name: 'Qwalla',
         url: 'https://qwalla.io',
         icon: 'assets/img/qwalla-icon.png',
         status: 'live',
-        blurb: 'Post-quantum wallet, messenger and mail for RougeChain. Free on the App Store; APK for Android.'
+        blurb: t('content.projects.qwalla'),
+        actions: [cta('appStore', { url: 'https://apps.apple.com/us/app/qwalla/id6794071016' }), cta('website', { url: 'https://qwalla.io' })],
+        spotlight: 4
     },
     {
-        name: 'AntiReddit',
-        url: 'https://antireddit.com',
-        icon: 'assets/img/antireddit-icon.png',
-        status: 'live',
-        blurb: 'The forum the internet forgot how to be. No shadowbans, public mod logs, self-promo allowed.'
-    },
-    {
-        name: 'GltchRunner',
-        url: 'https://gltchrunner.com',
-        icon: 'assets/img/gltchrunner-icon.png',
-        status: 'live',
-        blurb: 'AI image and video generation with model personas, plus a creator earnings program.'
-    },
-    {
+        id: 'xrge',
         name: 'XRGE',
         url: 'https://rougecoin.io',
         icon: 'assets/img/rougecoin-icon.png',
         status: 'live',
-        blurb: 'RougeChain\'s native token. Trades on Base (Aerodrome, Coinbase); bridge it over to stake or use the apps.'
+        blurb: t('content.projects.xrge'),
+        actions: [cta('buy', { url: 'https://rougechain.io/buy' }), cta('learn', { url: 'https://rougecoin.io' })],
+        spotlight: 5
     },
     {
+        id: 'antireddit',
+        name: 'AntiReddit',
+        url: 'https://antireddit.com',
+        icon: 'assets/img/antireddit-icon.png',
+        status: 'live',
+        blurb: t('content.projects.antireddit'),
+        actions: [cta('join', { url: 'https://antireddit.com' })],
+        spotlight: 8
+    },
+    {
+        id: 'gltchrunner',
+        name: 'GltchRunner',
+        url: 'https://gltchrunner.com',
+        icon: 'assets/img/gltchrunner-icon.png',
+        status: 'live',
+        blurb: t('content.projects.gltchrunner'),
+        actions: [cta('create', { url: 'https://gltchrunner.com' })],
+        spotlight: 9
+    },
+    {
+        id: 'rougee',
         name: 'RouGee',
         url: 'https://rougee.app',
         icon: 'assets/img/rougee-icon.png',
         status: 'wip',
-        blurb: 'A photo network where the account is a key you hold, posts are signed on-chain and images live on IPFS. Testnet.'
+        blurb: t('content.projects.rougee'),
+        actions: [cta('peek', { url: 'https://rougee.app' })]
     },
     {
+        id: 'qrougee',
         name: 'qRougee',
         url: 'https://music.rougee.app',
         icon: 'assets/img/music-icon.png',
         status: 'live',
-        blurb: 'Streaming where tracks are minted as NFTs. Artists keep their keys; the contract handles royalties.'
+        blurb: t('content.projects.qrougee'),
+        actions: [cta('listen', { url: 'https://music.rougee.app' })]
     },
     {
+        id: 'dreadOs',
         name: 'Dread_OS',
         url: 'https://github.com/rougecoin-project/cyberdread',
         icon: 'assets/img/folder-icon.png',
         status: 'live',
-        blurb: 'This desktop. Vanilla JS, no build step, no framework.'
+        blurb: t('content.projects.dreadOs'),
+        actions: [cta('source', { url: 'https://github.com/rougecoin-project/cyberdread' })]
     }
 ];
+
+/** Projects in the home Spotlight, in order. */
+export const SPOTLIGHT = PROJECTS
+    .filter((project) => project.spotlight)
+    .sort((a, b) => a.spotlight - b.spotlight)
+    .map((project) => ({ ...project, pitch: t(`content.spotlight.${project.id}`) }));
 
 /**
  * Source repos, shown in the explorer's Repos folder and by the terminal's
  * `repos` command.
  *
- * `desc` is GitHub's own repository description, copied verbatim. Repos
+ * `desc` is GitHub's own repository description, copied verbatim into
+ * js/i18n/en/content.js (repos.*) and translated in ru/content.js. Repos
  * that have no description on GitHub leave it out rather than inventing
  * one -- the row still shows language, licence and stars.
  */
@@ -241,49 +297,49 @@ export const GITHUB_USER = 'cyberdreadx';
 export const REPOS = [
     {
         name: 'jarvis-dreados',
-        desc: 'JARVIS / DreadOS AI: a local AI assistant for Windows. Your keys, your models, your machine.',
+        desc: t('content.repos.jarvisDreados'),
         lang: 'Python',
         homepage: 'https://cyberdreadx.github.io/jarvis-dreados/'
     },
     {
         name: 'rougechain-node',
-        desc: 'RougeChain full node.',
+        desc: t('content.repos.rougechainNode'),
         lang: 'TypeScript',
         license: 'Apache-2.0'
     },
     {
         name: 'xrge-node',
-        desc: 'Run your own post-quantum blockchain node on the RougeChain network.',
+        desc: t('content.repos.xrgeNode'),
         lang: 'Rust',
         license: 'MIT'
     },
     {
         name: 'rougechain-wallet',
-        desc: 'Post-quantum cryptographic wallet - browser extension.',
+        desc: t('content.repos.rougechainWallet'),
         lang: 'TypeScript',
         license: 'MIT'
     },
     {
         name: 'Qwalla',
-        desc: 'Qwalla - RougeChain mobile wallet (Expo / React Native).',
+        desc: t('content.repos.qwalla'),
         lang: 'TypeScript'
     },
     {
         name: 'cyberpunk-grok-api',
-        desc: 'Cyberpunk neural interface for AI image, video and character generation - multi-engine, multi-payment, creator-friendly.',
+        desc: t('content.repos.cyberpunkGrokApi'),
         lang: 'TypeScript',
         stars: 3,
         homepage: 'https://grokrunner.gltch.app'
     },
     {
         name: 'gltchtrade',
-        desc: 'Paper-trading DEX bot: live on-chain prices via GeckoTerminal, realistic fee + slippage simulation, pluggable strategies.',
+        desc: t('content.repos.gltchtrade'),
         lang: 'Python',
         license: 'MIT'
     },
     {
         name: 'divine_emergence',
-        desc: 'Marketing site for Divine Emergence - breathwork, coaching and retreats in South Florida.',
+        desc: t('content.repos.divineEmergence'),
         lang: 'TypeScript'
     }
 ];
@@ -347,10 +403,10 @@ export const CHAIN = {
  */
 export const NETRUN = {
     // Testnet deployment (switch Qwalla or RougeChain Wallet to Testnet to play). For mainnet, set the
-    // mainnet contract, network 'RougeChain mainnet', networkId 'mainnet', api https://api.rougechain.io/api and
-    // explorer https://rougechain.io.
+    // mainnet contract, network 'RougeChain mainnet' (content.netrun.network in js/i18n/en|ru/content.js),
+    // networkId 'mainnet', api https://api.rougechain.io/api and explorer https://rougechain.io.
     contract: '7c760c6c3ad9d344a6b49dc63ca6d0ea92f28a3a',
-    network: 'RougeChain testnet',
+    network: t('content.netrun.network'),
     networkId: 'testnet', // as wallets name it: 'mainnet' | 'testnet'
     api: 'https://testnet.rougechain.io/api',
     // Block explorer for tx/contract links; empty links to the node's raw JSON instead.

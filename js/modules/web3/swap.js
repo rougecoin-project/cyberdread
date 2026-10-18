@@ -3,6 +3,7 @@
  */
 import { TOKENS, CHAIN } from '../../data/site-config.js';
 import { fetchXrgeMarket, fetchEthPrice, MarketStatus } from './market.js';
+import { t, num } from '../../i18n/i18n.js';
 
 /**
  * USD value of one unit of the selected input token.
@@ -48,7 +49,7 @@ export async function calculateSwapEstimate() {
         return;
     }
 
-    rateField.textContent = 'Fetching rate...';
+    rateField.textContent = t('chain.swap.fetchingRate');
 
     const [{ status, data: market }, inputUsd] = await Promise.all([
         fetchXrgeMarket(),
@@ -58,18 +59,20 @@ export async function calculateSwapEstimate() {
     // No invented numbers: if either leg is unpriced, say so.
     if (status !== MarketStatus.OK || !market?.priceUsd || !inputUsd) {
         clear(status === MarketStatus.NO_PAIR
-            ? 'No liquidity pool indexed'
-            : 'Rate unavailable');
+            ? t('chain.swap.noPool')
+            : t('chain.swap.rateUnavailable'));
         return;
     }
 
     const xrgePerUnit = inputUsd / market.priceUsd;
     const estimated = amount * xrgePerUnit;
 
-    toAmountField.value = estimated.toLocaleString('en-US', { maximumFractionDigits: 0 });
-    rateField.textContent = `1 ${symbol} ~ ${xrgePerUnit.toLocaleString('en-US', {
-        maximumFractionDigits: 0
-    })} XRGE`;
+    // Display only: toAmount is a read-only text field, never parsed back.
+    toAmountField.value = num(estimated, { maximumFractionDigits: 0 });
+    rateField.textContent = t('chain.swap.rate', {
+        symbol,
+        amount: num(xrgePerUnit, { maximumFractionDigits: 0 })
+    });
 
     if (impactField) {
         // Rough proxy: trade size against the pool's liquidity.
@@ -78,12 +81,12 @@ export async function calculateSwapEstimate() {
             ? (notional / market.liquidityUsd) * 100
             : null;
         impactField.textContent = impact === null
-            ? 'unknown'
-            : `~${impact.toFixed(2)}%`;
+            ? t('chain.swap.impactUnknown')
+            : `~${num(impact, { minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: false })}%`;
         impactField.classList.toggle('impact-high', impact !== null && impact > 5);
     }
 
-    if (feeField) feeField.textContent = 'quoted by Aerodrome';
+    if (feeField) feeField.textContent = t('chain.swap.fee');
 }
 
 /**

@@ -5,6 +5,7 @@
  * directly. When it is unreachable the caller says so; nothing is invented.
  */
 import { ROUGECHAIN } from '../../data/site-config.js';
+import { num } from '../../i18n/i18n.js';
 
 const TIMEOUT_MS = 8000;
 const CACHE_MS = 15_000;
@@ -46,8 +47,9 @@ export async function fetchChainStatus() {
     }
 }
 
-export const formatInt = (n) => (Number.isFinite(n) ? n.toLocaleString('en-US') : '--');
+// Display only, grouped for the visitor's locale (1,234,567 / 1 234 567).
+export const formatInt = (n) => (Number.isFinite(n) ? num(n) : '--');
 
 export const formatXrge = (n) => (Number.isFinite(n)
-    ? `${n.toLocaleString('en-US', { maximumFractionDigits: n < 1 ? 4 : 2 })} XRGE`
+    ? `${num(n, { maximumFractionDigits: n < 1 ? 4 : 2 })} XRGE`
     : '--');

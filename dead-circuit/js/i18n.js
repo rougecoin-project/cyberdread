@@ -13,6 +13,7 @@ export const LANGS = [
     { code: 'fr', name: 'Français' },
     { code: 'it', name: 'Italiano' },
     { code: 'pt', name: 'Português' },
+    { code: 'ru', name: 'Русский' },
     { code: 'ja', name: '日本語' },
     { code: 'zh', name: '中文' },
     { code: 'ar', name: 'العربية' }

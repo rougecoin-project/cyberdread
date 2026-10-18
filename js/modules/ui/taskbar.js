@@ -2,17 +2,18 @@
  * Taskbar module - clock, open-window buttons and a live XRGE ticker.
  */
 import { fetchXrgeMarket, MarketStatus, formatUsd, formatChange } from '../web3/market.js';
-import { fetchChainStatus, formatInt } from '../web3/rougechain.js';
+import { fetchChainStatus } from '../web3/rougechain.js';
+import { t, num, LOCALE } from '../../i18n/i18n.js';
 
 const TICKER_REFRESH_MS = 60_000;
 
 // Windows that can appear as taskbar buttons, with their display names.
 const WINDOW_TITLES = {
-    explorer: 'Files',
-    musicPlayer: 'Music',
+    explorer: t('ui.apps.files'),
+    musicPlayer: t('ui.apps.music'),
     rougeCoinInterface: 'RougeChain',
     terminal: 'term.exe',
-    settingsPanel: 'Settings',
+    settingsPanel: t('ui.apps.settings'),
     netrun: 'netrun.exe'
 };
 
@@ -24,14 +25,14 @@ function updateClock() {
     if (!clock) return;
 
     const now = new Date();
-    clock.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    clock.title = now.toLocaleDateString([], {
+    clock.textContent = now.toLocaleTimeString(LOCALE, { hour: '2-digit', minute: '2-digit' });
+    clock.title = now.toLocaleDateString(LOCALE, {
         weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
     });
 
     const date = document.getElementById('taskbarDate');
     if (date) {
-        date.textContent = now.toLocaleDateString([], { month: 'short', day: 'numeric' });
+        date.textContent = now.toLocaleDateString(LOCALE, { month: 'short', day: 'numeric' });
     }
 
     // The status widget (desktop card, phone home screen).
@@ -39,7 +40,7 @@ function updateClock() {
     // stacked small beside them.
     const homeTime = document.querySelector('[data-home-time]');
     if (homeTime) {
-        const parts = new Intl.DateTimeFormat([], { hour: '2-digit', minute: '2-digit' }).formatToParts(now);
+        const parts = new Intl.DateTimeFormat(LOCALE, { hour: '2-digit', minute: '2-digit' }).formatToParts(now);
         const period = parts.find(part => part.type === 'dayPeriod')?.value;
         const main = document.createElement('span');
         main.className = 'hw-main';
@@ -57,10 +58,10 @@ function updateClock() {
             tail.append(small);
         }
         homeTime.replaceChildren(main, tail);
-        homeTime.setAttribute('aria-label', now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+        homeTime.setAttribute('aria-label', now.toLocaleTimeString(LOCALE, { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
     }
     const homeDate = document.querySelector('[data-home-date]');
-    if (homeDate) homeDate.textContent = now.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
+    if (homeDate) homeDate.textContent = now.toLocaleDateString(LOCALE, { weekday: 'long', month: 'long', day: 'numeric' });
 }
 
 /** Block height on the status widget; says "mainnet" when the node is quiet. */
@@ -69,8 +70,8 @@ async function updateChainChip() {
     if (!chip) return;
     const status = await fetchChainStatus();
     chip.textContent = status && Number.isFinite(status.height)
-        ? `Block ${formatInt(status.height)}`
-        : 'RougeChain mainnet';
+        ? t('ui.home.block', { height: num(status.height) })
+        : t('ui.home.mainnet');
     chip.closest('.hw-chain')?.classList.toggle('hw-live', Boolean(status));
 }
 
@@ -123,8 +124,8 @@ async function updateTicker() {
         ticker.className = 'taskbar-ticker';
         mirrorTicker(ticker);
         ticker.title = status === MarketStatus.NO_PAIR
-            ? 'No indexed liquidity pool for XRGE yet.'
-            : 'Market data source unreachable.';
+            ? t('ui.taskbar.tickerNoPair')
+            : t('ui.taskbar.tickerOffline');
         return;
     }
 
@@ -139,7 +140,7 @@ async function updateTicker() {
     change.textContent = ` ${formatChange(market.change24h)}`;
 
     ticker.append(symbol, price, change);
-    ticker.title = 'XRGE, RougeChain\'s token, live. Click to open the RougeChain panel.';
+    ticker.title = t('ui.taskbar.tickerLive');
     mirrorTicker(ticker);
 }
 

@@ -291,7 +291,7 @@
     border-radius: 16px;
 }
 .nr-panel h3 { margin: 0 0 12px; font-family: var(--font-display); font-size: 24px; font-weight: 700; letter-spacing: 0.12em; color: #fff; }
-.nr-panel p { margin: 0 0 14px; font-size: 13px; line-height: 1.6; color: var(--text); }
+.nr-panel p { margin: 0 0 14px; font-size: 13px; line-height: 1.6; color: var(--text); overflow-wrap: anywhere; }
 .nr-panel b { color: var(--accent); }
 .nr-row { display: flex; flex-wrap: wrap; gap: 8px; }
 
@@ -312,7 +312,8 @@
 .nr-who { display: flex; align-items: center; min-width: 0; font-family: var(--font-mono, monospace); }
 .nr-addr { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .nr-who em { flex-shrink: 0; margin-left: 6px; padding: 1px 6px; font-style: normal; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #000; background: var(--accent); border-radius: 6px; }
-.nr-full { font-size: 12px; color: var(--hot); white-space: nowrap; }
+/* Scoped to the board: .nr-full is also the FULL BREACH result overlay. */
+.nr-board .nr-full { font-size: 12px; color: var(--hot); white-space: nowrap; }
 .nr-score { font-family: var(--font-display); font-size: 15px; color: var(--ok) !important; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .nr-score small { font-size: 10px; letter-spacing: 0.08em; color: var(--text); }
 .nr-podium .nr-rank { color: #fff; }
@@ -325,7 +326,7 @@
 .nr-mine { padding: 10px 12px; border: 1px dashed rgba(var(--accent-rgb), 0.35); border-radius: 10px; }
 @media (max-width: 560px) {
     .nr-board li { grid-template-columns: 26px minmax(0, 1fr) auto; }
-    .nr-full { display: none; }
+    .nr-board .nr-full { display: none; }
 }
 
 .nr-pays { display: grid; gap: 6px; margin: 0 0 16px; padding: 0; list-style: none; }

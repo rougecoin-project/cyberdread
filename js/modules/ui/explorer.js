@@ -3,6 +3,7 @@
  */
 import { playSound, SOUNDS } from '../sound.js';
 import { PROJECTS, LINKS, REPOS, GITHUB_USER } from '../../data/site-config.js';
+import { t } from '../../i18n/i18n.js';
 
 /** Opens the file explorer window. */
 export function openExplorer() {
@@ -37,6 +38,12 @@ export function showContent(id) {
     if (content) content.classList.add('active');
 
     if (id === 'about-me') playSound(SOUNDS.LOADING);
+}
+
+/** Opens the explorer straight on the Projects folder. */
+export function openProjects() {
+    openExplorer();
+    showContent('projects');
 }
 
 /**
@@ -80,13 +87,95 @@ function buildTile(entry) {
     if (entry.status) {
         const badge = document.createElement('span');
         badge.className = `status-badge status-${entry.status}`;
-        badge.textContent = entry.status;
+        const key = `ui.explorer.projects.status.${entry.status}`;
+        const label = t(key);
+        badge.textContent = label === key ? entry.status : label;
         tile.appendChild(badge);
     }
 
     if (entry.blurb) tile.title = entry.blurb;
 
     return tile;
+}
+
+/**
+ * One call-to-action: a link, or a button that opens a Dread_OS window.
+ * @param {{label: string, url?: string, open?: string}} action
+ * @param {boolean} primary
+ */
+export function buildAction(action, primary) {
+    const el = document.createElement(action.url ? 'a' : 'button');
+    el.className = primary ? 'cta cta-primary' : 'cta';
+    el.textContent = action.label;
+    if (action.url) {
+        el.href = action.url;
+        // A new tab, like every other link on the desktop.
+        el.target = '_blank';
+        el.rel = 'noopener noreferrer';
+    } else {
+        el.type = 'button';
+        el.addEventListener('click', () => openWindow(action.open));
+    }
+    return el;
+}
+
+/** Opens a Dread_OS window by name (the `open` of an action). */
+export function openWindow(name) {
+    const opener = {
+        netrun: 'openNetrun',
+        projects: 'openProjects',
+        terminal: 'openTerminal',
+        rougechain: 'openRougeCoin',
+        music: 'toggleMusicPlayer',
+        settings: 'openSettings',
+        files: 'openExplorer'
+    }[name];
+    if (opener && typeof window[opener] === 'function') window[opener]();
+}
+
+/**
+ * A project card: picture, name and badge, what it is, and what to do next.
+ * @param {Object} project  an entry of PROJECTS
+ */
+function buildProjectCard(project) {
+    const card = document.createElement('article');
+    card.className = 'project-card';
+
+    const thumb = document.createElement('img');
+    thumb.className = 'project-card-thumb';
+    thumb.src = project.icon;
+    thumb.alt = '';
+    thumb.loading = 'lazy';
+    thumb.decoding = 'async';
+
+    const body = document.createElement('div');
+    body.className = 'project-card-body';
+
+    const head = document.createElement('h3');
+    head.className = 'project-card-name';
+    head.textContent = project.name;
+    if (project.status) {
+        const badge = document.createElement('span');
+        badge.className = `status-badge status-${project.status}`;
+        const key = `ui.explorer.projects.status.${project.status}`;
+        const label = t(key);
+        badge.textContent = label === key ? project.status : label;
+        head.appendChild(badge);
+    }
+
+    // A div, not a p: .folder-content p types itself out like a terminal.
+    const blurb = document.createElement('div');
+    blurb.className = 'project-card-blurb';
+    blurb.textContent = project.blurb || '';
+
+    const actions = document.createElement('div');
+    actions.className = 'project-card-actions';
+    (project.actions?.length ? project.actions : [{ label: project.name, url: project.url }])
+        .forEach((action, i) => actions.appendChild(buildAction(action, i === 0)));
+
+    body.append(head, blurb);
+    card.append(thumb, body, actions);
+    return card;
 }
 
 /**
@@ -97,7 +186,7 @@ export function renderExplorerContent() {
     const projects = document.getElementById('projectsGrid');
     if (projects) {
         projects.textContent = '';
-        PROJECTS.forEach(project => projects.appendChild(buildTile(project)));
+        PROJECTS.forEach(project => projects.appendChild(buildProjectCard(project)));
     }
 
     const links = document.getElementById('linksGrid');
@@ -159,12 +248,12 @@ function buildRepoRow(repo) {
     }
     if (repo.stars) {
         const stars = document.createElement('span');
-        stars.textContent = `${repo.stars} stars`;
+        stars.textContent = t('ui.explorer.repos.stars', { n: repo.stars });
         meta.appendChild(stars);
     }
     if (repo.homepage) {
         const demo = document.createElement('span');
-        demo.textContent = 'live demo';
+        demo.textContent = t('ui.explorer.repos.demo');
         meta.appendChild(demo);
     }
 

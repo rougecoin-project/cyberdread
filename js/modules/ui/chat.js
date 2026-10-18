@@ -7,6 +7,8 @@
  * later visitor's browser.
  */
 
+import { t, LOCALE } from '../../i18n/i18n.js';
+
 const API_BASE_URL = window.location.hostname === 'localhost'
     ? 'http://localhost:8888/.netlify/functions'
     : '/.netlify/functions';
@@ -35,7 +37,7 @@ function renderMessage({ name, message, timestamp }) {
     time.className = 'message-time';
     const parsed = new Date(timestamp);
     if (!Number.isNaN(parsed.getTime())) {
-        time.textContent = parsed.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        time.textContent = parsed.toLocaleTimeString(LOCALE, { hour: '2-digit', minute: '2-digit' });
         time.dateTime = parsed.toISOString();
     }
 
@@ -60,7 +62,7 @@ export async function loadChatMessages() {
         if (!Array.isArray(messages) || messages.length === 0) {
             const empty = document.createElement('div');
             empty.className = 'chat-empty';
-            empty.textContent = 'No transmissions yet. Say something.';
+            empty.textContent = t('ui.explorer.chat.empty');
             messageList.appendChild(empty);
             return;
         }
@@ -74,7 +76,7 @@ export async function loadChatMessages() {
         messageList.textContent = '';
         const failure = document.createElement('div');
         failure.className = 'chat-empty';
-        failure.textContent = 'Channel offline -- could not reach the relay.';
+        failure.textContent = t('ui.explorer.chat.offline');
         messageList.appendChild(failure);
     }
 }
@@ -94,12 +96,12 @@ export async function sendMessage() {
     const message = messageInput.value.trim();
 
     if (!name || !message) {
-        setChatStatus('Enter a handle and a message.');
+        setChatStatus(t('ui.explorer.chat.missing'));
         return;
     }
 
     if (sendButton) sendButton.disabled = true;
-    setChatStatus('Sending...');
+    setChatStatus(t('ui.explorer.chat.sending'));
 
     try {
         const response = await fetch(`${API_BASE_URL}/postMessage`, {
@@ -110,7 +112,7 @@ export async function sendMessage() {
 
         if (!response.ok) {
             const detail = await response.json().catch(() => ({}));
-            throw new Error(detail.error || `Server responded ${response.status}`);
+            throw new Error(detail.error || t('ui.explorer.chat.serverStatus', { status: response.status }));
         }
 
         // Remember the handle so returning visitors don't retype it.
@@ -122,7 +124,7 @@ export async function sendMessage() {
         document.dispatchEvent(new CustomEvent('playSound', { detail: { id: 'messageSound' } }));
     } catch (error) {
         console.error('Error sending message:', error);
-        setChatStatus(error.message || 'Could not send message.');
+        setChatStatus(error.message || t('ui.explorer.chat.failed'));
     } finally {
         if (sendButton) sendButton.disabled = false;
     }

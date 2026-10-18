@@ -9,6 +9,9 @@
     <title>CyberDread — {Dread_OS}</title>
     <meta name="description" content="{Dread_OS} — a cyberpunk desktop in your browser. Games, music, a working terminal, and RougeChain, the post-quantum Layer 1 (mainnet live), with live network stats and XRGE market data.">
     <link rel="canonical" href="https://cyberdreadx.dev/">
+    <link rel="alternate" hreflang="en" href="https://cyberdreadx.dev/?lang=en">
+    <link rel="alternate" hreflang="ru" href="https://cyberdreadx.dev/?lang=ru">
+    <link rel="alternate" hreflang="x-default" href="https://cyberdreadx.dev/">
     <meta name="theme-color" content="#00ffff">
     <meta name="color-scheme" content="dark">
 
@@ -38,6 +41,22 @@
     <link rel="preconnect" href="https://api.dexscreener.com" crossorigin>
     <link rel="preconnect" href="https://api.geckoterminal.com" crossorigin>
     <link rel="preconnect" href="https://api.rougechain.io" crossorigin>
+
+    <!-- A visitor who will get Russian sees nothing until it is applied, so
+         English never flashes first (js/i18n/i18n.js decides for real and
+         lifts this; the timer is a safety net if scripts fail). -->
+    <style>.i18n-pending body { visibility: hidden; }</style>
+    <script>
+        try {
+            var q = new URLSearchParams(location.search).get('lang');
+            var pick = (q || localStorage.getItem('dc-lang') || (navigator.languages || [navigator.language]).join(',')).slice(0, 2).toLowerCase();
+            if (pick === 'ru') {
+                document.documentElement.lang = 'ru';
+                document.documentElement.classList.add('i18n-pending');
+                setTimeout(function () { document.documentElement.classList.remove('i18n-pending'); }, 4000);
+            }
+        } catch (e) { /* storage blocked: English until the module decides */ }
+    </script>
 
     <!-- No CDN scripts. This used to pull web3.js 1.8.0 and WalletConnect v1
          (a bridge network shut down in 2023, and never actually called). -->
@@ -78,38 +97,41 @@
     <!-- Boot screen -->
     <div id="powerUpScreen" class="power-up-screen">
         <div class="power-up-content">
-            <p class="power-up-title">INITIALIZING {Dread_OS}...</p>
+            <p class="power-up-title" data-i18n="ui.boot.title">INITIALIZING {Dread_OS}...</p>
             <div class="loading-bar"></div>
             <pre class="bios-text"></pre>
-            <button id="startButton" type="button" onclick="startSystem()">Start System</button>
+            <button id="startButton" type="button" onclick="startSystem()" data-i18n="ui.boot.start">Start System</button>
         </div>
     </div>
 
     <div class="desktop">
         <header class="taskbar">
-            <button type="button" class="start-menu" onclick="toggleStartMenu()" aria-expanded="false" aria-controls="startMenu"><span class="start-mark" aria-hidden="true"></span><span class="start-text">Start</span></button>
+            <button type="button" class="start-menu" onclick="toggleStartMenu()" aria-expanded="false" aria-controls="startMenu"><span class="start-mark" aria-hidden="true"></span><span class="start-text" data-i18n="ui.taskbar.start">Start</span></button>
 
-            <nav class="start-menu-dropdown" id="startMenu" aria-label="Start menu">
+            <nav class="start-menu-dropdown" id="startMenu" aria-label="Start menu" data-i18n-attr="aria-label:ui.taskbar.startMenu">
                 <div class="start-menu-user">
                     <span class="start-avatar" aria-hidden="true">CD</span>
-                    <span class="start-who"><strong>cyberdread</strong><small>netrunner · {Dread_OS}</small></span>
+                    <span class="start-who"><strong>cyberdread</strong><small data-i18n="ui.taskbar.user">netrunner · {Dread_OS}</small></span>
                 </div>
                 <div class="start-menu-section">
                     <div class="start-menu-music">
                         <img src="assets/img/music-icon.png" alt="" width="24" height="24">
                         <div class="music-controls">
-                            <button type="button" onclick="previousTrack()" aria-label="Previous track">⏮</button>
-                            <button type="button" onclick="togglePlay()" data-play-toggle aria-label="Play">▶</button>
-                            <button type="button" onclick="nextTrack()" aria-label="Next track">⏭</button>
+                            <button type="button" onclick="previousTrack()" aria-label="Previous track" data-i18n-attr="aria-label:ui.music.previous">⏮</button>
+                            <button type="button" onclick="togglePlay()" data-play-toggle aria-label="Play" data-i18n-attr="aria-label:ui.music.play">▶</button>
+                            <button type="button" onclick="nextTrack()" aria-label="Next track" data-i18n-attr="aria-label:ui.music.next">⏭</button>
                         </div>
                         <div class="music-info">
-                            <span class="marquee" data-song-title>No track playing</span>
+                            <span class="marquee" data-song-title data-i18n="ui.music.noTrack">No track playing</span>
                         </div>
                     </div>
                 </div>
                 <div class="start-menu-divider"></div>
+                <button type="button" class="start-menu-item" onclick="openProjects()">
+                    <img src="assets/img/projects-icon.svg" alt="" width="20" height="20"> <span data-i18n="ui.apps.projects">Projects</span>
+                </button>
                 <button type="button" class="start-menu-item" onclick="openExplorer()">
-                    <img src="assets/img/folder-icon.png" alt="" width="20" height="20"> Files
+                    <img src="assets/img/folder-icon.png" alt="" width="20" height="20"> <span data-i18n="ui.apps.files">Files</span>
                 </button>
                 <button type="button" class="start-menu-item" onclick="openTerminal()">
                     <img src="assets/img/file-icon.png" alt="" width="20" height="20"> term.exe
@@ -130,13 +152,13 @@
                     <img src="assets/img/jarvis-icon.svg" alt="" width="20" height="20"> JARVIS
                 </a>
                 <a class="start-menu-item" href="https://store.rougechain.io/" target="_blank" rel="noopener">
-                    <img src="assets/img/store-icon.svg" alt="" width="20" height="20"> Store
+                    <img src="assets/img/store-icon.svg" alt="" width="20" height="20"> <span data-i18n="ui.apps.store">Store</span>
                 </a>
                 <button type="button" class="start-menu-item" onclick="openSettings()">
-                    <img src="assets/img/settings-icon.png" alt="" width="20" height="20"> Settings
+                    <img src="assets/img/settings-icon.png" alt="" width="20" height="20"> <span data-i18n="ui.apps.settings">Settings</span>
                 </button>
                 <button type="button" class="start-menu-item" onclick="showShutdownModal()">
-                    <img src="assets/img/power-icon.png" alt="" width="20" height="20"> Power
+                    <img src="assets/img/power-icon.png" alt="" width="20" height="20"> <span data-i18n="ui.apps.power">Power</span>
                 </button>
             </nav>
 
@@ -150,20 +172,26 @@
         </header>
 
         <!-- Status widget: a card on the desktop, the lock-screen header on phones -->
-        <section class="home-widget" aria-label="Status">
+        <section class="home-widget" aria-label="Status" data-i18n-attr="aria-label:ui.home.status">
             <p class="hw-time" data-home-time>--:--</p>
             <p class="hw-date" data-home-date></p>
             <div class="hw-chips">
                 <button type="button" class="hw-chip" data-home-xrge onclick="openRougeCoin()">XRGE --</button>
                 <button type="button" class="hw-chip hw-chain" onclick="openRougeCoin()"><i aria-hidden="true"></i><span data-home-chain>RougeChain</span></button>
             </div>
+            <!-- Project Spotlight: rendered by js/modules/ui/spotlight.js -->
+            <div class="hw-spot" data-spotlight hidden></div>
         </section>
 
         <!-- Desktop icons: a grid, so they line up on every screen -->
-        <nav class="desktop-icons" aria-label="Desktop">
+        <nav class="desktop-icons" aria-label="Desktop" data-i18n-attr="aria-label:ui.home.desktop">
+            <button type="button" class="icon" onclick="openProjects()">
+                <img src="assets/img/projects-icon.svg" alt="" width="48" height="48">
+                <span class="icon-label" data-i18n="ui.apps.projects">Projects</span>
+            </button>
             <button type="button" class="icon" onclick="openExplorer()">
                 <img src="assets/img/folder-icon.png" alt="" width="48" height="48">
-                <span class="icon-label">Files</span>
+                <span class="icon-label" data-i18n="ui.apps.files">Files</span>
             </button>
             <button type="button" class="icon" onclick="openTerminal()">
                 <img src="assets/img/file-icon.png" alt="" width="48" height="48">
@@ -171,7 +199,7 @@
             </button>
             <button type="button" class="icon" onclick="toggleMusicPlayer()">
                 <img src="assets/img/music-icon.png" alt="" width="48" height="48">
-                <span class="icon-label">Music</span>
+                <span class="icon-label" data-i18n="ui.apps.music">Music</span>
             </button>
             <button type="button" class="icon" onclick="openRougeCoin()">
                 <img src="assets/img/rougechain-icon.png" alt="" width="48" height="48">
@@ -187,7 +215,7 @@
             </button>
             <button type="button" class="icon" onclick="openSettings()">
                 <img src="assets/img/settings-icon.png" alt="" width="48" height="48">
-                <span class="icon-label">Settings</span>
+                <span class="icon-label" data-i18n="ui.apps.settings">Settings</span>
             </button>
             <a class="icon" href="/dead-circuit/read/" target="_blank" rel="noopener">
                 <img src="dead-circuit/favicon.svg" alt="" width="48" height="48">
@@ -199,27 +227,27 @@
             </a>
             <a class="icon" href="https://store.rougechain.io/" target="_blank" rel="noopener">
                 <img src="assets/img/store-icon.svg" alt="" width="48" height="48">
-                <span class="icon-label">Store</span>
+                <span class="icon-label" data-i18n="ui.apps.store">Store</span>
             </a>
         </nav>
 
         <!-- Access modal -->
-        <div id="accessModal" class="modal" role="dialog" aria-modal="true" aria-label="Encrypted access">
-            <p>Encrypted network access detected. Proceed with decryption sequence?</p>
+        <div id="accessModal" class="modal" role="dialog" aria-modal="true" aria-label="Encrypted access" data-i18n-attr="aria-label:ui.access.label">
+            <p data-i18n="ui.access.text">Encrypted network access detected. Proceed with decryption sequence?</p>
             <p class="binary-text">01000100 01110010 01100101 01100001 01100100</p>
             <div class="modal-buttons">
-                <button type="button" class="modal-button" onclick="handleAccess(true)">DECRYPT</button>
-                <button type="button" class="modal-button" onclick="handleAccess(false)">ABORT</button>
+                <button type="button" class="modal-button" onclick="handleAccess(true)" data-i18n="ui.access.decrypt">DECRYPT</button>
+                <button type="button" class="modal-button" onclick="handleAccess(false)" data-i18n="ui.access.abort">ABORT</button>
             </div>
         </div>
 
         <!-- Terminal -->
-        <section id="terminal" class="app-window terminal-window" style="display: none;" aria-label="Terminal">
+        <section id="terminal" class="app-window terminal-window" style="display: none;" aria-label="Terminal" data-i18n-attr="aria-label:ui.window.terminal">
             <header class="window-header">
                 <span>term.exe — dsh</span>
                 <span class="window-buttons">
-                    <button type="button" onclick="toggleFullScreenWindow('terminal')" aria-label="Maximize">⛶</button>
-                    <button type="button" data-close onclick="closeTerminal()" aria-label="Close">✕</button>
+                    <button type="button" onclick="toggleFullScreenWindow('terminal')" aria-label="Maximize" data-i18n-attr="aria-label:ui.window.maximize">⛶</button>
+                    <button type="button" data-close onclick="closeTerminal()" aria-label="Close" data-i18n-attr="aria-label:ui.window.close">✕</button>
                 </span>
             </header>
             <div class="terminal-body">
@@ -227,7 +255,7 @@
                 <div class="term-input-row">
                     <label for="termInput" class="term-prompt">cyberdread@dread:~$</label>
                     <input id="termInput" class="term-input" type="text" autocomplete="off"
-                           autocapitalize="off" spellcheck="false" aria-label="Terminal input">
+                           autocapitalize="off" spellcheck="false" aria-label="Terminal input" data-i18n-attr="aria-label:ui.window.terminalInput">
                 </div>
             </div>
         </section>
@@ -235,188 +263,200 @@
         <!-- NETRUN: breach-protocol game, live runs on RougeChain (js/modules/games/netrun.js) -->
         <section id="netrun" class="app-window netrun-window" style="display: none;" aria-label="NETRUN">
             <header class="window-header">
-                <span>netrun.exe — breach protocol</span>
+                <span data-i18n="ui.window.netrun">netrun.exe — breach protocol</span>
                 <span class="window-buttons">
-                    <button type="button" onclick="toggleFullScreenWindow('netrun')" aria-label="Maximize">⛶</button>
-                    <button type="button" data-close onclick="closeNetrun()" aria-label="Close">✕</button>
+                    <button type="button" onclick="toggleFullScreenWindow('netrun')" aria-label="Maximize" data-i18n-attr="aria-label:ui.window.maximize">⛶</button>
+                    <button type="button" data-close onclick="closeNetrun()" aria-label="Close" data-i18n-attr="aria-label:ui.window.close">✕</button>
                 </span>
             </header>
             <div id="netrunBody" class="netrun-body"></div>
         </section>
 
         <!-- Settings -->
-        <section id="settingsPanel" class="app-window settings-window" style="display: none;" aria-label="Settings">
+        <section id="settingsPanel" class="app-window settings-window" style="display: none;" aria-label="Settings" data-i18n-attr="aria-label:ui.settings.title">
             <header class="window-header">
-                <span>Settings</span>
+                <span data-i18n="ui.settings.title">Settings</span>
                 <span class="window-buttons">
-                    <button type="button" data-close onclick="closeSettings()" aria-label="Close">✕</button>
+                    <button type="button" data-close onclick="closeSettings()" aria-label="Close" data-i18n-attr="aria-label:ui.window.close">✕</button>
                 </span>
             </header>
             <div class="settings-body">
-                <h3>Accent</h3>
+                <h3 data-i18n="ui.settings.language">Language</h3>
+                <div id="langOptions" class="theme-swatches lang-options"></div>
+
+                <h3 data-i18n="ui.settings.accent">Accent</h3>
                 <div id="themeSwatches" class="theme-swatches"></div>
 
-                <h3>Display</h3>
+                <h3 data-i18n="ui.settings.display">Display</h3>
                 <label class="setting-row">
                     <input type="checkbox" id="setting-crt" checked>
-                    <span>CRT scanlines &amp; flicker</span>
+                    <span data-i18n="ui.settings.crt">CRT scanlines &amp; flicker</span>
                 </label>
                 <label class="setting-row">
                     <input type="checkbox" id="setting-motion" checked>
-                    <span>Animations &amp; glitch effects</span>
+                    <span data-i18n="ui.settings.motion">Animations &amp; glitch effects</span>
                 </label>
                 <label class="setting-row">
                     <input type="checkbox" id="setting-tilt" checked>
-                    <span>Tilt depth (wallpaper moves as you tilt your phone)</span>
+                    <span data-i18n="ui.settings.tilt">Tilt depth (wallpaper moves as you tilt your phone)</span>
                 </label>
                 <div class="setting-sub tilt-link">
-                    <span id="tilt-status" role="status">Checking the motion sensor…</span>
-                    <button type="button" id="tilt-sync" class="tilt-sync" hidden>◉ Sync</button>
+                    <span id="tilt-status" role="status" data-i18n="ui.settings.tiltChecking">Checking the motion sensor…</span>
+                    <button type="button" id="tilt-sync" class="tilt-sync" hidden data-i18n="ui.tilt.buttonSync">◉ Sync</button>
                 </div>
 
-                <h3>Audio</h3>
+                <h3 data-i18n="ui.settings.audio">Audio</h3>
                 <label class="setting-row">
                     <input type="checkbox" id="setting-sound" checked>
-                    <span>Interface sounds</span>
+                    <span data-i18n="ui.settings.sounds">Interface sounds</span>
                 </label>
 
-                <p class="settings-note">Preferences are stored in this browser only.</p>
+                <p class="settings-note" data-i18n="ui.settings.note">Preferences are stored in this browser only.</p>
             </div>
         </section>
 
         <!-- Explorer -->
-        <section id="explorer" class="explorer app-window" style="display: none;" aria-label="File explorer">
+        <section id="explorer" class="explorer app-window" style="display: none;" aria-label="File explorer" data-i18n-attr="aria-label:ui.explorer.window">
             <header class="explorer-header window-header">
-                <span>Explorer</span>
+                <span data-i18n="ui.explorer.title">Explorer</span>
                 <span class="window-buttons">
-                    <button type="button" onclick="toggleFullScreenWindow('explorer')" aria-label="Maximize">⛶</button>
-                    <button type="button" data-close onclick="closeExplorer()" aria-label="Close">✕</button>
+                    <button type="button" onclick="toggleFullScreenWindow('explorer')" aria-label="Maximize" data-i18n-attr="aria-label:ui.window.maximize">⛶</button>
+                    <button type="button" data-close onclick="closeExplorer()" aria-label="Close" data-i18n-attr="aria-label:ui.window.close">✕</button>
                 </span>
             </header>
             <div class="explorer-content">
                 <div class="folder-container">
                     <button type="button" class="folder" onclick="showContent('about-me')">
                         <img src="assets/img/folder-icon.png" alt="" width="40" height="40">
-                        <span class="folder-label">About Me</span>
+                        <span class="folder-label" data-i18n="ui.explorer.folders.about">About Me</span>
                     </button>
                     <button type="button" class="folder" onclick="showContent('projects')">
                         <img src="assets/img/folder-icon.png" alt="" width="40" height="40">
-                        <span class="folder-label">Projects</span>
+                        <span class="folder-label" data-i18n="ui.explorer.folders.projects">Projects</span>
                     </button>
                     <button type="button" class="folder" onclick="showContent('repos')">
                         <img src="assets/img/folder-icon.png" alt="" width="40" height="40">
-                        <span class="folder-label">Repos</span>
+                        <span class="folder-label" data-i18n="ui.explorer.folders.repos">Repos</span>
                     </button>
                     <button type="button" class="folder" onclick="showContent('links')">
                         <img src="assets/img/folder-icon.png" alt="" width="40" height="40">
-                        <span class="folder-label">Links</span>
+                        <span class="folder-label" data-i18n="ui.explorer.folders.links">Links</span>
                     </button>
                     <button type="button" class="folder" onclick="showContent('contact')">
                         <img src="assets/img/folder-icon.png" alt="" width="40" height="40">
-                        <span class="folder-label">Chat</span>
+                        <span class="folder-label" data-i18n="ui.explorer.folders.chat">Chat</span>
                     </button>
                     <button type="button" class="folder" onclick="showContent('pictures')">
                         <img src="assets/img/folder-icon.png" alt="" width="40" height="40">
-                        <span class="folder-label">Pictures</span>
+                        <span class="folder-label" data-i18n="ui.explorer.folders.pictures">Pictures</span>
                     </button>
                     <button type="button" class="folder" onclick="showContent('bin')">
                         <img src="assets/img/folder-icon.png" alt="" width="40" height="40">
-                        <span class="folder-label">Bin</span>
+                        <span class="folder-label" data-i18n="ui.explorer.folders.bin">Bin</span>
                     </button>
                 </div>
 
                 <div id="about-me" class="folder-content">
-                    <button type="button" class="back-button" onclick="hideContent('about-me')">← Back</button>
-                    <h2>About Me</h2>
-                    <p>I see you made it — welcome to the liminal surface of dust that falls from the inner workings of my ICE server, {Dread_OS}.</p>
-                    <p>I'm a netrunner, and other things: a post-quantum Layer 1 with mainnet live (<a href="https://rougechain.io" target="_blank" rel="noopener noreferrer">RougeChain</a>), its encrypted wallet and messenger, now on the App Store (<a href="https://qwalla.io" target="_blank" rel="noopener noreferrer">Qwalla</a>), a forum that doesn't shadowban (<a href="https://antireddit.com" target="_blank" rel="noopener noreferrer">AntiReddit</a>), a gen-AI studio (<a href="https://gltchrunner.com" target="_blank" rel="noopener noreferrer">GltchRunner</a>), browser games, and music somewhere between synthwave and trap.</p>
-                    <p>Six languages across 33 public repos — the source is on <a href="https://github.com/cyberdreadx" target="_blank" rel="noopener noreferrer">GitHub</a>. The stuff that pays the bills lives at <a href="https://brandonmenard.dev" target="_blank" rel="noopener noreferrer">brandonmenard.dev</a>.</p>
-                    <p class="muted">Tip: open <strong>term.exe</strong> and type <code>help</code> — everything here is reachable from the shell too.</p>
+                    <button type="button" class="back-button" data-i18n="ui.explorer.back" onclick="hideContent('about-me')">← Back</button>
+                    <h2 data-i18n="ui.explorer.about.title">About Me</h2>
+                    <p data-i18n-html="ui.explorer.about.intro">I see you made it — welcome to the liminal surface of dust that falls from the inner workings of my ICE server, {Dread_OS}.</p>
+                    <p data-i18n-html="ui.explorer.about.work">I'm a netrunner, and other things: a post-quantum Layer 1 with mainnet live (<a href="https://rougechain.io" target="_blank" rel="noopener noreferrer">RougeChain</a>), its encrypted wallet and messenger, now on the App Store (<a href="https://qwalla.io" target="_blank" rel="noopener noreferrer">Qwalla</a>), a forum that doesn't shadowban (<a href="https://antireddit.com" target="_blank" rel="noopener noreferrer">AntiReddit</a>), a gen-AI studio (<a href="https://gltchrunner.com" target="_blank" rel="noopener noreferrer">GltchRunner</a>), browser games, and music somewhere between synthwave and trap.</p>
+                    <p data-i18n-html="ui.explorer.about.code">Six languages across 33 public repos — the source is on <a href="https://github.com/cyberdreadx" target="_blank" rel="noopener noreferrer">GitHub</a>. The stuff that pays the bills lives at <a href="https://brandonmenard.dev" target="_blank" rel="noopener noreferrer">brandonmenard.dev</a>.</p>
+                    <p class="muted" data-i18n-html="ui.explorer.about.tip">Tip: open <strong>term.exe</strong> and type <code>help</code> — everything here is reachable from the shell too.</p>
+                    <div class="about-cta">
+                        <button type="button" class="cta cta-primary" onclick="openProjects()" data-i18n="ui.explorer.about.projects">See my projects →</button>
+                        <span class="about-cta-label" data-i18n="ui.explorer.about.follow">Follow the signal</span>
+                        <a class="cta" href="https://www.youtube.com/@cyberdread" target="_blank" rel="noopener noreferrer">YouTube</a>
+                        <a class="cta" href="https://t.me/rougecoinv3" target="_blank" rel="noopener noreferrer">Telegram</a>
+                        <a class="cta" href="https://x.com/rougecoin" target="_blank" rel="noopener noreferrer">X</a>
+                        <a class="cta" href="https://github.com/cyberdreadx" target="_blank" rel="noopener noreferrer">GitHub</a>
+                    </div>
                 </div>
 
                 <div id="projects" class="folder-content">
-                    <button type="button" class="back-button" onclick="hideContent('projects')">← Back</button>
-                    <h2>Projects</h2>
-                    <!-- Rendered from js/data/site-config.js -->
-                    <div id="projectsGrid" class="image-grid"></div>
+                    <button type="button" class="back-button" data-i18n="ui.explorer.back" onclick="hideContent('projects')">← Back</button>
+                    <h2 data-i18n="ui.explorer.projects.title">Projects</h2>
+                    <div class="projects-intro" data-i18n="ui.explorer.projects.intro">Everything I make, and where to get it.</div>
+                    <!-- Rendered from js/data/site-config.js: cards with their calls to action -->
+                    <div id="projectsGrid" class="project-cards"></div>
                 </div>
 
                 <div id="repos" class="folder-content">
-                    <button type="button" class="back-button" onclick="hideContent('repos')">← Back</button>
-                    <h2>Repos</h2>
-                    <p class="repos-intro">Six languages across 33 public repos. Selected work:</p>
+                    <button type="button" class="back-button" data-i18n="ui.explorer.back" onclick="hideContent('repos')">← Back</button>
+                    <h2 data-i18n="ui.explorer.repos.title">Repos</h2>
+                    <p class="repos-intro" data-i18n="ui.explorer.repos.intro">Six languages across 33 public repos. Selected work:</p>
                     <!-- Rendered from js/data/site-config.js -->
                     <div id="reposList" class="repo-list"></div>
                     <a class="market-explorer" target="_blank" rel="noopener noreferrer"
-                       href="https://github.com/cyberdreadx">
+                       href="https://github.com/cyberdreadx" data-i18n="ui.explorer.repos.all">
                         All repos on GitHub →
                     </a>
                 </div>
 
                 <div id="links" class="folder-content">
-                    <button type="button" class="back-button" onclick="hideContent('links')">← Back</button>
-                    <h2>Links</h2>
+                    <button type="button" class="back-button" data-i18n="ui.explorer.back" onclick="hideContent('links')">← Back</button>
+                    <h2 data-i18n="ui.explorer.links.title">Links</h2>
                     <div id="linksGrid" class="image-grid"></div>
                 </div>
 
                 <div id="contact" class="folder-content">
-                    <button type="button" class="back-button" onclick="hideContent('contact')">← Back</button>
-                    <h2>Secret Chat</h2>
+                    <button type="button" class="back-button" data-i18n="ui.explorer.back" onclick="hideContent('contact')">← Back</button>
+                    <h2 data-i18n="ui.explorer.chat.title">Secret Chat</h2>
                     <div class="chat-container">
                         <div id="messageList" class="message-list" role="log" aria-live="polite"></div>
                         <p id="chatStatus" class="chat-status" role="status"></p>
                         <div class="chat-input">
-                            <input type="text" id="nameInput" placeholder="Handle" maxlength="20" aria-label="Your handle">
-                            <input type="text" id="messageInput" placeholder="Type a message..." maxlength="200" aria-label="Message">
-                            <button type="button" id="chatSendBtn" onclick="sendMessage()">Send</button>
+                            <input type="text" id="nameInput" placeholder="Handle" maxlength="20" aria-label="Your handle" data-i18n-attr="placeholder:ui.explorer.chat.handle; aria-label:ui.explorer.chat.handleLabel">
+                            <input type="text" id="messageInput" placeholder="Type a message..." maxlength="200" aria-label="Message" data-i18n-attr="placeholder:ui.explorer.chat.message; aria-label:ui.explorer.chat.messageLabel">
+                            <button type="button" id="chatSendBtn" onclick="sendMessage()" data-i18n="ui.explorer.chat.send">Send</button>
                         </div>
                     </div>
                 </div>
 
                 <div id="pictures" class="folder-content">
-                    <button type="button" class="back-button" onclick="hideContent('pictures')">← Back</button>
-                    <h2>Images</h2>
+                    <button type="button" class="back-button" data-i18n="ui.explorer.back" onclick="hideContent('pictures')">← Back</button>
+                    <h2 data-i18n="ui.explorer.pictures.title">Images</h2>
                     <div class="image-grid">
-                        <button type="button" class="project-item" onclick="openImageViewer('assets/img/wallpaper-neon.jpg', 'Neon wallpaper')">
-                            <img src="assets/img/wallpaper-neon-thumb.jpg" alt="Neon wallpaper" class="project-thumb" loading="lazy" decoding="async">
+                        <button type="button" class="project-item" onclick="openImageViewer('assets/img/wallpaper-neon.jpg', this.dataset.caption)" data-caption="Neon wallpaper" data-i18n-attr="data-caption:ui.explorer.pictures.neon">
+                            <img src="assets/img/wallpaper-neon-thumb.jpg" alt="Neon wallpaper" data-i18n-attr="alt:ui.explorer.pictures.neon" class="project-thumb" loading="lazy" decoding="async">
                             <span class="project-label">wallpaper.jpg</span>
                         </button>
-                        <button type="button" class="project-item" onclick="openImageViewer('assets/img/background.png', 'Previous desktop background')">
-                            <img src="assets/img/background.png" alt="Desktop background" class="project-thumb" loading="lazy" decoding="async">
+                        <button type="button" class="project-item" onclick="openImageViewer('assets/img/background.png', this.dataset.caption)" data-caption="Previous desktop background" data-i18n-attr="data-caption:ui.explorer.pictures.desktopCaption">
+                            <img src="assets/img/background.png" alt="Desktop background" data-i18n-attr="alt:ui.explorer.pictures.desktop" class="project-thumb" loading="lazy" decoding="async">
                             <span class="project-label">background.png</span>
                         </button>
-                        <button type="button" class="project-item" onclick="openImageViewer('assets/img/cybergirl.jpg', 'Cybergirl')">
-                            <img src="assets/img/cybergirl.jpg" alt="Cybergirl" class="project-thumb" loading="lazy" decoding="async">
+                        <button type="button" class="project-item" onclick="openImageViewer('assets/img/cybergirl.jpg', this.dataset.caption)" data-caption="Cybergirl" data-i18n-attr="data-caption:ui.explorer.pictures.cybergirl">
+                            <img src="assets/img/cybergirl.jpg" alt="Cybergirl" data-i18n-attr="alt:ui.explorer.pictures.cybergirl" class="project-thumb" loading="lazy" decoding="async">
                             <span class="project-label">cybergirl.jpg</span>
                         </button>
-                        <button type="button" class="project-item" onclick="openImageViewer('assets/img/background.jpg', 'Alternate background')">
-                            <img src="assets/img/background.jpg" alt="Alternate background" class="project-thumb" loading="lazy" decoding="async">
+                        <button type="button" class="project-item" onclick="openImageViewer('assets/img/background.jpg', this.dataset.caption)" data-caption="Alternate background" data-i18n-attr="data-caption:ui.explorer.pictures.alternate">
+                            <img src="assets/img/background.jpg" alt="Alternate background" data-i18n-attr="alt:ui.explorer.pictures.alternate" class="project-thumb" loading="lazy" decoding="async">
                             <span class="project-label">background.jpg</span>
                         </button>
                     </div>
                 </div>
 
                 <div id="bin" class="folder-content">
-                    <button type="button" class="back-button" onclick="hideContent('bin')">← Back</button>
+                    <button type="button" class="back-button" data-i18n="ui.explorer.back" onclick="hideContent('bin')">← Back</button>
                     <h2>bin</h2>
-                    <p>nothing to hack here...</p>
-                    <p class="muted">(try <code>sudo</code> in term.exe)</p>
+                    <p data-i18n="ui.explorer.bin.text">nothing to hack here...</p>
+                    <p class="muted" data-i18n-html="ui.explorer.bin.hint">(try <code>sudo</code> in term.exe)</p>
                 </div>
 
                 <div id="imageViewer" class="image-viewer">
-                    <button type="button" class="close-btn" onclick="closeImageViewer()" aria-label="Close image">×</button>
+                    <button type="button" class="close-btn" onclick="closeImageViewer()" aria-label="Close image" data-i18n-attr="aria-label:ui.explorer.pictures.closeViewer">×</button>
                     <img id="viewerImage" src="" alt="">
                 </div>
             </div>
         </section>
 
         <!-- Music player -->
-        <section id="musicPlayer" class="music-player app-window" style="display: none;" aria-label="Music player">
+        <section id="musicPlayer" class="music-player app-window" style="display: none;" aria-label="Music player" data-i18n-attr="aria-label:ui.music.window">
             <header class="player-header window-header">
-                <span>CyberDread Playlist</span>
+                <span data-i18n="ui.music.title">CyberDread Playlist</span>
                 <span class="window-buttons">
-                    <button type="button" onclick="toggleFullScreenWindow('musicPlayer')" aria-label="Maximize">⛶</button>
-                    <button type="button" data-close onclick="toggleMusicPlayer()" aria-label="Close">✕</button>
+                    <button type="button" onclick="toggleFullScreenWindow('musicPlayer')" aria-label="Maximize" data-i18n-attr="aria-label:ui.window.maximize">⛶</button>
+                    <button type="button" data-close onclick="toggleMusicPlayer()" aria-label="Close" data-i18n-attr="aria-label:ui.window.close">✕</button>
                 </span>
             </header>
             <div class="player-body">
@@ -424,13 +464,13 @@
                     <canvas id="visualizer" aria-hidden="true"></canvas>
                 </div>
                 <div class="track-info">
-                    <span class="marquee" data-song-title>No track playing</span>
+                    <span class="marquee" data-song-title data-i18n="ui.music.noTrack">No track playing</span>
                 </div>
                 <div class="controls">
-                    <button type="button" onclick="previousTrack()" aria-label="Previous track">⏮</button>
-                    <button type="button" onclick="togglePlay()" data-play-toggle aria-label="Play">▶</button>
-                    <button type="button" onclick="nextTrack()" aria-label="Next track">⏭</button>
-                    <input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="0.7" aria-label="Volume">
+                    <button type="button" onclick="previousTrack()" aria-label="Previous track" data-i18n-attr="aria-label:ui.music.previous">⏮</button>
+                    <button type="button" onclick="togglePlay()" data-play-toggle aria-label="Play" data-i18n-attr="aria-label:ui.music.play">▶</button>
+                    <button type="button" onclick="nextTrack()" aria-label="Next track" data-i18n-attr="aria-label:ui.music.next">⏭</button>
+                    <input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="0.7" aria-label="Volume" data-i18n-attr="aria-label:ui.music.volume">
                 </div>
                 <!-- Rendered from js/data/site-config.js -->
                 <div id="playlist" class="playlist"></div>
@@ -442,134 +482,134 @@
             <header class="explorer-header window-header">
                 <span>RougeChain · XRGE</span>
                 <span class="window-buttons">
-                    <button type="button" onclick="toggleFullScreenWindow('rougeCoinInterface')" aria-label="Maximize">⛶</button>
-                    <button type="button" data-close onclick="closeRougeCoin()" aria-label="Close">✕</button>
+                    <button type="button" onclick="toggleFullScreenWindow('rougeCoinInterface')" aria-label="Maximize" data-i18n-attr="aria-label:ui.window.maximize">⛶</button>
+                    <button type="button" data-close onclick="closeRougeCoin()" aria-label="Close" data-i18n-attr="aria-label:ui.window.close">✕</button>
                 </span>
             </header>
             <div class="explorer-content rougecoin-content">
                 <div class="rougecoin-header">
                     <img src="assets/img/rougechain-icon.png" alt="" class="rougecoin-logo" width="64" height="64">
                     <h2>RougeChain</h2>
-                    <p class="rougecoin-tagline">Post-quantum from genesis · <strong>mainnet live</strong> · native token <strong>XRGE</strong></p>
+                    <p class="rougecoin-tagline" data-i18n-html="ui.rougechain.tagline">Post-quantum from genesis · <strong>mainnet live</strong> · native token <strong>XRGE</strong></p>
                     <div class="chain-cta">
                         <a class="chain-cta-main" href="https://rougechain.io" target="_blank" rel="noopener noreferrer">rougechain.io →</a>
-                        <a class="chain-cta-buy" data-buy-xrge href="https://rougechain.io/buy" target="_blank" rel="noopener noreferrer">Buy XRGE</a>
+                        <a class="chain-cta-buy" data-buy-xrge href="https://rougechain.io/buy" target="_blank" rel="noopener noreferrer" data-i18n="ui.rougechain.buy">Buy XRGE</a>
                     </div>
                 </div>
 
                 <div class="rougecoin-sections">
                     <section class="rougecoin-section chain-section">
-                        <h3><svg class="ico" aria-hidden="true"><use href="#i-shield"/></svg> Network — live</h3>
+                        <h3><svg class="ico" aria-hidden="true"><use href="#i-shield"/></svg> <span data-i18n="ui.rougechain.network">Network — live</span></h3>
                         <div class="market-data">
                             <div class="market-item">
-                                <span class="market-label">Block height</span>
+                                <span class="market-label" data-i18n="ui.rougechain.height">Block height</span>
                                 <span class="market-value" id="chainHeight">—</span>
                             </div>
                             <div class="market-item">
-                                <span class="market-label">Finalized</span>
+                                <span class="market-label" data-i18n="ui.rougechain.finalized">Finalized</span>
                                 <span class="market-value" id="chainFinalized">—</span>
                             </div>
                             <div class="market-item">
-                                <span class="market-label">Validators</span>
+                                <span class="market-label" data-i18n="ui.rougechain.validators">Validators</span>
                                 <span class="market-value" id="chainValidators">—</span>
                             </div>
                             <div class="market-item">
-                                <span class="market-label">Peers</span>
+                                <span class="market-label" data-i18n="ui.rougechain.peers">Peers</span>
                                 <span class="market-value" id="chainPeers">—</span>
                             </div>
                             <div class="market-item">
-                                <span class="market-label">Fees burned</span>
+                                <span class="market-label" data-i18n="ui.rougechain.burned">Fees burned</span>
                                 <span class="market-value" id="chainBurned">—</span>
                             </div>
                         </div>
                         <p id="chainUpdated" class="market-updated"></p>
                         <a class="market-explorer" target="_blank" rel="noopener noreferrer"
-                           href="https://rougechain.io/blockchain">
+                           href="https://rougechain.io/blockchain" data-i18n="ui.rougechain.explorer">
                             Open the explorer →
                         </a>
                     </section>
 
                     <section class="rougecoin-section eco-section">
-                        <h3><svg class="ico" aria-hidden="true"><use href="#i-shield"/></svg> Post-quantum Layer 1</h3>
+                        <h3><svg class="ico" aria-hidden="true"><use href="#i-shield"/></svg> <span data-i18n="ui.rougechain.layer1">Post-quantum Layer 1</span></h3>
                         <p class="chain-summary" id="chainSummary"></p>
                         <ul class="chain-features" id="chainCrypto"></ul>
                         <div id="chainEcosystem" class="eco"></div>
                     </section>
 
                     <section class="rougecoin-section">
-                        <h3>XRGE — one token, two networks</h3>
+                        <h3 data-i18n="ui.rougechain.token">XRGE — one token, two networks</h3>
                         <p class="chain-summary" id="xrgeNative"></p>
                         <p class="chain-summary" id="xrgeBase"></p>
                         <button type="button" class="contract-copy" onclick="copyContractAddress()">
                             <svg class="ico" aria-hidden="true"><use href="#i-copy"/></svg>
-                            <span>Base contract</span>
+                            <span data-i18n="ui.rougechain.contract">Base contract</span>
                             <code>0x1471…4317</code>
                             <span id="contractCopyStatus" class="copy-status"></span>
                         </button>
                     </section>
 
                     <section class="rougecoin-section">
-                        <h3>Market — XRGE on Base</h3>
+                        <h3 data-i18n="ui.rougechain.market">Market — XRGE on Base</h3>
                         <div class="market-data">
                             <div class="market-item">
-                                <span class="market-label"><svg class="ico" aria-hidden="true"><use href="#i-tag"/></svg> Price</span>
+                                <span class="market-label"><svg class="ico" aria-hidden="true"><use href="#i-tag"/></svg> <span data-i18n="ui.rougechain.price">Price</span></span>
                                 <span class="market-value" id="rougePrice">—</span>
                             </div>
                             <div class="market-item">
-                                <span class="market-label"><svg class="ico" aria-hidden="true"><use href="#i-chart"/></svg> 24h</span>
+                                <span class="market-label"><svg class="ico" aria-hidden="true"><use href="#i-chart"/></svg> <span data-i18n="ui.rougechain.change">24h</span></span>
                                 <span class="market-value" id="rougeChange">—</span>
                             </div>
                             <div class="market-item">
-                                <span class="market-label"><svg class="ico" aria-hidden="true"><use href="#i-bank"/></svg> Market cap</span>
+                                <span class="market-label"><svg class="ico" aria-hidden="true"><use href="#i-bank"/></svg> <span data-i18n="ui.rougechain.cap">Market cap</span></span>
                                 <span class="market-value" id="rougeCap">—</span>
                             </div>
                             <div class="market-item">
-                                <span class="market-label"><svg class="ico" aria-hidden="true"><use href="#i-droplet"/></svg> Liquidity</span>
+                                <span class="market-label"><svg class="ico" aria-hidden="true"><use href="#i-droplet"/></svg> <span data-i18n="ui.rougechain.liquidity">Liquidity</span></span>
                                 <span class="market-value" id="rougeLiquidity">—</span>
                             </div>
                             <div class="market-item">
-                                <span class="market-label"><svg class="ico" aria-hidden="true"><use href="#i-swap"/></svg> 24h volume</span>
+                                <span class="market-label"><svg class="ico" aria-hidden="true"><use href="#i-swap"/></svg> <span data-i18n="ui.rougechain.volume">24h volume</span></span>
                                 <span class="market-value" id="rougeVolume">—</span>
                             </div>
                         </div>
                         <p id="rougeUpdated" class="market-updated"></p>
                         <a class="rougecoin-link buy-link" data-buy-xrge target="_blank" rel="noopener noreferrer" href="https://rougechain.io/buy">
-                            <svg class="ico" aria-hidden="true"><use href="#i-swap"/></svg><span>Buy XRGE on Aerodrome</span>
+                            <svg class="ico" aria-hidden="true"><use href="#i-swap"/></svg><span data-i18n="ui.rougechain.buyAerodrome">Buy XRGE on Aerodrome</span>
                         </a>
                         <a class="rougecoin-link buy-link" data-buy-coinbase target="_blank" rel="noopener noreferrer" href="https://www.coinbase.com/price/base-rougecoin-4317">
-                            <svg class="ico" aria-hidden="true"><use href="#i-swap"/></svg><span>Buy XRGE on Coinbase</span>
+                            <svg class="ico" aria-hidden="true"><use href="#i-swap"/></svg><span data-i18n="ui.rougechain.buyCoinbase">Buy XRGE on Coinbase</span>
                         </a>
-                        <a id="marketPairLink" class="market-explorer" hidden target="_blank" rel="noopener noreferrer" href="#">
+                        <a id="marketPairLink" class="market-explorer" hidden target="_blank" rel="noopener noreferrer" href="#" data-i18n="ui.rougechain.poolChart">
                             View the pool chart →
                         </a>
                         <a class="market-explorer" target="_blank" rel="noopener noreferrer"
-                           href="https://basescan.org/token/0x147120faEC9277ec02d957584CFCD92B56A24317">
+                           href="https://basescan.org/token/0x147120faEC9277ec02d957584CFCD92B56A24317" data-i18n="ui.rougechain.basescan">
                             View contract on BaseScan →
                         </a>
                     </section>
 
                     <section class="rougecoin-section">
-                        <h3>Community</h3>
+                        <h3 data-i18n="ui.rougechain.community">Community</h3>
                         <div class="rougecoin-links" id="chainCommunity"></div>
                     </section>
 
                     <section class="rougecoin-section swap-section">
-                        <h3><svg class="ico" aria-hidden="true"><use href="#i-swap"/></svg> Swap</h3>
+                        <h3><svg class="ico" aria-hidden="true"><use href="#i-swap"/></svg> <span data-i18n="ui.rougechain.swap">Swap</span></h3>
                         <div class="swap-interface">
                             <div class="wallet-status">
-                                <div id="walletAddress">Wallet not connected</div>
+                                <div id="walletAddress" data-i18n="ui.rougechain.walletNone">Wallet not connected</div>
                                 <button type="button" id="connectWalletBtn" class="connect-wallet-btn" onclick="connectWallet()">
-                                    <svg class="ico" aria-hidden="true"><use href="#i-wallet"/></svg> Connect Wallet
+                                    <svg class="ico" aria-hidden="true"><use href="#i-wallet"/></svg> <span data-i18n="ui.rougechain.connect">Connect Wallet</span>
                                 </button>
                             </div>
 
                             <div id="walletBalances" class="wallet-balances" style="display: none;"></div>
 
                             <div class="swap-input">
-                                <label for="fromAmount">From</label>
+                                <label for="fromAmount" data-i18n="ui.rougechain.from">From</label>
                                 <div class="token-input">
                                     <input type="number" id="fromAmount" placeholder="0.0" step="0.0001" min="0" inputmode="decimal">
-                                    <select id="fromToken" aria-label="Input token">
+                                    <select id="fromToken" aria-label="Input token" data-i18n-attr="aria-label:ui.rougechain.fromToken">
                                         <option value="ETH">ETH</option>
                                         <option value="USDC">USDC</option>
                                         <option value="USDT">USDT</option>
@@ -580,13 +620,13 @@
                             <div class="swap-arrow"><svg class="ico" aria-hidden="true"><use href="#i-arrow-down"/></svg></div>
 
                             <div class="swap-input">
-                                <label for="toAmount">To (estimated)</label>
+                                <label for="toAmount" data-i18n="ui.rougechain.to">To (estimated)</label>
                                 <div class="token-input">
                                     <!-- Text, not number: the estimate is comma-grouped for
                                          readability and <input type="number"> discards any
                                          value that is not a bare numeric string. -->
                                     <input type="text" id="toAmount" placeholder="0.0" readonly
-                                           inputmode="decimal" aria-label="Estimated XRGE received">
+                                           inputmode="decimal" aria-label="Estimated XRGE received" data-i18n-attr="aria-label:ui.rougechain.toAmount">
                                     <div class="token-select">
                                         <img src="assets/img/rougecoin-icon.png" alt="" class="token-icon" width="20" height="20">
                                         <span>XRGE</span>
@@ -595,15 +635,15 @@
                             </div>
 
                             <div class="swap-info">
-                                <div class="swap-details"><span>Rate</span><span id="swapRate">-</span></div>
-                                <div class="swap-details"><span>Est. price impact</span><span id="priceImpact">-</span></div>
-                                <div class="swap-details"><span>Network fee</span><span id="networkFee">-</span></div>
+                                <div class="swap-details"><span data-i18n="ui.rougechain.rate">Rate</span><span id="swapRate">-</span></div>
+                                <div class="swap-details"><span data-i18n="ui.rougechain.impact">Est. price impact</span><span id="priceImpact">-</span></div>
+                                <div class="swap-details"><span data-i18n="ui.rougechain.fee">Network fee</span><span id="networkFee">-</span></div>
                             </div>
 
-                            <button type="button" id="swapButton" class="swap-button" onclick="performSwap()" disabled>
+                            <button type="button" id="swapButton" class="swap-button" onclick="performSwap()" disabled data-i18n="ui.rougechain.connectToSwap">
                                 Connect Wallet to Swap
                             </button>
-                            <p class="swap-disclaimer">
+                            <p class="swap-disclaimer" data-i18n-html="ui.rougechain.disclaimer">
                                 Estimates are indicative. XRGE trades on <strong>Base</strong>. The
                                 swap opens on Aerodrome with the pair selected; enter the amount there
                                 for the final quote.
@@ -615,17 +655,17 @@
         </section>
 
         <!-- Shutdown -->
-        <div id="shutdownModal" class="modal" role="dialog" aria-modal="true" aria-label="Shut down">
-            <p>Ready to shut down?</p>
+        <div id="shutdownModal" class="modal" role="dialog" aria-modal="true" aria-label="Shut down" data-i18n-attr="aria-label:ui.shutdown.label">
+            <p data-i18n="ui.shutdown.question">Ready to shut down?</p>
             <div class="modal-buttons">
-                <button type="button" class="modal-button" onclick="initiateShutdown()">Yes</button>
-                <button type="button" class="modal-button" onclick="closeShutdownModal()">No</button>
+                <button type="button" class="modal-button" onclick="initiateShutdown()" data-i18n="ui.shutdown.yes">Yes</button>
+                <button type="button" class="modal-button" onclick="closeShutdownModal()" data-i18n="ui.shutdown.no">No</button>
             </div>
         </div>
 
         <div id="shutdownScreen" class="shutdown-screen">
             <div class="shutdown-content">
-                <p>SHUTTING DOWN...</p>
+                <p data-i18n="ui.shutdown.screen">SHUTTING DOWN...</p>
                 <div class="loading-bar"></div>
             </div>
         </div>

@@ -3,6 +3,7 @@
  */
 import { playSound, SOUNDS } from '../sound.js';
 import { PLAYLIST } from '../../data/site-config.js';
+import { t } from '../../i18n/i18n.js';
 
 const audio = new Audio();
 audio.preload = 'metadata';
@@ -112,7 +113,7 @@ function updateInterface(title) {
 
     document.querySelectorAll('[data-play-toggle]').forEach(button => {
         button.textContent = playing ? '⏸' : '▶';
-        button.setAttribute('aria-label', playing ? 'Pause' : 'Play');
+        button.setAttribute('aria-label', t(playing ? 'ui.music.pause' : 'ui.music.play'));
     });
 
     document.querySelectorAll('.playlist-item').forEach((item, index) => {
@@ -139,7 +140,7 @@ export function playTrackAt(index) {
         .then(() => updateInterface(`${track.title} - ${track.artist}`))
         .catch(error => {
             console.error('Playback failed:', error);
-            updateInterface('Playback blocked -- press play');
+            updateInterface(t('ui.music.blocked'));
         });
 }
 
@@ -166,7 +167,7 @@ export function togglePlay() {
     }
 
     const track = PLAYLIST[currentIndex];
-    updateInterface(track ? `${track.title} - ${track.artist}` : 'No track playing');
+    updateInterface(track ? `${track.title} - ${track.artist}` : t('ui.music.noTrack'));
 }
 
 /** Skips forward, wrapping at the end. */
@@ -208,15 +209,15 @@ export function initMusicPlayerEventListeners() {
     audio.addEventListener('ended', nextTrack);
     audio.addEventListener('play', () => {
         const track = PLAYLIST[currentIndex];
-        updateInterface(track ? `${track.title} - ${track.artist}` : 'No track playing');
+        updateInterface(track ? `${track.title} - ${track.artist}` : t('ui.music.noTrack'));
     });
     audio.addEventListener('pause', () => {
         const track = PLAYLIST[currentIndex];
-        updateInterface(track ? `${track.title} - ${track.artist}` : 'No track playing');
+        updateInterface(track ? `${track.title} - ${track.artist}` : t('ui.music.noTrack'));
     });
     audio.addEventListener('error', () => {
-        updateInterface('Track unavailable');
+        updateInterface(t('ui.music.unavailable'));
     });
 
-    updateInterface('No track playing');
+    updateInterface(t('ui.music.noTrack'));
 }

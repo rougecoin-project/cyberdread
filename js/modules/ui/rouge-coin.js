@@ -15,6 +15,7 @@ import {
     formatChange
 } from '../web3/market.js';
 import { fetchChainStatus, formatInt, formatXrge } from '../web3/rougechain.js';
+import { t, LOCALE } from '../../i18n/i18n.js';
 
 const FIELDS = ['rougePrice', 'rougeChange', 'rougeCap', 'rougeLiquidity', 'rougeVolume'];
 const CHAIN_FIELDS = ['chainHeight', 'chainFinalized', 'chainValidators', 'chainPeers', 'chainBurned'];
@@ -107,7 +108,7 @@ export async function loadChainStatus() {
 
     if (!status) {
         CHAIN_FIELDS.forEach(id => set(id, '--'));
-        set('chainUpdated', 'The public node did not answer. That does not mean the chain is down; try the explorer.');
+        set('chainUpdated', t('chain.network.unreachable'));
         return;
     }
 
@@ -116,7 +117,10 @@ export async function loadChainStatus() {
     set('chainValidators', status.validators === null ? '--' : formatInt(status.validators));
     set('chainPeers', formatInt(status.peers));
     set('chainBurned', formatXrge(status.feesBurned));
-    set('chainUpdated', `${status.chainId} - updated ${new Date().toLocaleTimeString()}`);
+    set('chainUpdated', t('chain.network.updated', {
+        chain: status.chainId,
+        time: new Date().toLocaleTimeString(LOCALE)
+    }));
 }
 
 /** Opens the RougeChain window and starts polling chain and market data. */
@@ -168,7 +172,7 @@ function setField(id, text) {
  */
 export async function loadMarketData() {
     const changeElement = document.getElementById('rougeChange');
-    FIELDS.forEach(id => setField(id, 'Loading...'));
+    FIELDS.forEach(id => setField(id, t('chain.market.loading')));
 
     const { status, data: market } = await fetchXrgeMarket();
 
@@ -176,8 +180,8 @@ export async function loadMarketData() {
         FIELDS.forEach(id => setField(id, '--'));
         if (changeElement) changeElement.style.color = '';
         setField('rougeUpdated', status === MarketStatus.NO_PAIR
-            ? `No price data for the ${XRGE_POOL.pair} pool on ${CHAIN.name} yet.`
-            : 'Market data sources unreachable. Retrying shortly.');
+            ? t('chain.market.noPair', { pair: XRGE_POOL.pair, chain: CHAIN.name })
+            : t('chain.market.unreachable'));
         return;
     }
 
@@ -186,12 +190,12 @@ export async function loadMarketData() {
     setField('rougeCap', formatCompactUsd(market.marketCap));
     setField('rougeLiquidity', formatCompactUsd(market.liquidityUsd));
     setField('rougeVolume', formatCompactUsd(market.volume24h));
-    setField('rougeUpdated', [
-        market.pairLabel || XRGE_POOL.pair,
-        `on ${market.dex}`,
-        `via ${market.source}`,
-        `updated ${new Date(market.updatedAt).toLocaleTimeString()}`
-    ].join(' - '));
+    setField('rougeUpdated', t('chain.market.updated', {
+        pair: market.pairLabel || XRGE_POOL.pair,
+        dex: market.dex,
+        source: market.source,
+        time: new Date(market.updatedAt).toLocaleTimeString(LOCALE)
+    }));
 
     const link = document.getElementById('marketPairLink');
     if (link && market.pairUrl) {
@@ -214,7 +218,7 @@ export async function copyContractAddress() {
         await navigator.clipboard.writeText(address);
         playSound(SOUNDS.CLICK);
         if (status) {
-            status.textContent = 'copied';
+            status.textContent = t('chain.contract.copied');
             setTimeout(() => { status.textContent = ''; }, 2000);
         }
     } catch (error) {

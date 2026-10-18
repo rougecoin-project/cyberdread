@@ -7,7 +7,7 @@
  *   { method: 'crypto', chain, tx }      -- chain is a WALLETS[].chain id
  *   { method: 'gate', token }            -- the dc@gate puzzle answer
  *   { method: 'gift', code }             -- a gift code (DC-XXXX-…), see lib/dead-circuit/gift.mjs
- * plus an optional `lang` (en, es, fr, it, pt, ja, zh, ar) choosing which
+ * plus an optional `lang` (en, es, fr, it, pt, ru, ja, zh, ar) choosing which
  * edition of the PDF the download link serves; English otherwise.
  * Answers { ok: true, url } or { ok: false, pending?, code, message, params? };
  * `code` keys the reader-language text in dead-circuit/js/i18n/*.js.
