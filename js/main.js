@@ -1,6 +1,8 @@
 /**
  * Main entry point - imports and initializes all modules.
  */
+// First: picks the language and loads its strings before anything renders.
+import { applyLanguage } from './i18n/i18n.js';
 import { playSound, SOUNDS } from './modules/sound.js';
 import {
     startSystem, showShutdownModal, closeShutdownModal, initiateShutdown, initBootScreen, autoBoot
@@ -96,7 +98,8 @@ document.addEventListener('playSound', event => {
 
 /** Boots the desktop. */
 function initializeApp() {
-    // Settings first: it sets the accent tokens before anything paints.
+    // Words first, then settings (accent tokens) before anything paints.
+    applyLanguage();
     initSettings();
     initBootScreen();
     autoBoot();

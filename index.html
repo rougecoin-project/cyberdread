@@ -9,6 +9,9 @@
     <title>CyberDread — {Dread_OS}</title>
     <meta name="description" content="{Dread_OS} — a cyberpunk desktop in your browser. Games, music, a working terminal, and RougeChain, the post-quantum Layer 1 (mainnet live), with live network stats and XRGE market data.">
     <link rel="canonical" href="https://cyberdreadx.dev/">
+    <link rel="alternate" hreflang="en" href="https://cyberdreadx.dev/?lang=en">
+    <link rel="alternate" hreflang="ru" href="https://cyberdreadx.dev/?lang=ru">
+    <link rel="alternate" hreflang="x-default" href="https://cyberdreadx.dev/">
     <meta name="theme-color" content="#00ffff">
     <meta name="color-scheme" content="dark">
 
@@ -38,6 +41,22 @@
     <link rel="preconnect" href="https://api.dexscreener.com" crossorigin>
     <link rel="preconnect" href="https://api.geckoterminal.com" crossorigin>
     <link rel="preconnect" href="https://api.rougechain.io" crossorigin>
+
+    <!-- A visitor who will get Russian sees nothing until it is applied, so
+         English never flashes first (js/i18n/i18n.js decides for real and
+         lifts this; the timer is a safety net if scripts fail). -->
+    <style>.i18n-pending body { visibility: hidden; }</style>
+    <script>
+        try {
+            var q = new URLSearchParams(location.search).get('lang');
+            var pick = (q || localStorage.getItem('dc-lang') || (navigator.languages || [navigator.language]).join(',')).slice(0, 2).toLowerCase();
+            if (pick === 'ru') {
+                document.documentElement.lang = 'ru';
+                document.documentElement.classList.add('i18n-pending');
+                setTimeout(function () { document.documentElement.classList.remove('i18n-pending'); }, 4000);
+            }
+        } catch (e) { /* storage blocked: English until the module decides */ }
+    </script>
 
     <!-- No CDN scripts. This used to pull web3.js 1.8.0 and WalletConnect v1
          (a bridge network shut down in 2023, and never actually called). -->
@@ -253,6 +272,9 @@
                 </span>
             </header>
             <div class="settings-body">
+                <h3 data-i18n="ui.settings.language">Language</h3>
+                <div id="langOptions" class="theme-swatches lang-options"></div>
+
                 <h3>Accent</h3>
                 <div id="themeSwatches" class="theme-swatches"></div>
 

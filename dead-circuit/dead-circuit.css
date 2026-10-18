@@ -2092,6 +2092,13 @@ s { text-decoration: line-through; }
   --font-serif: "Newsreader", "Songti SC", "STSong", "SimSun", "Noto Serif SC", "Noto Serif CJK SC", serif;
 }
 
+/* Russian: Archivo and Newsreader keep the Latin letters and digits; the
+   Cyrillic comes from Inter Tight and PT Serif (fonts/fonts.css). */
+:root:lang(ru) {
+  --font-display: "Archivo", "Inter Tight", "Arial Narrow", sans-serif;
+  --font-serif: "Newsreader", "PT Serif", "Iowan Old Style", Georgia, serif;
+}
+
 :root:lang(ar) {
   --font-display: "Archivo", "Geeza Pro", "Noto Kufi Arabic", "Noto Sans Arabic", "Segoe UI", "Tahoma", sans-serif;
   --font-serif: "Newsreader", "Noto Naskh Arabic", "Geeza Pro", "Times New Roman", serif;

@@ -5,6 +5,7 @@
  * it with real, persisted preferences.
  */
 import { playSound, SOUNDS, setMuted, isMuted } from '../sound.js';
+import { LANGS, LANG, switchLanguage } from '../../i18n/i18n.js';
 
 const STORAGE_KEY = 'dreados:settings';
 
@@ -151,6 +152,27 @@ export function initSettings() {
             toggle.addEventListener('change', () => setToggle(key, toggle.checked));
         }
     });
+
+    // Language: one button per language, each named in its own language.
+    const langs = document.getElementById('langOptions');
+    if (langs && langs.childElementCount === 0) {
+        LANGS.forEach(({ code, name }) => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'theme-swatch lang-option';
+            button.lang = code;
+            button.dataset.code = code.toUpperCase();
+            button.textContent = name;
+            const active = code === LANG;
+            button.classList.toggle('active', active);
+            button.setAttribute('aria-pressed', String(active));
+            button.addEventListener('click', () => {
+                playSound(SOUNDS.CLICK);
+                switchLanguage(code);
+            });
+            langs.appendChild(button);
+        });
+    }
 
     // Populate the theme swatches if the markup left them to be generated.
     const swatches = document.getElementById('themeSwatches');

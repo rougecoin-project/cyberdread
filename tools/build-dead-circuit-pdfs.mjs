@@ -30,7 +30,7 @@ import { readContent } from './issue-content.mjs';
 const BASE = process.env.DC_BASE_URL || 'http://localhost:8765';
 // English ships as a hand-laid A4 portrait edition, sealed with tools/seal-dead-circuit-pdf.mjs,
 // so a plain run leaves it alone. Name `en` explicitly to replace it with the landscape print.
-const LANGS = process.argv.slice(2).length ? process.argv.slice(2) : ['es', 'fr', 'it', 'pt', 'ja', 'zh', 'ar'];
+const LANGS = process.argv.slice(2).length ? process.argv.slice(2) : ['es', 'fr', 'it', 'pt', 'ru', 'ja', 'zh', 'ar'];
 const OUT = 'dead-circuit/sealed';
 const KEY = process.env.DC_PDF_KEY?.trim();
 

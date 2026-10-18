@@ -8,11 +8,12 @@
  *
  *   DC_PDF_KEY=<hex> node tools/issue-content.mjs open    # .enc  -> .json (to edit)
  *   DC_PDF_KEY=<hex> node tools/issue-content.mjs seal    # .json -> .enc  (to commit)
+ *   DC_PDF_KEY=<hex> node tools/issue-content.mjs seal ru # just these languages
  */
 import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 
-export const LANGS = ['en', 'es', 'fr', 'it', 'pt', 'ja', 'zh', 'ar'];
+export const LANGS = ['en', 'es', 'fr', 'it', 'pt', 'ru', 'ja', 'zh', 'ar'];
 export const DIR = 'content/issue-01';
 
 export function keyFromEnv() {
@@ -43,8 +44,10 @@ export function readContent(lang, key = keyFromEnv()) {
 
 if (import.meta.url === `file://${process.argv[1]}`) {
     const mode = process.argv[2];
+    const only = process.argv.slice(3);
     const key = keyFromEnv();
-    for (const lang of LANGS) {
+    // Re-sealing changes every byte (fresh IV), so name languages to leave the rest alone.
+    for (const lang of only.length ? LANGS.filter((code) => only.includes(code)) : LANGS) {
         const plain = `${DIR}/${lang}.json`;
         const sealed = `${plain}.enc`;
         if (mode === 'seal') {

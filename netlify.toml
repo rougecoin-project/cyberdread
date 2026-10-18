@@ -33,3 +33,14 @@
   for = "/index.html"
   [headers.values]
     Cache-Control = "public, max-age=0, must-revalidate"
+
+# Short language links: cyberdreadx.dev/ru opens Dread_OS in Russian.
+[[redirects]]
+  from = "/ru"
+  to = "/?lang=ru"
+  status = 302
+
+[[redirects]]
+  from = "/en"
+  to = "/?lang=en"
+  status = 302
