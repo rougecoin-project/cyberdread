@@ -13,6 +13,7 @@ import {
     allowedCells, boardFromChain, makeBoard, practiceSeed, progress, rewardFor, score
 } from './netrun-rules.js';
 import * as chain from './netrun-chain.js';
+import { t, list, num } from '../../i18n/i18n.js';
 
 const EXTENSION_URL = ROUGECHAIN.ecosystem.flatMap((g) => g.items).find((i) => /extension/i.test(i.name))?.url
     || 'https://chromewebstore.google.com/detail/rougechain-wallet/ilkbgjgphhaolfdjkfefdfiifipmhakj';
@@ -23,6 +24,14 @@ const NETRUN_TOP = 10;
 
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const short = (pk) => (pk ? `${pk.slice(0, 6)}…${pk.slice(-4)}` : '');
+
+// Display names only: the rules module keeps the canonical lists.
+const DAEMON_LABELS = list('netrun.daemons');
+const daemonName = (d) => DAEMON_LABELS[d] ?? DAEMON_NAMES[d];
+/** A network id as wallets name it ('testnet'), in the active language. */
+const netName = (id) => (id === 'testnet' || id === 'mainnet' ? t(`netrun.net.${id}`) : id);
+const ONE_DECIMAL = { minimumFractionDigits: 1, maximumFractionDigits: 1 };
+const TWO_DECIMALS = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
 
 const state = {
     mode: 'practice',
@@ -45,7 +54,7 @@ function startTimer(game) {
         const left = Math.max(0, game.deadline - Date.now());
         const el = root?.querySelector('[data-nr-timer]');
         if (el) {
-            el.textContent = (left / 1000).toFixed(1);
+            el.textContent = num(left / 1000, ONE_DECIMAL);
             el.classList.toggle('nr-hot', left < 15_000);
         }
         if (left === 0) {
@@ -70,7 +79,7 @@ function onTraceComplete(game) {
     if (state.mode === 'live' && state.live.phase === 'board') {
         if (state.live.path.length && !state.live.retry) submitBreach();
         else {
-            state.live.note = 'Trace complete. Upload at least one code, or abandon the run.';
+            state.live.note = t('netrun.game.traceComplete');
             render();
         }
     }
@@ -108,7 +117,7 @@ async function connect() {
         if (state.mode === 'top') return refreshTop();
         await refreshLive();
     } catch (error) {
-        state.live = { phase: error.message === 'no-wallet' ? 'no-wallet' : 'idle', note: error.message === 'no-wallet' ? '' : `Wallet: ${error.message}` };
+        state.live = { phase: error.message === 'no-wallet' ? 'no-wallet' : 'idle', note: error.message === 'no-wallet' ? '' : t('netrun.wallet.error', { message: error.message }) };
         render();
     }
 }
@@ -133,16 +142,16 @@ async function refreshTop() {
         ]);
         state.top = { board, mine, myHash, at: Date.now() };
     } catch (error) {
-        state.top = { error: `Could not reach RougeChain: ${error.message}` };
+        state.top = { error: t('netrun.status.unreachable', { message: error.message }) };
     }
     if (state.mode === 'top') render();
 }
 
 function renderLeaderboard() {
     const T = state.top;
-    if (!chain.isConfigured()) return panel('LEADERBOARD', '<p>The leaderboard goes live with the NETRUN contract.</p>');
-    if (!T || (T.loading && !T.board)) return panel('LEADERBOARD', '<p class="nr-wait"><span class="nr-spin"></span><span>Reading the chain…</span></p>');
-    if (T.error) return panel('LINK DOWN', `<p>${esc(T.error)}</p><button type="button" class="nr-btn" data-act="to-top">Retry</button>`);
+    if (!chain.isConfigured()) return panel(t('netrun.top.title'), `<p>${t('netrun.top.notLive')}</p>`);
+    if (!T || (T.loading && !T.board)) return panel(t('netrun.top.title'), `<p class="nr-wait"><span class="nr-spin"></span><span>${t('netrun.top.reading')}</span></p>`);
+    if (T.error) return panel(t('netrun.live.linkDown'), `<p>${esc(T.error)}</p><button type="button" class="nr-btn" data-act="to-top">${t('netrun.live.retry')}</button>`);
     const rows = T.board.top || [];
     const addrShort = (a) => `${a.slice(0, 10)}…${a.slice(-6)}`;
     const list = rows.length
@@ -151,21 +160,26 @@ function renderLeaderboard() {
             const me = T.myHash === r.addr;
             return `<li class="${me ? 'nr-me' : ''}${i < 3 ? ` nr-podium nr-p${i + 1}` : ''}">
                 <span class="nr-rank">${i + 1}</span>
-                <span class="nr-who" title="${address}"><span class="nr-addr">${addrShort(address)}</span>${me ? '<em>you</em>' : ''}</span>
-                <span class="nr-full" title="Full breaches">${r.full ? `◆ ${r.full}` : ''}</span>
-                <b class="nr-score">${r.scrap.toLocaleString()} <small>SCRAP</small></b>
+                <span class="nr-who" title="${address}"><span class="nr-addr">${addrShort(address)}</span>${me ? `<em>${t('netrun.top.you')}</em>` : ''}</span>
+                <span class="nr-full" title="${t('netrun.top.fullTitle')}">${r.full ? `◆ ${r.full}` : ''}</span>
+                <b class="nr-score">${num(r.scrap)} <small>SCRAP</small></b>
             </li>`;
         }).join('')
-        : '<li class="nr-empty">No SCRAP paid out yet. Be the first on the board.</li>';
+        : `<li class="nr-empty">${t('netrun.top.empty')}</li>`;
     const m = T.mine;
     const mine = !state.player
-        ? '<p class="nr-fine">Connect a wallet to see your own totals.</p>'
-        : m ? `<p class="nr-mine">You: <b>${m.scrap.toLocaleString()} SCRAP</b> earned · ${m.runs} run${m.runs === 1 ? '' : 's'} · ${m.full} full breach${m.full === 1 ? '' : 'es'} · ${m.rank ? `rank <b>#${m.rank}</b>` : `not in the top ${NETRUN_TOP}`}</p>` : '';
-    return panel('SCRAP LEADERBOARD', `
-        <p class="nr-fine">Top runners by SCRAP the NETRUN contract has paid them, kept on-chain by the contract itself. ${T.board.players} runner${T.board.players === 1 ? '' : 's'} so far.</p>
+        ? `<p class="nr-fine">${t('netrun.top.connect')}</p>`
+        : m ? `<p class="nr-mine">${t('netrun.top.mine', {
+            scrap: num(m.scrap),
+            runs: t('netrun.runs', { n: m.runs }),
+            full: t('netrun.fullBreaches', { n: m.full }),
+            rank: m.rank ? t('netrun.top.rank', { rank: m.rank }) : t('netrun.top.outside', { top: NETRUN_TOP })
+        })}</p>` : '';
+    return panel(t('netrun.top.titleScrap'), `
+        <p class="nr-fine">${t('netrun.top.intro', { players: t('netrun.runners', { n: T.board.players }) })}</p>
         <ol class="nr-board">${list}</ol>
         ${mine}
-        <button type="button" class="nr-btn" data-act="to-top">Refresh</button>`);
+        <button type="button" class="nr-btn" data-act="to-top">${t('netrun.top.refresh')}</button>`);
 }
 
 /** Reads the player's run from the contract and resumes wherever it is. */
@@ -187,7 +201,7 @@ async function refreshLive() {
             loadBoard(run);
         }
     } catch (error) {
-        state.live = { phase: 'error', note: `Could not reach RougeChain: ${error.message}` };
+        state.live = { phase: 'error', note: t('netrun.status.unreachable', { message: error.message }) };
     }
     render();
 }
@@ -225,15 +239,15 @@ function beginSealing(height) {
 }
 
 async function jackIn() {
-    state.live = { phase: 'paying', note: `Approve the entry fee in ${chain.walletName()}…` };
+    state.live = { phase: 'paying', note: t('netrun.status.approveFee', { wallet: chain.walletName() }) };
     render();
     try {
         const tx = await chain.jackIn();
-        state.live.note = 'Payment sent. Waiting for the block…';
+        state.live.note = t('netrun.status.paymentSent');
         state.live.txId = tx.txId;
         render();
         const r = await chain.receipt(tx.txId);
-        if (!r.ok) throw new Error(r.error || 'The contract refused the run.');
+        if (!r.ok) throw new Error(r.error || t('netrun.status.refused'));
         await refreshInventory();
         beginSealing(r.height);
     } catch (error) {
@@ -244,7 +258,7 @@ async function jackIn() {
 
 async function nudge() {
     state.live.canNudge = false;
-    state.live.note = 'Sealing a block…';
+    state.live.note = t('netrun.status.sealing');
     render();
     try {
         const tx = await chain.nudge();
@@ -261,16 +275,16 @@ async function submitBreach() {
     if (!run.path.length) return;
     stopTimer();
     const path = [...run.path];
-    state.live = { ...run, phase: 'submitting', note: `Approve the upload in ${chain.walletName()}…` };
+    state.live = { ...run, phase: 'submitting', note: t('netrun.status.approveUpload', { wallet: chain.walletName() }) };
     render();
     let tx = null;
     try {
         tx = await chain.breach(path);
-        state.live.note = 'Uploading. The contract is checking your moves…';
+        state.live.note = t('netrun.status.checking');
         state.live.txId = tx.txId;
         render();
         const r = await chain.receipt(tx.txId);
-        if (!r.ok) throw new Error(r.error || 'The contract rejected the path.');
+        if (!r.ok) throw new Error(r.error || t('netrun.status.rejected'));
         await showBreachResult(run, path, tx.txId);
     } catch (error) {
         // Once submitted, the chain decides: if the run closed, the upload went through.
@@ -292,18 +306,18 @@ async function showBreachResult(run, path, txId) {
 }
 
 async function runSetup() {
-    state.live = { phase: 'paying', title: 'SWITCHING ON', note: `Approve setup in ${chain.walletName()}…` };
+    state.live = { phase: 'paying', title: t('netrun.status.switchingTitle'), note: t('netrun.status.approveSetup', { wallet: chain.walletName() }) };
     render();
     try {
         const tx = await chain.setup();
-        state.live.note = 'Switching the contract on…';
+        state.live.note = t('netrun.status.switching');
         render();
         const r = await chain.receipt(tx.txId);
-        if (!r.ok) throw new Error(r.error || 'setup failed');
-        state.live = { phase: 'idle', note: 'NETRUN is live. Jack in.' };
+        if (!r.ok) throw new Error(r.error || t('netrun.status.setupFailed'));
+        state.live = { phase: 'idle', note: t('netrun.status.isLive') };
     } catch (error) {
         const m = friendly(error);
-        state.live = { phase: 'idle', note: /unreachable|would fail/i.test(m) ? 'Setup is locked to the owner\'s wallet, and this one is not it.' : m };
+        state.live = { phase: 'idle', note: /unreachable|would fail/i.test(m) ? t('netrun.status.notOwner') : m };
     }
     await refreshLive();
 }
@@ -313,7 +327,7 @@ async function abandonRun() {
     try {
         const tx = await chain.abandon();
         await chain.receipt(tx.txId, { timeoutMs: 30_000 });
-        state.live = { phase: 'idle', note: 'Run abandoned.' };
+        state.live = { phase: 'idle', note: t('netrun.status.abandoned') };
     } catch (error) {
         state.live.note = friendly(error);
     }
@@ -322,17 +336,17 @@ async function abandonRun() {
 
 function friendly(error) {
     const m = String(error?.message || error);
-    if (/reject|denied|cancel/i.test(m)) return 'Cancelled in the wallet.';
+    if (/reject|denied|cancel/i.test(m)) return t('netrun.errors.cancelled');
     if (/insufficient|balance/i.test(m)) {
         // The node says what it saw ("have 0.000000, need 0.140000"). If the wallet shows more than
         // that, it signed for a different network than NETRUN runs on.
         const seen = m.match(/have ([\d.]+)/);
-        return `Not enough XRGE on ${NETRUN.networkId} for the entry fee plus gas (about ${(NETRUN.entryXrge + 0.12).toFixed(2)} XRGE)`
-            + (seen ? `: the node sees ${Number(seen[1])} XRGE. If your wallet shows more, it is sending to another network: set its node to ${NETRUN.api}.` : '.');
+        return t('netrun.errors.funds', { network: netName(NETRUN.networkId), need: num(NETRUN.entryXrge + 0.12, TWO_DECIMALS) })
+            + (seen ? t('netrun.errors.fundsSeen', { seen: num(Number(seen[1]), { maximumFractionDigits: 6 }), api: NETRUN.api }) : t('netrun.errors.fundsEnd'));
     }
-    if (m === 'receipt-timeout') return 'The chain has not confirmed it yet. Reopen netrun.exe in a minute to resume.';
-    if (m === 'no-wallet') return 'Open this page in Qwalla, or install the RougeChain Wallet extension, to play live runs.';
-    if (/contract not found/i.test(m)) return `Your wallet is on a different network. Switch ${chain.walletName()} to ${NETRUN.networkId} and try again.`;
+    if (m === 'receipt-timeout') return t('netrun.errors.timeout');
+    if (m === 'no-wallet') return t('netrun.errors.noWallet');
+    if (/contract not found/i.test(m)) return t('netrun.errors.otherNetwork', { wallet: chain.walletName(), network: netName(NETRUN.networkId) });
     return m.length > 160 ? `${m.slice(0, 160)}…` : m;
 }
 
@@ -349,7 +363,7 @@ function cell(board, path, i, allowed) {
     if (picked >= 0) cls.push('nr-used');
     if (allowed.has(i)) cls.push('nr-open');
     return `<button type="button" class="${cls.join(' ')}" data-cell="${i}" ${allowed.has(i) && playing() ? '' : 'disabled'}
-        aria-label="Row ${r + 1}, column ${c + 1}: ${SYMBOLS[board.grid[i]]}${picked >= 0 ? ', used' : ''}">${SYMBOLS[board.grid[i]]}${picked >= 0 ? `<i>${picked + 1}</i>` : ''}</button>`;
+        aria-label="${t('netrun.game.cell', { row: r + 1, col: c + 1, code: SYMBOLS[board.grid[i]] })}${picked >= 0 ? t('netrun.game.cellUsed') : ''}">${SYMBOLS[board.grid[i]]}${picked >= 0 ? `<i>${picked + 1}</i>` : ''}</button>`;
 }
 
 function renderGame(game, { live }) {
@@ -366,48 +380,51 @@ function renderGame(game, { live }) {
         const got = done ? want.length : progress(board, path, d);
         const codes = want.map((s, j) => `<span class="${j < got ? 'nr-hit' : ''}">${SYMBOLS[s]}</span>`).join('');
         return `<li class="${done ? 'nr-done' : ''}">
-            <div class="nr-dname">${DAEMON_NAMES[d]}<small>+${DAEMON_REWARD[d]} SCRAP</small></div>
+            <div class="nr-dname">${daemonName(d)}<small>+${DAEMON_REWARD[d]} SCRAP</small></div>
             <div class="nr-codes">${codes}</div>
-            <b class="nr-dstate">${done ? 'UPLOADED' : ''}</b>
+            <b class="nr-dstate">${done ? t('netrun.game.uploaded') : ''}</b>
         </li>`;
     }).join('');
 
     const buffer = Array.from({ length: BUFFER }, (_, i) =>
         `<span class="${i < path.length ? 'nr-filled' : ''}">${i < path.length ? SYMBOLS[board.grid[path[i]]] : ''}</span>`).join('');
 
+    const counts = result && { n: result.up.filter(Boolean).length, scrap: num(result.scrap), implant: esc(IMPLANTS[board.implant]) };
+    const summary = result && (live ? t('netrun.result.summaryLive', counts) : t('netrun.result.summaryPractice', counts));
+    const implant = result && (live ? t('netrun.result.implantLive', counts) : t('netrun.result.implantPractice', counts));
     const overlay = result ? `
         <div class="nr-result ${result.full ? 'nr-full' : result.scrap ? 'nr-partial' : 'nr-fail'}" role="status">
-            <p class="nr-result-kicker">${live ? 'Verified on RougeChain' : 'Practice run'}</p>
-            <h3>${result.full ? 'FULL BREACH' : result.scrap ? 'PARTIAL BREACH' : 'TRACE COMPLETE'}</h3>
-            <p>${result.up.filter(Boolean).length} of 3 daemons uploaded · ${live ? '' : 'would pay '}<b>${result.scrap} SCRAP</b>${result.full ? ` · ${live ? '' : 'would mint '}<b>${esc(IMPLANTS[board.implant])}</b> Implant` : ''}</p>
+            <p class="nr-result-kicker">${live ? t('netrun.result.verified') : t('netrun.result.practiceRun')}</p>
+            <h3>${result.full ? t('netrun.result.full') : result.scrap ? t('netrun.result.partial') : t('netrun.result.fail')}</h3>
+            <p>${summary}${result.full ? implant : ''}</p>
             <div class="nr-result-actions">
                 ${live
-                    ? `<button type="button" class="nr-btn nr-primary" data-act="again-live">Jack in again</button>${game.txId ? `<a class="nr-btn" href="${chain.explorerTx(game.txId)}" target="_blank" rel="noopener noreferrer">View transaction</a>` : ''}`
-                    : `<button type="button" class="nr-btn nr-primary" data-act="practice">New board</button>`}
+                    ? `<button type="button" class="nr-btn nr-primary" data-act="again-live">${t('netrun.result.again')}</button>${game.txId ? `<a class="nr-btn" href="${chain.explorerTx(game.txId)}" target="_blank" rel="noopener noreferrer">${t('netrun.result.viewTx')}</a>` : ''}`
+                    : `<button type="button" class="nr-btn nr-primary" data-act="practice">${t('netrun.result.newBoard')}</button>`}
             </div>
         </div>` : '';
 
     return `
     <div class="nr-main">
         <div class="nr-matrix-wrap">
-            <div class="nr-label"><span>CODE MATRIX</span><span class="nr-timer" aria-label="Seconds until the trace completes">TRACE <b data-nr-timer>${playing() ? Math.max(0, (game.deadline - Date.now()) / 1000).toFixed(1) : '0.0'}</b></span></div>
+            <div class="nr-label"><span>${t('netrun.game.matrix')}</span><span class="nr-timer" aria-label="${t('netrun.game.traceLabel')}">${t('netrun.game.trace')} <b data-nr-timer>${num(playing() ? Math.max(0, (game.deadline - Date.now()) / 1000) : 0, ONE_DECIMAL)}</b></span></div>
             <div class="nr-matrix nr-axis-${axis}" style="--nr-line:${line}">
                 ${board.grid.map((_, i) => cell(board, path, i, allowed)).join('')}
             </div>
             ${overlay}
         </div>
         <aside class="nr-side">
-            <div class="nr-label"><span>BUFFER</span><span>${path.length}/${BUFFER}</span></div>
+            <div class="nr-label"><span>${t('netrun.game.buffer')}</span><span>${path.length}/${BUFFER}</span></div>
             <div class="nr-buffer">${buffer}</div>
-            <div class="nr-label"><span>DAEMONS</span><span>${live ? 'paid by the contract' : 'practice'}</span></div>
+            <div class="nr-label"><span>${t('netrun.game.daemons')}</span><span>${live ? t('netrun.game.paidByContract') : t('netrun.game.practice')}</span></div>
             <ol class="nr-daemons">${daemons}</ol>
-            <p class="nr-implant">Upload all three: <b>${esc(IMPLANTS[board.implant])}</b> Implant NFT</p>
+            <p class="nr-implant">${t('netrun.game.implant', { implant: esc(IMPLANTS[board.implant]) })}</p>
             ${playing() ? `
             <div class="nr-actions">
-                <button type="button" class="nr-btn" data-act="undo" ${path.length ? '' : 'disabled'}>Undo</button>
-                <button type="button" class="nr-btn nr-primary" data-act="${live ? 'breach' : 'finish'}" ${path.length ? '' : 'disabled'}>${live ? 'Upload to chain' : 'Upload'}</button>
+                <button type="button" class="nr-btn" data-act="undo" ${path.length ? '' : 'disabled'}>${t('netrun.game.undo')}</button>
+                <button type="button" class="nr-btn nr-primary" data-act="${live ? 'breach' : 'finish'}" ${path.length ? '' : 'disabled'}>${live ? t('netrun.game.uploadLive') : t('netrun.game.upload')}</button>
             </div>
-            ${live ? '<button type="button" class="nr-link" data-act="abandon">Abandon run</button>' : ''}` : ''}
+            ${live ? `<button type="button" class="nr-link" data-act="abandon">${t('netrun.game.abandon')}</button>` : ''}` : ''}
         </aside>
     </div>`;
 }
@@ -415,72 +432,72 @@ function renderGame(game, { live }) {
 function renderLiveScreen() {
     const L = state.live;
     if (!chain.isConfigured()) {
-        return panel('LIVE RUNS COMING ONLINE', `
-            <p>Live runs pay out on RougeChain: <b>SCRAP</b> for every daemon you upload and an <b>Implant NFT</b> for a full breach, with every move checked by the NETRUN contract.</p>
-            <p>The contract is not deployed yet. Train in practice mode meanwhile.</p>
-            <button type="button" class="nr-btn nr-primary" data-act="to-practice">Practice</button>`);
+        return panel(t('netrun.live.soonTitle'), `
+            <p>${t('netrun.live.soon')}</p>
+            <p>${t('netrun.live.notDeployed')}</p>
+            <button type="button" class="nr-btn nr-primary" data-act="to-practice">${t('netrun.live.practice')}</button>`);
     }
     if (L.phase === 'no-wallet' || (!state.player && !chain.wallet())) {
         const phone = isPhone();
         const qwalla = phone
-            ? `<a class="nr-btn nr-primary" href="${chain.qwallaLink()}">Open in Qwalla</a><a class="nr-btn" href="${QWALLA_URL}" target="_blank" rel="noopener noreferrer">Get Qwalla</a>`
-            : `<a class="nr-btn" href="${QWALLA_URL}" target="_blank" rel="noopener noreferrer">Qwalla app</a>`;
-        const extension = `<a class="nr-btn${phone ? '' : ' nr-primary'}" href="${EXTENSION_URL}" target="_blank" rel="noopener noreferrer">RougeChain Wallet extension</a>`;
-        return panel('WALLET REQUIRED', `
-            <p>Live runs are signed with post-quantum keys. Play in the <b>Qwalla</b> app's browser, or on desktop with the <b>RougeChain Wallet</b> extension.</p>
+            ? `<a class="nr-btn nr-primary" href="${chain.qwallaLink()}">${t('netrun.live.openQwalla')}</a><a class="nr-btn" href="${QWALLA_URL}" target="_blank" rel="noopener noreferrer">${t('netrun.live.getQwalla')}</a>`
+            : `<a class="nr-btn" href="${QWALLA_URL}" target="_blank" rel="noopener noreferrer">${t('netrun.live.qwallaApp')}</a>`;
+        const extension = `<a class="nr-btn${phone ? '' : ' nr-primary'}" href="${EXTENSION_URL}" target="_blank" rel="noopener noreferrer">${t('netrun.live.extension')}</a>`;
+        return panel(t('netrun.live.walletTitle'), `
+            <p>${t('netrun.live.walletText')}</p>
             <div class="nr-row">${phone ? qwalla + extension : extension + qwalla}</div>
-            <div class="nr-row"><button type="button" class="nr-btn" data-act="connect">I have one, connect</button></div>`);
+            <div class="nr-row"><button type="button" class="nr-btn" data-act="connect">${t('netrun.live.haveOne')}</button></div>`);
     }
     if (!state.player) {
-        return panel('JACK IN', `
-            <p>Connect ${chain.walletName()} to run live boards.</p>
-            <button type="button" class="nr-btn nr-primary" data-act="connect">Connect ${chain.walletKind() === 'qwalla' ? 'Qwalla' : 'wallet'}</button>`);
+        return panel(t('netrun.live.jackInTitle'), `
+            <p>${t('netrun.live.connectText', { wallet: chain.walletName() })}</p>
+            <button type="button" class="nr-btn nr-primary" data-act="connect">${chain.walletKind() === 'qwalla' ? t('netrun.live.connectQwalla') : t('netrun.live.connectWallet')}</button>`);
     }
     if (chain.wrongNetwork() && !['board', 'submitting', 'result'].includes(L.phase)) {
         const want = NETRUN.networkId;
-        return panel('WRONG NETWORK', `
-            <p>${chain.walletName()} is on <b>${esc(chain.connectedNetwork())}</b>, but NETRUN runs on <b>${esc(want)}</b>.</p>
-            <p>Switch the network in ${chain.walletName()}${want === 'testnet' ? ' (the testnet faucet gives free XRGE)' : ''}, then reconnect.</p>
-            <button type="button" class="nr-btn nr-primary" data-act="connect">Reconnect</button>`);
+        return panel(t('netrun.live.wrongTitle'), `
+            <p>${t('netrun.live.wrongText', { wallet: chain.walletName(), have: esc(netName(chain.connectedNetwork())), want: esc(netName(want)) })}</p>
+            <p>${t('netrun.live.switchText', { wallet: chain.walletName(), faucet: want === 'testnet' ? t('netrun.live.faucet') : '' })}</p>
+            <button type="button" class="nr-btn nr-primary" data-act="connect">${t('netrun.live.reconnect')}</button>`);
     }
     if (L.phase === 'paying' || L.phase === 'submitting') {
-        return panel(L.title || (L.phase === 'paying' ? 'OPENING RUN' : 'UPLOADING'), `<p class="nr-wait"><span class="nr-spin"></span><span>${esc(L.note || '')}</span></p>${L.txId ? `<a class="nr-link" href="${chain.explorerTx(L.txId)}" target="_blank" rel="noopener noreferrer">Transaction ${esc(L.txId.slice(0, 12))}…</a>` : ''}`);
+        return panel(L.title || (L.phase === 'paying' ? t('netrun.live.openingTitle') : t('netrun.live.uploadingTitle')), `<p class="nr-wait"><span class="nr-spin"></span><span>${esc(L.note || '')}</span></p>${L.txId ? `<a class="nr-link" href="${chain.explorerTx(L.txId)}" target="_blank" rel="noopener noreferrer">${t('netrun.live.transaction', { id: esc(L.txId.slice(0, 12)) })}</a>` : ''}`);
     }
     if (L.phase === 'sealing') {
-        return panel('SEALING THE ICE', `
-            <p class="nr-wait"><span class="nr-spin"></span><span>Run opened at block <b>${L.height}</b>. Your board is cut from the hash of block <b>${L.height + 1}</b>, which does not exist yet, so nobody (not even us) can know it in advance.</span></p>
+        return panel(t('netrun.live.sealingTitle'), `
+            <p class="nr-wait"><span class="nr-spin"></span><span>${t('netrun.live.sealing', { height: L.height, next: L.height + 1 })}</span></p>
             ${L.note ? `<p class="nr-note">${esc(L.note)}</p>` : ''}
-            ${L.canNudge ? `<p>RougeChain makes blocks when there is traffic. Quiet right now?</p><button type="button" class="nr-btn" data-act="nudge">Seal a block (tiny gas fee)</button>` : ''}`);
+            ${L.canNudge ? `<p>${t('netrun.live.quiet')}</p><button type="button" class="nr-btn" data-act="nudge">${t('netrun.live.nudge')}</button>` : ''}`);
     }
     if (L.phase === 'expired') {
-        return panel('RUN EXPIRED', `
-            <p>Your run from block ${L.height} expired unplayed. Open a new one.</p>
+        return panel(t('netrun.live.expiredTitle'), `
+            <p>${t('netrun.live.expired', { height: L.height })}</p>
             ${jackInButton()}`);
     }
     if (L.phase === 'error') {
-        return panel('LINK DOWN', `<p>${esc(L.note)}</p><button type="button" class="nr-btn" data-act="retry">Retry</button>`);
+        return panel(t('netrun.live.linkDown'), `<p>${esc(L.note)}</p><button type="button" class="nr-btn" data-act="retry">${t('netrun.live.retry')}</button>`);
     }
     // idle
     const info = state.info;
     if (info && info.setup === false) {
-        return panel('AWAITING THE OWNER', `
-            <p>This NETRUN contract is deployed but not switched on yet. Its owner runs setup once, which also creates the Implant NFT collection. The contract only accepts setup from the owner's wallet.</p>
+        return panel(t('netrun.live.ownerTitle'), `
+            <p>${t('netrun.live.owner')}</p>
             ${L.note ? `<p class="nr-note">${esc(L.note)}</p>` : ''}
-            <button type="button" class="nr-btn nr-primary" data-act="setup">I'm the owner: run setup</button>`);
+            <button type="button" class="nr-btn nr-primary" data-act="setup">${t('netrun.live.runSetup')}</button>`);
     }
-    return panel('JACK IN', `
-        <p>Pay <b>${NETRUN.entryXrge} XRGE</b> to open a run. The board comes from the next block's hash, you get <b>${NETRUN.traceSeconds}s</b> on the clock, and the contract re-checks every move before it pays.</p>
+    return panel(t('netrun.live.jackInTitle'), `
+        <p>${t('netrun.live.jackInText', { fee: num(NETRUN.entryXrge), seconds: NETRUN.traceSeconds })}</p>
         <ul class="nr-pays">
-            ${DAEMON_NAMES.map((n, d) => `<li><span>${n}</span><b>+${DAEMON_REWARD[d]} SCRAP</b></li>`).join('')}
-            <li><span>All three</span><b>+ Implant NFT</b></li>
+            ${DAEMON_NAMES.map((n, d) => `<li><span>${daemonName(d)}</span><b>+${DAEMON_REWARD[d]} SCRAP</b></li>`).join('')}
+            <li><span>${t('netrun.live.allThree')}</span><b>${t('netrun.live.implantNft')}</b></li>
         </ul>
         ${L.note ? `<p class="nr-note">${esc(L.note)}</p>` : ''}
         ${jackInButton()}
-        ${info ? `<p class="nr-fine">${info.runs} runs · ${info.full_breaches} full breaches · <a href="${chain.explorerContract()}" target="_blank" rel="noopener noreferrer">contract</a></p>` : ''}
-        <p class="nr-fine">Skill game: rewards depend only on the moves you make. Not every board can be fully breached. Network fees are extra (up to ${((NETRUN.gas.jackIn + NETRUN.gas.breach) / 1e6).toFixed(2)} XRGE per run).</p>`);
+        ${info ? `<p class="nr-fine">${t('netrun.runs', { n: info.runs })} · ${t('netrun.fullBreaches', { n: info.full_breaches })} · <a href="${chain.explorerContract()}" target="_blank" rel="noopener noreferrer">${t('netrun.live.contract')}</a></p>` : ''}
+        <p class="nr-fine">${t('netrun.live.fine', { gas: num((NETRUN.gas.jackIn + NETRUN.gas.breach) / 1e6, TWO_DECIMALS) })}</p>`);
 }
 
-const jackInButton = () => `<button type="button" class="nr-btn nr-primary nr-big" data-act="jack-in">Jack in · ${NETRUN.entryXrge} XRGE</button>`;
+const jackInButton = () => `<button type="button" class="nr-btn nr-primary nr-big" data-act="jack-in">${t('netrun.live.jackIn', { fee: num(NETRUN.entryXrge) })}</button>`;
 
 const panel = (title, body) => `<div class="nr-panel"><h3>${title}</h3>${body}</div>`;
 

@@ -11,6 +11,7 @@
  * page is worse than no number at all.
  */
 import { TOKENS, CHAIN, XRGE_POOL } from '../../data/site-config.js';
+import { LOCALE, num } from '../../i18n/i18n.js';
 
 const DEXSCREENER_TOKENS = 'https://api.dexscreener.com/latest/dex/tokens/';
 const GECKOTERMINAL_POOL = 'https://api.geckoterminal.com/api/v2/networks';
@@ -189,6 +190,14 @@ export function xrgeDexScreenerUrl() {
     return `https://dexscreener.com/${CHAIN_SLUG}/${TOKENS.XRGE.address}`;
 }
 
+// The visitor's decimal mark ('.' in English, ',' in Russian). Figures keep
+// the "$" prefix in every language; only the digits follow the locale.
+const DECIMAL = new Intl.NumberFormat(LOCALE).formatToParts(1.5)
+    .find(part => part.type === 'decimal')?.value ?? '.';
+
+/** toFixed() with the locale's decimal mark: exactly toFixed() in English. */
+const fixed = (value, digits) => value.toFixed(digits).replace('.', DECIMAL);
+
 /**
  * Formats a USD price with a sensible number of decimals for its magnitude,
  * so sub-cent tokens and four-figure tokens both read correctly.
@@ -198,10 +207,10 @@ export function xrgeDexScreenerUrl() {
 export function formatUsd(value) {
     if (!Number.isFinite(value)) return '--';
     if (value === 0) return '$0';
-    if (value < 0.000001) return `$${value.toExponential(4)}`;
-    if (value < 1) return `$${value.toFixed(8)}`;
-    if (value < 1000) return `$${value.toFixed(4)}`;
-    return `$${value.toLocaleString('en-US', { maximumFractionDigits: 2 })}`;
+    if (value < 0.000001) return `$${value.toExponential(4).replace('.', DECIMAL)}`;
+    if (value < 1) return `$${fixed(value, 8)}`;
+    if (value < 1000) return `$${fixed(value, 4)}`;
+    return `$${num(value, { maximumFractionDigits: 2 })}`;
 }
 
 /**
@@ -215,7 +224,7 @@ export function formatUsd(value) {
 export function formatCompactUsd(value) {
     if (!Number.isFinite(value) || value < 0) return '--';
     if (value === 0) return '$0';
-    return `$${value.toLocaleString('en-US', {
+    return `$${num(value, {
         notation: 'compact',
         maximumFractionDigits: 2
     })}`;
@@ -228,5 +237,5 @@ export function formatCompactUsd(value) {
  */
 export function formatChange(value) {
     if (!Number.isFinite(value)) return '--';
-    return `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`;
+    return `${value >= 0 ? '+' : ''}${fixed(value, 2)}%`;
 }
