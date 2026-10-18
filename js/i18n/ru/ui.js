@@ -24,6 +24,7 @@ export default {
     },
 
     apps: {
+        projects: 'Проекты',
         files: 'Файлы',
         music: 'Музыка',
         settings: 'Настройки',
@@ -50,6 +51,15 @@ export default {
         editing: 'Правка главного экрана. Перетащи значок, чтобы переместить его. «Готово» — закончить.',
         saved: 'Главный экран сохранён.',
         homeButton: 'Домой'
+    },
+
+    // The rotating project Spotlight on the home screen (js/modules/ui/spotlight.js)
+    spotlight: {
+        label: 'В фокусе',
+        kicker: 'В фокусе',
+        prev: 'Предыдущий проект',
+        next: 'Следующий проект',
+        show: 'Показать {name}'
     },
 
     tour: {
@@ -153,10 +163,13 @@ export default {
             intro: 'Вижу, у тебя получилось — добро пожаловать на лиминальную поверхность пыли, что сыплется из недр моего ICE-сервера, {Dread_OS}.',
             work: 'Я нетраннер, и не только. Делаю постквантовый блокчейн первого уровня с запущенным мейннетом (<a href="https://rougechain.io" target="_blank" rel="noopener noreferrer">RougeChain</a>), его зашифрованный кошелёк и мессенджер — уже в App Store (<a href="https://qwalla.io" target="_blank" rel="noopener noreferrer">Qwalla</a>), форум без теневых банов (<a href="https://antireddit.com" target="_blank" rel="noopener noreferrer">AntiReddit</a>), студию генеративного ИИ (<a href="https://gltchrunner.com" target="_blank" rel="noopener noreferrer">GltchRunner</a>), браузерные игры и музыку где-то между синтвейвом и трэпом.',
             code: 'Шесть языков в 33 публичных репозиториях — исходники на <a href="https://github.com/cyberdreadx" target="_blank" rel="noopener noreferrer">GitHub</a>. А то, что оплачивает счета, живёт на <a href="https://brandonmenard.dev" target="_blank" rel="noopener noreferrer">brandonmenard.dev</a>.',
-            tip: 'Совет: открой <strong>term.exe</strong> и набери <code>help</code> — всё, что здесь есть, доступно и из командной строки.'
+            tip: 'Совет: открой <strong>term.exe</strong> и набери <code>help</code> — всё, что здесь есть, доступно и из командной строки.',
+            projects: 'Мои проекты →',
+            follow: 'Лови сигнал'
         },
         projects: {
             title: 'Проекты',
+            intro: 'Всё, что я делаю, и где это взять.',
             status: {
                 live: 'онлайн',
                 game: 'игра',

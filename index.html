@@ -127,6 +127,9 @@
                     </div>
                 </div>
                 <div class="start-menu-divider"></div>
+                <button type="button" class="start-menu-item" onclick="openProjects()">
+                    <img src="assets/img/projects-icon.svg" alt="" width="20" height="20"> <span data-i18n="ui.apps.projects">Projects</span>
+                </button>
                 <button type="button" class="start-menu-item" onclick="openExplorer()">
                     <img src="assets/img/folder-icon.png" alt="" width="20" height="20"> <span data-i18n="ui.apps.files">Files</span>
                 </button>
@@ -176,10 +179,16 @@
                 <button type="button" class="hw-chip" data-home-xrge onclick="openRougeCoin()">XRGE --</button>
                 <button type="button" class="hw-chip hw-chain" onclick="openRougeCoin()"><i aria-hidden="true"></i><span data-home-chain>RougeChain</span></button>
             </div>
+            <!-- Project Spotlight: rendered by js/modules/ui/spotlight.js -->
+            <div class="hw-spot" data-spotlight hidden></div>
         </section>
 
         <!-- Desktop icons: a grid, so they line up on every screen -->
         <nav class="desktop-icons" aria-label="Desktop" data-i18n-attr="aria-label:ui.home.desktop">
+            <button type="button" class="icon" onclick="openProjects()">
+                <img src="assets/img/projects-icon.svg" alt="" width="48" height="48">
+                <span class="icon-label" data-i18n="ui.apps.projects">Projects</span>
+            </button>
             <button type="button" class="icon" onclick="openExplorer()">
                 <img src="assets/img/folder-icon.png" alt="" width="48" height="48">
                 <span class="icon-label" data-i18n="ui.apps.files">Files</span>
@@ -354,13 +363,22 @@
                     <p data-i18n-html="ui.explorer.about.work">I'm a netrunner, and other things: a post-quantum Layer 1 with mainnet live (<a href="https://rougechain.io" target="_blank" rel="noopener noreferrer">RougeChain</a>), its encrypted wallet and messenger, now on the App Store (<a href="https://qwalla.io" target="_blank" rel="noopener noreferrer">Qwalla</a>), a forum that doesn't shadowban (<a href="https://antireddit.com" target="_blank" rel="noopener noreferrer">AntiReddit</a>), a gen-AI studio (<a href="https://gltchrunner.com" target="_blank" rel="noopener noreferrer">GltchRunner</a>), browser games, and music somewhere between synthwave and trap.</p>
                     <p data-i18n-html="ui.explorer.about.code">Six languages across 33 public repos — the source is on <a href="https://github.com/cyberdreadx" target="_blank" rel="noopener noreferrer">GitHub</a>. The stuff that pays the bills lives at <a href="https://brandonmenard.dev" target="_blank" rel="noopener noreferrer">brandonmenard.dev</a>.</p>
                     <p class="muted" data-i18n-html="ui.explorer.about.tip">Tip: open <strong>term.exe</strong> and type <code>help</code> — everything here is reachable from the shell too.</p>
+                    <div class="about-cta">
+                        <button type="button" class="cta cta-primary" onclick="openProjects()" data-i18n="ui.explorer.about.projects">See my projects →</button>
+                        <span class="about-cta-label" data-i18n="ui.explorer.about.follow">Follow the signal</span>
+                        <a class="cta" href="https://www.youtube.com/@cyberdread" target="_blank" rel="noopener noreferrer">YouTube</a>
+                        <a class="cta" href="https://t.me/rougecoinv3" target="_blank" rel="noopener noreferrer">Telegram</a>
+                        <a class="cta" href="https://x.com/rougecoin" target="_blank" rel="noopener noreferrer">X</a>
+                        <a class="cta" href="https://github.com/cyberdreadx" target="_blank" rel="noopener noreferrer">GitHub</a>
+                    </div>
                 </div>
 
                 <div id="projects" class="folder-content">
                     <button type="button" class="back-button" data-i18n="ui.explorer.back" onclick="hideContent('projects')">← Back</button>
                     <h2 data-i18n="ui.explorer.projects.title">Projects</h2>
-                    <!-- Rendered from js/data/site-config.js -->
-                    <div id="projectsGrid" class="image-grid"></div>
+                    <div class="projects-intro" data-i18n="ui.explorer.projects.intro">Everything I make, and where to get it.</div>
+                    <!-- Rendered from js/data/site-config.js: cards with their calls to action -->
+                    <div id="projectsGrid" class="project-cards"></div>
                 </div>
 
                 <div id="repos" class="folder-content">

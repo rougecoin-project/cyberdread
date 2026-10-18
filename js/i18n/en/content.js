@@ -80,7 +80,42 @@ export default {
         xrge: "RougeChain's native token. Trades on Base (Aerodrome, Coinbase); bridge it over to stake or use the apps.",
         rougee: 'A photo network where the account is a key you hold, posts are signed on-chain and images live on IPFS. Testnet.',
         qrougee: 'Streaming where tracks are minted as NFTs. Artists keep their keys; the contract handles royalties.',
-        dreadOs: 'This desktop. Vanilla JS, no build step, no framework.'
+        dreadOs: 'This desktop. Vanilla JS, no build step, no framework.',
+        netrun: 'Breach protocol on RougeChain: solve the code matrix before the trace hits, earn SCRAP and Implants. Practice is free.'
+    },
+
+    // Call-to-action buttons on the project cards and the home Spotlight.
+    cta: {
+        getIssue: 'Get issue 01',
+        preview: 'Read a preview',
+        shop: 'Shop now',
+        download: 'Download free',
+        play: 'Play free',
+        jackIn: 'Jack in',
+        openChain: 'Open RougeChain',
+        wallet: 'Web wallet',
+        appStore: 'Get it on iOS',
+        website: 'Website',
+        join: 'Join the forum',
+        create: 'Start creating',
+        buy: 'Buy XRGE',
+        learn: 'Learn more',
+        peek: 'Take a look',
+        listen: 'Listen',
+        source: 'View source'
+    },
+
+    // One-line pitches for the rotating Spotlight on the home screen.
+    spotlight: {
+        deadCircuit: 'Your field guide to the robot apocalypse. Issue 01 is out.',
+        jarvis: 'A local AI assistant for Windows. Free download.',
+        netrun: 'Breach the grid and earn SCRAP on RougeChain.',
+        qwalla: 'Quantum-safe wallet and messenger, free on iOS.',
+        xrge: 'The token that powers RougeChain.',
+        store: 'Games, merch and apps from RougeChain.',
+        deadHarvest: 'Post-quantum horror survival, right in your browser.',
+        antireddit: 'The forum with no shadowbans.',
+        gltchrunner: 'AI image and video studio with creator payouts.'
     },
 
     // GitHub's own repository descriptions (en verbatim).

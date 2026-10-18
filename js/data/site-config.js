@@ -121,107 +121,167 @@ export const ROUGECHAIN = {
 /**
  * Projects listed in the explorer and by the terminal's `projects` command.
  * Add new work here -- `status` renders as a badge: live | wip | archived | game.
+ *
+ * `actions` are the call-to-action buttons on the project's card; the first
+ * is the main one (filled). Each is a link (`url`) or opens a Dread_OS window
+ * (`open`: a window name from main.js, e.g. 'netrun'). `spotlight` puts the
+ * project in the rotating Spotlight on the home screen, in that order, with
+ * its one-line pitch from content.spotlight.<id>.
  */
+const cta = (key, target) => ({ label: t(`content.cta.${key}`), ...target });
+
 export const PROJECTS = [
     {
+        id: 'deadCircuit',
         name: 'Dead Circuit',
         url: '/dead-circuit/',
         icon: 'dead-circuit/og.jpg',
         status: 'live',
-        blurb: t('content.projects.deadCircuit')
+        blurb: t('content.projects.deadCircuit'),
+        actions: [cta('getIssue', { url: '/dead-circuit/' }), cta('preview', { url: '/dead-circuit/read/' })],
+        spotlight: 1
     },
     {
-        name: 'RougeChain Store',
-        url: 'https://store.rougechain.io/',
-        icon: 'assets/img/store-icon.svg',
-        status: 'live',
-        blurb: t('content.projects.store')
-    },
-    {
+        id: 'jarvis',
         name: 'JARVIS',
         url: 'https://cyberdreadx.github.io/jarvis-dreados/',
         icon: 'assets/img/jarvis-icon.svg',
         status: 'live',
-        blurb: t('content.projects.jarvis')
+        blurb: t('content.projects.jarvis'),
+        actions: [cta('download', { url: 'https://cyberdreadx.github.io/jarvis-dreados/' })],
+        spotlight: 2
     },
     {
+        id: 'netrun',
+        name: 'NETRUN',
+        url: '/?open=netrun',
+        icon: 'assets/img/netrun-icon.svg',
+        status: 'game',
+        blurb: t('content.projects.netrun'),
+        actions: [cta('jackIn', { open: 'netrun' })],
+        spotlight: 3
+    },
+    {
+        id: 'store',
+        name: 'RougeChain Store',
+        url: 'https://store.rougechain.io/',
+        icon: 'assets/img/store-icon.svg',
+        status: 'live',
+        blurb: t('content.projects.store'),
+        actions: [cta('shop', { url: 'https://store.rougechain.io/' })],
+        spotlight: 6
+    },
+    {
+        id: 'deadHarvest',
         name: 'Dead Harvest',
         url: 'https://cyberdreadx.itch.io/dead-harvest-beta-v01',
         icon: 'assets/img/game-dead-harvest.jpg',
         status: 'game',
-        blurb: t('content.projects.deadHarvest')
+        blurb: t('content.projects.deadHarvest'),
+        actions: [cta('play', { url: 'https://cyberdreadx.itch.io/dead-harvest-beta-v01' })],
+        spotlight: 7
     },
     {
+        id: 'neonDead',
         name: 'Neon Dead',
         url: 'https://cyberdreadx.itch.io/neon-dead',
         icon: 'assets/img/game-neon-dead.jpg',
         status: 'game',
-        blurb: t('content.projects.neonDead')
+        blurb: t('content.projects.neonDead'),
+        actions: [cta('play', { url: 'https://cyberdreadx.itch.io/neon-dead' })]
     },
     {
+        id: 'dragonBrawlerZ',
         name: 'Dragon Brawler Z',
         url: 'https://cyberdreadx.itch.io/dragon-brawler-z',
         icon: 'assets/img/game-dragon-brawler-z.png',
         status: 'game',
-        blurb: t('content.projects.dragonBrawlerZ')
+        blurb: t('content.projects.dragonBrawlerZ'),
+        actions: [cta('play', { url: 'https://cyberdreadx.itch.io/dragon-brawler-z' })]
     },
     {
+        id: 'rougechain',
         name: 'RougeChain',
         url: 'https://rougechain.io',
         icon: 'assets/img/rougechain-icon.png',
         status: 'live',
-        blurb: t('content.projects.rougechain')
+        blurb: t('content.projects.rougechain'),
+        actions: [cta('openChain', { url: 'https://rougechain.io' }), cta('wallet', { url: 'https://rougechain.io/wallet' })]
     },
     {
+        id: 'qwalla',
         name: 'Qwalla',
         url: 'https://qwalla.io',
         icon: 'assets/img/qwalla-icon.png',
         status: 'live',
-        blurb: t('content.projects.qwalla')
+        blurb: t('content.projects.qwalla'),
+        actions: [cta('appStore', { url: 'https://apps.apple.com/us/app/qwalla/id6794071016' }), cta('website', { url: 'https://qwalla.io' })],
+        spotlight: 4
     },
     {
-        name: 'AntiReddit',
-        url: 'https://antireddit.com',
-        icon: 'assets/img/antireddit-icon.png',
-        status: 'live',
-        blurb: t('content.projects.antireddit')
-    },
-    {
-        name: 'GltchRunner',
-        url: 'https://gltchrunner.com',
-        icon: 'assets/img/gltchrunner-icon.png',
-        status: 'live',
-        blurb: t('content.projects.gltchrunner')
-    },
-    {
+        id: 'xrge',
         name: 'XRGE',
         url: 'https://rougecoin.io',
         icon: 'assets/img/rougecoin-icon.png',
         status: 'live',
-        blurb: t('content.projects.xrge')
+        blurb: t('content.projects.xrge'),
+        actions: [cta('buy', { url: 'https://rougechain.io/buy' }), cta('learn', { url: 'https://rougecoin.io' })],
+        spotlight: 5
     },
     {
+        id: 'antireddit',
+        name: 'AntiReddit',
+        url: 'https://antireddit.com',
+        icon: 'assets/img/antireddit-icon.png',
+        status: 'live',
+        blurb: t('content.projects.antireddit'),
+        actions: [cta('join', { url: 'https://antireddit.com' })],
+        spotlight: 8
+    },
+    {
+        id: 'gltchrunner',
+        name: 'GltchRunner',
+        url: 'https://gltchrunner.com',
+        icon: 'assets/img/gltchrunner-icon.png',
+        status: 'live',
+        blurb: t('content.projects.gltchrunner'),
+        actions: [cta('create', { url: 'https://gltchrunner.com' })],
+        spotlight: 9
+    },
+    {
+        id: 'rougee',
         name: 'RouGee',
         url: 'https://rougee.app',
         icon: 'assets/img/rougee-icon.png',
         status: 'wip',
-        blurb: t('content.projects.rougee')
+        blurb: t('content.projects.rougee'),
+        actions: [cta('peek', { url: 'https://rougee.app' })]
     },
     {
+        id: 'qrougee',
         name: 'qRougee',
         url: 'https://music.rougee.app',
         icon: 'assets/img/music-icon.png',
         status: 'live',
-        blurb: t('content.projects.qrougee')
+        blurb: t('content.projects.qrougee'),
+        actions: [cta('listen', { url: 'https://music.rougee.app' })]
     },
     {
+        id: 'dreadOs',
         name: 'Dread_OS',
         url: 'https://github.com/rougecoin-project/cyberdread',
         icon: 'assets/img/folder-icon.png',
         status: 'live',
-        blurb: t('content.projects.dreadOs')
+        blurb: t('content.projects.dreadOs'),
+        actions: [cta('source', { url: 'https://github.com/rougecoin-project/cyberdread' })]
     }
 ];
+
+/** Projects in the home Spotlight, in order. */
+export const SPOTLIGHT = PROJECTS
+    .filter((project) => project.spotlight)
+    .sort((a, b) => a.spotlight - b.spotlight)
+    .map((project) => ({ ...project, pitch: t(`content.spotlight.${project.id}`) }));
 
 /**
  * Source repos, shown in the explorer's Repos folder and by the terminal's

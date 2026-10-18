@@ -9,7 +9,7 @@ import {
 } from './modules/system.js';
 import { initUIEventListeners, toggleStartMenu } from './modules/ui/common.js';
 import {
-    openExplorer, closeExplorer, showContent, hideContent,
+    openExplorer, closeExplorer, showContent, hideContent, openProjects, openWindow,
     initExplorerResize, renderExplorerContent, openImageViewer, closeImageViewer
 } from './modules/ui/explorer.js';
 import {
@@ -27,6 +27,7 @@ import { initTaskbar } from './modules/ui/taskbar.js';
 import { initNetrun, openNetrun, closeNetrun } from './modules/games/netrun.js';
 import { initTouch } from './modules/ui/touch.js';
 import { initTilt } from './modules/ui/tilt.js';
+import { initSpotlight } from './modules/ui/spotlight.js';
 
 /**
  * Opens the encrypted-access modal.
@@ -61,6 +62,7 @@ Object.assign(window, {
     initiateShutdown,
     toggleStartMenu,
     openExplorer,
+    openProjects,
     closeExplorer,
     showContent,
     hideContent,
@@ -96,6 +98,21 @@ document.addEventListener('playSound', event => {
     if (event.detail?.id) playSound(event.detail.id);
 });
 
+/**
+ * ?open=netrun (or projects, terminal, rougechain, music, settings, files)
+ * opens that window once the desktop is up, so a link can land on it.
+ */
+function openFromAddress() {
+    const name = new URLSearchParams(window.location.search).get('open');
+    if (!name) return;
+    const boot = document.getElementById('powerUpScreen');
+    const tryOpen = () => {
+        if (!boot || getComputedStyle(boot).display === 'none') openWindow(name);
+        else setTimeout(tryOpen, 300);
+    };
+    tryOpen();
+}
+
 /** Boots the desktop. */
 function initializeApp() {
     // Words first, then settings (accent tokens) before anything paints.
@@ -111,6 +128,7 @@ function initializeApp() {
     initTilt();
 
     renderExplorerContent();
+    initSpotlight();
     initExplorerResize();
     initMusicPlayerEventListeners();
     initTerminal();
@@ -119,6 +137,7 @@ function initializeApp() {
 
     initWalletEventListeners();
     initSwapEventListeners();
+    openFromAddress();
 }
 
 if (document.readyState === 'loading') {

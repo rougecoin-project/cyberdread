@@ -27,6 +27,7 @@ export default {
 
     // App names: desktop icons, Start menu, taskbar buttons
     apps: {
+        projects: 'Projects',
         files: 'Files',
         music: 'Music',
         settings: 'Settings',
@@ -56,6 +57,15 @@ export default {
         editing: 'Editing the home screen. Drag an icon to move it. Done to finish.',
         saved: 'Home screen saved.',
         homeButton: 'Home'
+    },
+
+    // The rotating project Spotlight on the home screen (js/modules/ui/spotlight.js)
+    spotlight: {
+        label: 'Spotlight',
+        kicker: 'Spotlight',
+        prev: 'Previous project',
+        next: 'Next project',
+        show: 'Show {name}'
     },
 
     // First-run tour (js/modules/ui/tooltips.js)
@@ -164,10 +174,13 @@ export default {
             intro: 'I see you made it — welcome to the liminal surface of dust that falls from the inner workings of my ICE server, {Dread_OS}.',
             work: 'I\'m a netrunner, and other things: a post-quantum Layer 1 with mainnet live (<a href="https://rougechain.io" target="_blank" rel="noopener noreferrer">RougeChain</a>), its encrypted wallet and messenger, now on the App Store (<a href="https://qwalla.io" target="_blank" rel="noopener noreferrer">Qwalla</a>), a forum that doesn\'t shadowban (<a href="https://antireddit.com" target="_blank" rel="noopener noreferrer">AntiReddit</a>), a gen-AI studio (<a href="https://gltchrunner.com" target="_blank" rel="noopener noreferrer">GltchRunner</a>), browser games, and music somewhere between synthwave and trap.',
             code: 'Six languages across 33 public repos — the source is on <a href="https://github.com/cyberdreadx" target="_blank" rel="noopener noreferrer">GitHub</a>. The stuff that pays the bills lives at <a href="https://brandonmenard.dev" target="_blank" rel="noopener noreferrer">brandonmenard.dev</a>.',
-            tip: 'Tip: open <strong>term.exe</strong> and type <code>help</code> — everything here is reachable from the shell too.'
+            tip: 'Tip: open <strong>term.exe</strong> and type <code>help</code> — everything here is reachable from the shell too.',
+            projects: 'See my projects →',
+            follow: 'Follow the signal'
         },
         projects: {
             title: 'Projects',
+            intro: 'Everything I make, and where to get it.',
             // Badges on the project tiles
             status: {
                 live: 'live',

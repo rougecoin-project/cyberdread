@@ -34,12 +34,23 @@ the music player and the RougeChain panel all read from it.
 | Bio, handle, tagline, OS version | `SITE` |
 | Social / external links | `LINKS` |
 | RougeChain copy, ecosystem apps, community links, buy links (Aerodrome, Coinbase) | `ROUGECHAIN` |
-| Project tiles (`status`: `live`, `wip`, `archived`) | `PROJECTS` |
+| Projects: cards, their call-to-action buttons (`actions`) and the home Spotlight (`spotlight`) | `PROJECTS` |
 | Music player tracks | `PLAYLIST` |
 | Token contract addresses | `TOKENS` |
 
 Adding a project is one entry in `PROJECTS`; it appears in the Projects folder
 and in the terminal's `projects` command automatically.
+
+Every project card ends in buttons that say what to do next (`actions`: Get
+issue 01, Download free, Play free, Jack in…); the first is the main one. An
+action is a link (`url`) or opens a Dread_OS window (`open: 'netrun'`).
+Projects with a `spotlight` number also rotate, in that order, through the
+**Spotlight** on the home screen (under the clock on phones, in the status
+card on desktop), each with a one-line pitch from `content.spotlight` in the
+dictionaries. The **Projects** icon leads the home screen and the Start menu.
+
+Links can land on a window: `?open=netrun` (or `projects`, `terminal`,
+`rougechain`, `music`, `settings`, `files`).
 
 ## Languages
 
@@ -90,6 +101,7 @@ js/
       tooltips.js             first-run tour
       touch.js                phone feel: drag to rearrange, swipe sheets, home gesture
       tilt.js                 tilt / mouse parallax: wallpaper and icons at different depths
+      spotlight.js            the rotating project Spotlight on the home screen
     games/
       netrun.js               netrun.exe window: practice + live runs
       netrun-rules.js         board generation and scoring (mirrors the contract)
