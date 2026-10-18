@@ -98,7 +98,7 @@ function reads too. Fonts are self-hosted in `dead-circuit/fonts/` (SIL OFL).
 
 Every word on the Dead Circuit pages lives in one file per language in
 [`dead-circuit/js/i18n/`](dead-circuit/js/i18n/): English (`en.js`, the
-source), Spanish, French, Italian, Portuguese (Brazil), Japanese,
+source), Spanish, French, Italian, Portuguese (Brazil), Russian, Japanese,
 Chinese (Simplified) and Arabic (right-to-left). Each page has a language
 picker; `?lang=es` links straight to a language, and otherwise the
 reader's browser language is used.
@@ -113,7 +113,7 @@ reader's browser language is used.
 
 ### How buyers get the PDF
 
-The PDF comes in **all eight languages**, and buyers get the edition for the
+The PDF comes in **all nine languages**, and buyers get the edition for the
 language they are reading the site in. The repo is public, so it holds only
 **encrypted** copies (`dead-circuit/sealed/issue-01.<lang>.pdf.enc`,
 AES-256-GCM), served as ordinary static files: without the key they are
@@ -128,7 +128,7 @@ English is a hand-laid **A4 portrait** edition (39 pages), sealed as is with
 DC_PDF_KEY=<64 hex> node tools/seal-dead-circuit-pdf.mjs en Dead-Circuit-Issue-01-EN-Vertical.pdf
 ```
 
-The other seven editions are rendered from the site's landscape spreads by
+The other eight editions are rendered from the site's landscape spreads by
 [`tools/build-dead-circuit-pdfs.mjs`](tools/build-dead-circuit-pdfs.mjs)
 through `/dead-circuit/print/?lang=xx`, with their fonts embedded. Run without
 arguments it skips English, so it never overwrites the portrait edition; name

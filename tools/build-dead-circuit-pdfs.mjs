@@ -11,8 +11,9 @@
  * Needs Playwright (`npm i -D playwright` or a global install) and, for the
  * Japanese, Chinese and Arabic editions, fonts with those scripts installed
  * on the machine (the Noto Sans/Serif JP and SC, Noto Kufi Arabic and Noto
- * Naskh Arabic families match the site's font stacks). PDFs embed the fonts,
- * so readers need nothing installed.
+ * Naskh Arabic families match the site's font stacks). Russian needs nothing
+ * extra: its Cyrillic fonts (Inter Tight, PT Serif) are self-hosted with the
+ * site. PDFs embed the fonts, so readers need nothing installed.
  *
  * Writes plain PDFs to ./dist-pdf/ (git-ignored, never commit them: the repo
  * is public) and sealed copies to dead-circuit/sealed/issue-01.<lang>.pdf.enc,

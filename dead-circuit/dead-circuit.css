@@ -2111,6 +2111,9 @@ s { text-decoration: line-through; }
 /* Tracking breaks Arabic's joined letters apart. */
 :lang(ar) * { letter-spacing: 0 !important; }
 
+/* «Апокалипсис» is a long word: a size that keeps it whole on a phone. */
+:lang(ru) .zine-cover h1 { font-size: min(46px, 11vw); }
+
 /* CJK and Arabic glyphs sit taller; give dense headlines a little air. */
 :lang(ja) h1, :lang(ja) h2, :lang(zh) h1, :lang(zh) h2,
 :lang(ar) h1, :lang(ar) h2 { line-height: 1.15; }
