@@ -18,6 +18,8 @@
  * Off when animations are off or the system asks for reduced motion.
  */
 
+import { t } from '../../i18n/i18n.js';
+
 const PERMISSION_KEY = 'dreados.tilt.permission'; // granted | denied | dismissed
 const CARD_KEY = 'dreados.gyro.card';              // the GYRO.SYS card was shown
 const WELCOME_KEY = 'dreados.tilt.welcomed';
@@ -208,9 +210,9 @@ function leave(el) {
 
 /** Why tilt can't run right now, or '' when it can. */
 function pausedReason() {
-    if (root.classList.contains('no-tilt')) return 'Tilt depth is off in Settings.';
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return 'Reduce Motion is on in your phone\u2019s settings.';
-    if (root.classList.contains('no-motion')) return 'Animations are off in Settings.';
+    if (root.classList.contains('no-tilt')) return t('ui.tilt.pausedSetting');
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return t('ui.tilt.pausedReduceMotion');
+    if (root.classList.contains('no-motion')) return t('ui.tilt.pausedAnimations');
     return '';
 }
 
@@ -222,12 +224,12 @@ function buildCard() {
     card.setAttribute('aria-labelledby', 'gyro-title');
     card.innerHTML = `<div class="gyro-visual">${GLYPH}</div>
         <div class="gyro-copy">
-          <p class="gyro-kicker">GYRO.SYS <span>// motion link</span></p>
-          <p class="gyro-title" id="gyro-title">Sync your tilt</p>
-          <p class="gyro-text">Let the grid follow your hands.</p>
+          <p class="gyro-kicker">GYRO.SYS <span>${t('ui.tilt.kickerAsk')}</span></p>
+          <p class="gyro-title" id="gyro-title">${t('ui.tilt.askTitle')}</p>
+          <p class="gyro-text">${t('ui.tilt.askText')}</p>
           <div class="gyro-actions">
-            <button type="button" class="gyro-sync"><span aria-hidden="true">◉</span> Sync</button>
-            <button type="button" class="gyro-later">Later</button>
+            <button type="button" class="gyro-sync"><span aria-hidden="true">◉</span> ${t('ui.tilt.sync')}</button>
+            <button type="button" class="gyro-later">${t('ui.tilt.later')}</button>
           </div>
         </div>`;
     document.body.append(card);
@@ -237,7 +239,7 @@ function buildCard() {
 /** The card's "no" ending: iOS refused, or tilt is paused. */
 function refuse(card, title, text) {
     card.classList.add('blocked');
-    card.querySelector('.gyro-kicker').innerHTML = 'GYRO.SYS <span>// link refused</span>';
+    card.querySelector('.gyro-kicker').innerHTML = `GYRO.SYS <span>${t('ui.tilt.kickerRefused')}</span>`;
     card.querySelector('.gyro-title').textContent = title;
     card.querySelector('.gyro-text').textContent = text;
     card.querySelector('.gyro-actions')?.remove();
@@ -251,7 +253,7 @@ function showGyroCard(force = false) {
     markCardSeen();
     const card = buildCard();
     if (!wanted()) {
-        refuse(card, 'Tilt paused', pausedReason());
+        refuse(card, t('ui.tilt.pausedTitle'), pausedReason());
         return;
     }
 
@@ -270,7 +272,7 @@ function showGyroCard(force = false) {
     card.querySelector('.gyro-sync').addEventListener('click', async () => {
         clearTimeout(idle);
         if (await askPermission()) calibrate(card);
-        else refuse(card, 'Motion blocked', 'Reopen the app, then tap Sync in Settings \u203a Tilt depth.');
+        else refuse(card, t('ui.tilt.blockedTitle'), t('ui.tilt.blockedReopen'));
     });
 }
 
@@ -280,16 +282,14 @@ function showRelinkChip() {
     const chip = document.createElement('button');
     chip.type = 'button';
     chip.className = 'gyro-chip gyro-relink';
-    chip.innerHTML = '<i aria-hidden="true"></i> TAP TO <b>RELINK GYRO</b>';
+    chip.innerHTML = `<i aria-hidden="true"></i> ${t('ui.tilt.chipRelink')}`;
     document.body.append(chip);
     const idle = setTimeout(() => leave(chip), 9000);
     chip.addEventListener('click', async () => {
         clearTimeout(idle);
         const ok = await askPermission();
         chip.classList.toggle('online', ok);
-        chip.innerHTML = ok
-            ? '<i aria-hidden="true"></i> GYRO LINK <b>ONLINE</b>'
-            : '<i aria-hidden="true"></i> GYRO LINK <b>REFUSED</b>';
+        chip.innerHTML = `<i aria-hidden="true"></i> ${t(ok ? 'ui.tilt.chipOnline' : 'ui.tilt.chipRefused')}`;
         setTimeout(() => leave(chip), 1800);
     }, { once: true });
 }
@@ -298,9 +298,9 @@ function showRelinkChip() {
 function calibrate(card) {
     card.classList.add('calibrating');
     card.querySelector('.gyro-visual').innerHTML = LEVEL;
-    card.querySelector('.gyro-kicker').innerHTML = 'GYRO.SYS <span>// calibrating</span>';
-    card.querySelector('.gyro-title').textContent = 'Link up';
-    card.querySelector('.gyro-text').textContent = 'Tilt to look around the grid.';
+    card.querySelector('.gyro-kicker').innerHTML = `GYRO.SYS <span>${t('ui.tilt.kickerCalibrating')}</span>`;
+    card.querySelector('.gyro-title').textContent = t('ui.tilt.calibratingTitle');
+    card.querySelector('.gyro-text').textContent = t('ui.tilt.calibratingText');
     card.querySelector('.gyro-actions').remove();
     bubble = card.querySelector('.gyro-bubble');
     const ring = card.querySelector('.gyro-progress');
@@ -313,9 +313,9 @@ function calibrate(card) {
         watchers.delete(watch);
         ring.style.strokeDashoffset = '0';
         card.classList.add('online');
-        card.querySelector('.gyro-kicker').innerHTML = 'GYRO.SYS <span>// online</span>';
-        card.querySelector('.gyro-title').textContent = 'Depth online ✦';
-        card.querySelector('.gyro-text').textContent = 'The grid moves with you now.';
+        card.querySelector('.gyro-kicker').innerHTML = `GYRO.SYS <span>${t('ui.tilt.kickerOnline')}</span>`;
+        card.querySelector('.gyro-title').textContent = t('ui.tilt.onlineTitle');
+        card.querySelector('.gyro-text').textContent = t('ui.tilt.onlineText');
         setTimeout(() => {
             bubble = null;
             leave(card);
@@ -343,7 +343,7 @@ function welcomeOnce() {
         const chip = document.createElement('div');
         chip.className = 'gyro-chip';
         chip.setAttribute('role', 'status');
-        chip.innerHTML = '<i aria-hidden="true"></i> GYRO LINK <b>ONLINE</b>';
+        chip.innerHTML = `<i aria-hidden="true"></i> ${t('ui.tilt.chipOnline')}`;
         document.body.append(chip);
         setTimeout(() => leave(chip), 2600);
     };
@@ -367,15 +367,15 @@ function renderStatus() {
     if (!line) return;
     const paused = pausedReason();
     let text;
-    if (paused) text = `Paused: ${paused}`;
-    else if (!isPhone() && finePointer()) text = 'Desktop: the wallpaper follows your mouse.';
-    else if (needsPermission() && !permitted) text = 'Not linked. Tap Sync to link your tilt.';
-    else if (linked) text = 'Linked \u2726 The grid moves with you.';
-    else text = 'Waiting for the motion sensor\u2026';
+    if (paused) text = t('ui.tilt.statusPaused', { reason: paused });
+    else if (!isPhone() && finePointer()) text = t('ui.tilt.statusDesktop');
+    else if (needsPermission() && !permitted) text = t('ui.tilt.statusNotLinked');
+    else if (linked) text = t('ui.tilt.statusLinked');
+    else text = t('ui.tilt.statusWaiting');
     line.textContent = text;
     if (button) {
         button.hidden = Boolean(paused) || (!isPhone() && finePointer());
-        button.textContent = linked ? '\u25c9 Recalibrate' : '\u25c9 Sync';
+        button.textContent = t(linked ? 'ui.tilt.buttonRecalibrate' : 'ui.tilt.buttonSync');
     }
 }
 
@@ -388,7 +388,7 @@ async function syncFromSettings() {
     markCardSeen();
     const card = buildCard();
     if (ok) calibrate(card);
-    else refuse(card, 'Motion blocked', 'iOS said no. Reopen the app and try Sync again.');
+    else refuse(card, t('ui.tilt.blockedTitle'), t('ui.tilt.blockedIos'));
 }
 
 /* ---------------------------------------------------------------- init */

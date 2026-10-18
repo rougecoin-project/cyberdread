@@ -488,7 +488,7 @@ function renderLiveScreen() {
     return panel(t('netrun.live.jackInTitle'), `
         <p>${t('netrun.live.jackInText', { fee: num(NETRUN.entryXrge), seconds: NETRUN.traceSeconds })}</p>
         <ul class="nr-pays">
-            ${DAEMON_NAMES.map((n, d) => `<li><span>${daemonName(d)}</span><b>+${DAEMON_REWARD[d]} SCRAP</b></li>`).join('')}
+            ${DAEMON_NAMES.map((_, d) => `<li><span>${daemonName(d)}</span><b>+${DAEMON_REWARD[d]} SCRAP</b></li>`).join('')}
             <li><span>${t('netrun.live.allThree')}</span><b>${t('netrun.live.implantNft')}</b></li>
         </ul>
         ${L.note ? `<p class="nr-note">${esc(L.note)}</p>` : ''}
@@ -506,8 +506,8 @@ function render() {
     const live = state.mode === 'live';
     const inv = state.inventory;
     const walletChip = state.player
-        ? `<span class="nr-chip" title="${esc(chain.walletName())}: ${esc(state.player)}"><i></i>${short(state.player)}${inv ? `${inv.scrap !== null ? ` · <b>${inv.scrap}</b> SCRAP` : ''}${inv.implants ? ` · ${inv.implants.length} Implant${inv.implants.length === 1 ? '' : 's'}` : ''}` : ''}</span>`
-        : (live || state.mode === 'top') && chain.isConfigured() ? '<button type="button" class="nr-chip nr-chip-btn" data-act="connect">Connect wallet</button>' : '';
+        ? `<span class="nr-chip" title="${esc(chain.walletName())}: ${esc(state.player)}"><i></i>${short(state.player)}${inv ? `${inv.scrap !== null ? ` · <b>${num(inv.scrap)}</b> SCRAP` : ''}${inv.implants ? ` · ${t('netrun.wallet.implants', { n: inv.implants.length })}` : ''}` : ''}</span>`
+        : (live || state.mode === 'top') && chain.isConfigured() ? `<button type="button" class="nr-chip nr-chip-btn" data-act="connect">${t('netrun.wallet.connect')}</button>` : '';
 
     let body;
     if (state.mode === 'top') {
@@ -524,10 +524,10 @@ function render() {
 
     root.innerHTML = `
     <div class="nr-top">
-        <div class="nr-tabs" role="tablist" aria-label="Mode">
-            <button type="button" role="tab" aria-selected="${state.mode === 'practice'}" data-act="to-practice">Practice</button>
-            <button type="button" role="tab" aria-selected="${live}" data-act="to-live">Live run <small>${esc(NETRUN.network.replace('RougeChain ', ''))}</small></button>
-            <button type="button" role="tab" aria-selected="${state.mode === 'top'}" data-act="to-top">Leaderboard</button>
+        <div class="nr-tabs" role="tablist" aria-label="${t('netrun.tabs.label')}">
+            <button type="button" role="tab" aria-selected="${state.mode === 'practice'}" data-act="to-practice">${t('netrun.tabs.practice')}</button>
+            <button type="button" role="tab" aria-selected="${live}" data-act="to-live">${t('netrun.tabs.live')} <small>${esc(netName(NETRUN.network.replace('RougeChain ', '')))}</small></button>
+            <button type="button" role="tab" aria-selected="${state.mode === 'top'}" data-act="to-top">${t('netrun.tabs.top')}</button>
         </div>
         ${walletChip}
     </div>

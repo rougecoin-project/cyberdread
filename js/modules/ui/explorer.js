@@ -3,6 +3,7 @@
  */
 import { playSound, SOUNDS } from '../sound.js';
 import { PROJECTS, LINKS, REPOS, GITHUB_USER } from '../../data/site-config.js';
+import { t } from '../../i18n/i18n.js';
 
 /** Opens the file explorer window. */
 export function openExplorer() {
@@ -80,7 +81,9 @@ function buildTile(entry) {
     if (entry.status) {
         const badge = document.createElement('span');
         badge.className = `status-badge status-${entry.status}`;
-        badge.textContent = entry.status;
+        const key = `ui.explorer.projects.status.${entry.status}`;
+        const label = t(key);
+        badge.textContent = label === key ? entry.status : label;
         tile.appendChild(badge);
     }
 
@@ -159,12 +162,12 @@ function buildRepoRow(repo) {
     }
     if (repo.stars) {
         const stars = document.createElement('span');
-        stars.textContent = `${repo.stars} stars`;
+        stars.textContent = t('ui.explorer.repos.stars', { n: repo.stars });
         meta.appendChild(stars);
     }
     if (repo.homepage) {
         const demo = document.createElement('span');
-        demo.textContent = 'live demo';
+        demo.textContent = t('ui.explorer.repos.demo');
         meta.appendChild(demo);
     }
 

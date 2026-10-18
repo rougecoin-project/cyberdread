@@ -1077,8 +1077,9 @@ select {
     .window-buttons button,
     .explorer-header .window-buttons button,
     .player-header .window-buttons button { width: 40px; height: 40px; min-width: 40px; min-height: 40px; font-size: 16px; border-radius: 12px; }
-    /* Sheets are already full-screen. */
-    .window-buttons button[aria-label="Maximize"] { display: none; }
+    /* Sheets are already full-screen. (Matched by its action, not its
+       aria-label, which is translated.) */
+    .window-buttons button[onclick^="toggleFullScreenWindow"] { display: none; }
     .explorer::after { display: none; }
 
     .terminal-window, .settings-window, .explorer, #rougeCoinInterface { width: auto; height: auto; }

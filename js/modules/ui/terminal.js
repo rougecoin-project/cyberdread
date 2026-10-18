@@ -227,7 +227,8 @@ const COMMANDS = {
                 [t('term.neofetch.screen'), `${window.screen.width}x${window.screen.height}`],
                 [t('term.neofetch.uptime'), t('term.neofetch.uptimeValue', { n: num(Math.floor(performance.now() / 1000)) })]
             ];
-            const width = Math.max(...fields.map(([label]) => label.length)) + 3;
+            // Nine columns, as the English always had, unless a label needs more.
+            const width = Math.max(9, ...fields.map(([label]) => label.length + 1));
             const facts = [
                 `${SITE.handle}@dread`,
                 '-----------------',

@@ -4,6 +4,7 @@
 import { playSound, SOUNDS } from './sound.js';
 import { showTooltips } from './ui/tooltips.js';
 import { SITE } from '../data/site-config.js';
+import { t, list } from '../i18n/i18n.js';
 
 const SEEN_KEY = 'dreados:booted';
 
@@ -26,10 +27,13 @@ export function initBootScreen() {
 
     const lines = [
         `${SITE.os} BIOS ${SITE.version}`,
-        `Build date: ${new Date(document.lastModified).toISOString().slice(0, 10)}`,
-        `Cores: ${navigator.hardwareConcurrency || 'unknown'}    Viewport: ${window.innerWidth}x${window.innerHeight}`,
-        'System check: OK',
-        'Memory test: PASSED'
+        t('ui.boot.buildDate', { date: new Date(document.lastModified).toISOString().slice(0, 10) }),
+        t('ui.boot.hardware', {
+            cores: navigator.hardwareConcurrency || t('ui.boot.coresUnknown'),
+            viewport: `${window.innerWidth}x${window.innerHeight}`
+        }),
+        t('ui.boot.systemCheck'),
+        t('ui.boot.memoryTest')
     ];
 
     bios.textContent = '';
@@ -40,7 +44,7 @@ export function initBootScreen() {
     });
 
     const button = document.getElementById('startButton');
-    if (button && returning) button.textContent = 'Reconnect';
+    if (button) button.textContent = t(returning ? 'ui.boot.reconnect' : 'ui.boot.start');
 }
 
 /** How long the BIOS lines stay up before the boot starts on its own. */
@@ -71,13 +75,7 @@ export function startSystem() {
 
     try { localStorage.setItem(SEEN_KEY, '1'); } catch { /* private mode */ }
 
-    const lines = [
-        'Initializing neural interface...',
-        'Connecting to cyberspace...',
-        'Loading ICE protocols...',
-        'Bypassing security...',
-        `Accessing ${SITE.os}...`
-    ];
+    const lines = list('ui.boot.steps').map(line => line.replace('{os}', SITE.os));
 
     const finish = () => {
         if (screen) screen.style.display = 'none';

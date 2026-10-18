@@ -5,15 +5,15 @@
  * it with real, persisted preferences.
  */
 import { playSound, SOUNDS, setMuted, isMuted } from '../sound.js';
-import { LANGS, LANG, switchLanguage } from '../../i18n/i18n.js';
+import { LANGS, LANG, switchLanguage, t } from '../../i18n/i18n.js';
 
 const STORAGE_KEY = 'dreados:settings';
 
 const THEMES = {
-    ice:     { label: 'ICE Cyan',   accent: '#00ffff', rgb: '0, 255, 255' },
-    acid:    { label: 'Acid Green', accent: '#39ff5c', rgb: '57, 255, 92' },
-    magenta: { label: 'Hot Pink',   accent: '#ff3ec8', rgb: '255, 62, 200' },
-    amber:   { label: 'Amber CRT',  accent: '#ffb000', rgb: '255, 176, 0' }
+    ice:     { label: t('ui.settings.themes.ice'),     accent: '#00ffff', rgb: '0, 255, 255' },
+    acid:    { label: t('ui.settings.themes.acid'),    accent: '#39ff5c', rgb: '57, 255, 92' },
+    magenta: { label: t('ui.settings.themes.magenta'), accent: '#ff3ec8', rgb: '255, 62, 200' },
+    amber:   { label: t('ui.settings.themes.amber'),   accent: '#ffb000', rgb: '255, 176, 0' }
 };
 
 const DEFAULTS = {

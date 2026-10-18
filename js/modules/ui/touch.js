@@ -14,6 +14,9 @@
  * phone sheet styles pin `transform: none !important`.
  */
 
+import { t } from '../../i18n/i18n.js';
+import enUi from '../../i18n/en/ui.js';
+
 const PHONE = '(max-width: 720px)';
 const LONG_PRESS_MS = 420;
 const SLOP = 8; // px a finger may wander before a press stops being a tap
@@ -51,7 +54,17 @@ function haptic() {
 
 /* ---------------------------------------------------------- home order */
 
-const labelOf = (icon) => icon.querySelector('.icon-label')?.textContent.trim() ?? '';
+/**
+ * An icon's name in the saved order: its English label whatever the
+ * language on screen, so the order survives a language switch (and orders
+ * saved before translations existed still apply).
+ */
+const labelOf = (icon) => {
+    const label = icon.querySelector('.icon-label');
+    const key = label?.dataset.i18n;
+    const english = key?.replace(/^ui\./, '').split('.').reduce((node, part) => node?.[part], enUi);
+    return typeof english === 'string' ? english : label?.textContent.trim() ?? '';
+};
 
 function readOrder() {
     try {
@@ -101,8 +114,8 @@ function initHomeScreen() {
     const bar = document.createElement('div');
     bar.className = 'home-edit-bar';
     bar.hidden = true;
-    bar.innerHTML = '<button type="button" class="home-edit-reset">Reset</button>'
-        + '<button type="button" class="home-edit-done">Done</button>';
+    bar.innerHTML = `<button type="button" class="home-edit-reset">${t('ui.home.reset')}</button>`
+        + `<button type="button" class="home-edit-done">${t('ui.home.done')}</button>`;
     const live = document.createElement('p');
     live.className = 'sr-only';
     live.setAttribute('aria-live', 'polite');
@@ -119,7 +132,7 @@ function initHomeScreen() {
         bar.hidden = !on;
         reset.hidden = isDefault();
         icons().forEach((icon, i) => icon.style.setProperty('--jiggle-delay', `${(i % 4) * -0.07 - (i % 3) * 0.05}s`));
-        live.textContent = on ? 'Editing the home screen. Drag an icon to move it. Done to finish.' : 'Home screen saved.';
+        live.textContent = t(on ? 'ui.home.editing' : 'ui.home.saved');
     }
 
     bar.querySelector('.home-edit-done').addEventListener('click', () => setEditing(false));
@@ -462,7 +475,7 @@ function initHomeBar() {
     const bar = document.createElement('button');
     bar.type = 'button';
     bar.className = 'home-bar';
-    bar.setAttribute('aria-label', 'Home');
+    bar.setAttribute('aria-label', t('ui.home.homeButton'));
     bar.innerHTML = '<i></i>';
     taskbar.append(bar);
     bar.addEventListener('click', goHome);
